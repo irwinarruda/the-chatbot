@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.Tasks.v1" Version="1.8.1.280" />
+    <PackageReference Include="Google.Apis.Tasks.v1" Version="1.65.0.3015" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.65.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
