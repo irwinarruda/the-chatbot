@@ -1,7 +1,4 @@
-using Google.Apis.Tasks.v1;
 using Microsoft.AspNetCore.Mvc;
-using TheChatbot.Dtos;
-using Google.Apis.Services;
 
 namespace TheChatbot.Controllers;
 
@@ -16,7 +13,6 @@ public class TestController : ControllerBase {
   }
 
   [HttpGet]
-  [HttpGet("user")]
   public ActionResult GetUserTasks() {
     var taskListId = "test";
     return Ok(taskListId);

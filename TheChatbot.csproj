@@ -7,9 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3806" />
     <PackageReference Include="Google.Apis.Tasks.v1" Version="1.65.0.3015" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.65.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.70.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Tests\**\*.cs" />
+    <None Remove="Tests\**\*" />
+  </ItemGroup>
 </Project>

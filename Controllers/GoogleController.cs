@@ -5,6 +5,9 @@ using Google.Apis.Tasks.v1;
 using Google.Apis.Services;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Caching.Memory;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource.UpdateRequest;
 
 namespace TheChatbot.Controllers;
 
@@ -12,12 +15,22 @@ namespace TheChatbot.Controllers;
 [Route("[controller]")]
 public class GoogleController : ControllerBase {
   readonly GoogleOAuthConfig googleConfig;
+  readonly GoogleSheetsConfig googleSheetsConfig;
   readonly GoogleTokenResponse? userToken;
   readonly IMemoryCache cache;
 
   public GoogleController(IConfiguration configuration, IMemoryCache _cache) {
     googleConfig = configuration.GetSection("GoogleOAuthConfig").Get<GoogleOAuthConfig>()!;
+    googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     cache = _cache;
+    _cache.Set("UserGoogleToken", new GoogleTokenResponse {
+      AccessToken = "",
+      RefreshToken = null,
+      TokenType = "Bearer",
+      ExpiresIn = 3598,
+      IdToken = "",
+      Scope = "openid https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive"
+    });
     _cache.TryGetValue("UserGoogleToken", out userToken);
   }
 
@@ -44,10 +57,11 @@ public class GoogleController : ControllerBase {
 
   [HttpGet("login")]
   public RedirectResult GetRedirect() {
+    var scopes = new List<string> { TasksService.Scope.Tasks, SheetsService.Scope.Spreadsheets, SheetsService.Scope.Drive, "openid email profile" };
     var queryParams = new Dictionary<string, string> {
       { "client_id", googleConfig.ClientId },
       { "response_type", "code" },
-      { "scope", "openid email profile https://www.googleapis.com/auth/tasks" },
+      { "scope", string.Join(" ", scopes)},
       { "redirect_uri", googleConfig.RedirectUri },
       { "access_type", "offline" }  // RefreshToken
     };
@@ -82,7 +96,7 @@ public class GoogleController : ControllerBase {
         return Ok("User not authenticated");
       }
       var credential = GoogleCredential.FromAccessToken(userToken.AccessToken);
-      var taskService = new TasksService(new BaseClientService.Initializer() {
+      var taskService = new TasksService(new BaseClientService.Initializer {
         HttpClientInitializer = credential,
         ApplicationName = "TheChatbot"
       });
@@ -94,4 +108,40 @@ public class GoogleController : ControllerBase {
       return StatusCode(500, $"Error accessing Google Tasks: {ex.Message}");
     }
   }
+
+  [HttpGet("sheet")]
+  public async Task<ActionResult> GetSpreadSheet() {
+    try {
+      if (userToken == null) {
+        return Ok("User not authenticated");
+      }
+      var credential = GoogleCredential.FromAccessToken(userToken.AccessToken);
+      var sheetsService = new SheetsService(new BaseClientService.Initializer {
+        HttpClientInitializer = credential,
+        ApplicationName = "TheChatbot",
+      });
+      var query = "Diário!A:G";
+      var id = googleSheetsConfig.MainId;
+      var tsheet = await sheetsService.Spreadsheets.Values.Get(id, query).ExecuteAsync();
+      var count = tsheet.Values.Count + 1;
+      query = $"Diário!B{count}";
+      var valueRange = new ValueRange {
+        Values = [["18/06/2025"]],
+      };
+      var request = sheetsService.Spreadsheets.Values.Update(valueRange, id, query);
+      request.ValueInputOption = ValueInputOptionEnum.USERENTERED;
+      await request.ExecuteAsync();
+      query = $"Diário!D{count}:G{count}";
+      valueRange = new ValueRange {
+        Values = [["-5,42", "Outros Alimentação", "Transferência Cassiel", "NuConta"]],
+      };
+      request = sheetsService.Spreadsheets.Values.Update(valueRange, id, query);
+      request.ValueInputOption = ValueInputOptionEnum.USERENTERED;
+      await request.ExecuteAsync();
+      return Ok(new { tsheet.Values.Count });
+    } catch (Exception ex) {
+      return Ok(ex.Message);
+    }
+  }
 }
+

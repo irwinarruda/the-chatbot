@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheChatbot", "TheChatbot.csproj", "{0296FE63-CDC8-4A3A-859E-433BAC66B68A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{95EEB7B0-D382-42AA-A395-C99CE1C932D7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{0296FE63-CDC8-4A3A-859E-433BAC66B68A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0296FE63-CDC8-4A3A-859E-433BAC66B68A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0296FE63-CDC8-4A3A-859E-433BAC66B68A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95EEB7B0-D382-42AA-A395-C99CE1C932D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95EEB7B0-D382-42AA-A395-C99CE1C932D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95EEB7B0-D382-42AA-A395-C99CE1C932D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95EEB7B0-D382-42AA-A395-C99CE1C932D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

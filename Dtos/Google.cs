@@ -11,6 +11,10 @@ public class GoogleOAuthConfig {
   public string RedirectUri { get; set; } = string.Empty;
 }
 
+public class GoogleSheetsConfig {
+  public string MainId { get; set; } = string.Empty;
+}
+
 public class GoogleTokenResponse {
   [JsonProperty("access_token")]
   public string? AccessToken { get; set; }
@@ -25,3 +29,4 @@ public class GoogleTokenResponse {
   [JsonProperty("scope")]
   public string? Scope { get; set; }
 }
+
