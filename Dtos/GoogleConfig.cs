@@ -13,6 +13,7 @@ public class GoogleOAuthConfig {
 
 public class GoogleSheetsConfig {
   public string MainId { get; set; } = string.Empty;
+  public string MainToken { get; set; } = string.Empty;
 }
 
 public class GoogleTokenResponse {

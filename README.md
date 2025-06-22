@@ -22,7 +22,7 @@
 - [ ] **Retrieve Data**
       Get the most recent entry. Calculate total spend for the current month.
 
-# Task Management
+## Task Management
 
 - [ ] **Create Task**
       Add a new task with timestamp under a given task list.

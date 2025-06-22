@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using TheChatbot.Dtos;
+using TheChatbot.Resources;
 using Google.Apis.Tasks.v1;
 using Google.Apis.Services;
 using Google.Apis.Auth.OAuth2;
@@ -18,8 +19,10 @@ public class GoogleController : ControllerBase {
   readonly GoogleSheetsConfig googleSheetsConfig;
   readonly GoogleTokenResponse? userToken;
   readonly IMemoryCache cache;
+  readonly IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
 
-  public GoogleController(IConfiguration configuration, IMemoryCache _cache) {
+  public GoogleController(IFinantialPlanningSpreadsheet _finantialPlanningSpreadsheet, IConfiguration configuration, IMemoryCache _cache) {
+    finantialPlanningSpreadsheet = _finantialPlanningSpreadsheet;
     googleConfig = configuration.GetSection("GoogleOAuthConfig").Get<GoogleOAuthConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     cache = _cache;
@@ -52,7 +55,11 @@ public class GoogleController : ControllerBase {
     var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(30));
     var token = JsonConvert.DeserializeObject<GoogleTokenResponse>(tokenResponseContent);
     cache.Set("UserGoogleToken", token, cacheOptions);
-    return Ok(token);
+    var acconuts = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
+      SheetId = googleSheetsConfig.MainId,
+      SheetAccessToken = token!.AccessToken!,
+    });
+    return Ok(acconuts);
   }
 
   [HttpGet("login")]
