@@ -3,11 +3,23 @@ using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 
+using TheChatbot.Dtos;
+
 namespace TheChatbot.Resources;
 
-public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
+public class TestGoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
+  readonly GoogleCredential credential;
+
+  public TestGoogleFinantialPlanningSpreadsheet(IConfiguration _configuration) {
+    var googleConfig = _configuration.GetSection("GoogleOAuthConfig").Get<GoogleOAuthConfig>()!;
+    var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
+      Scopes = [SheetsService.Scope.Spreadsheets],
+    };
+    initializer.FromPrivateKey(googleConfig.ServiceAccountPrivateKey);
+    credential = GoogleCredential.FromServiceAccountCredential(new ServiceAccountCredential(initializer));
+  }
+
   public async Task AddTransaction(AddTransactionDTO transaction) {
-    var credential = GoogleCredential.FromAccessToken(transaction.SheetAccessToken);
     var sheetsService = new SheetsService(new BaseClientService.Initializer {
       HttpClientInitializer = credential,
       ApplicationName = "TheChatbot",
@@ -44,7 +56,6 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   }
 
   public async Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
-    var credential = GoogleCredential.FromAccessToken(sheetConfig.SheetAccessToken);
     var sheetsService = new SheetsService(new BaseClientService.Initializer {
       HttpClientInitializer = credential,
       ApplicationName = "TheChatbot",
@@ -69,7 +80,6 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   }
 
   public async Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig) {
-    var credential = GoogleCredential.FromAccessToken(sheetConfig.SheetAccessToken);
     var sheetsService = new SheetsService(new BaseClientService.Initializer {
       HttpClientInitializer = credential,
       ApplicationName = "TheChatbot",
@@ -97,7 +107,6 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   }
 
   public async Task<List<string>> GetEarningCategories(SheetConfigDTO sheetConfig) {
-    var credential = GoogleCredential.FromAccessToken(sheetConfig.SheetAccessToken);
     var sheetsService = new SheetsService(new BaseClientService.Initializer {
       HttpClientInitializer = credential,
       ApplicationName = "TheChatbot",

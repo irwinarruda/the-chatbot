@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+
 using TheChatbot.Dtos;
 using TheChatbot.Resources;
 
@@ -17,16 +18,23 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
   }
 
   [Fact]
-  public async Task GetExpenseCategories() {
-    console.WriteLine(config.MainId);
+  public async Task GetExpenseCategoriesShouldWork() {
     var categories = await finantialPlanningSpreadsheet.GetExpenseCategories(new SheetConfigDTO {
       SheetId = config.MainId,
       SheetAccessToken = config.MainToken
     });
-    console.WriteLine("PLEEEEEASE");
-    console.WriteLine(string.Join(", ", categories));
     Assert.NotEmpty(categories);
-    Assert.Equal(61, categories.Count);
+    Assert.Equal(60, categories.Count);
+  }
+
+  [Fact]
+  public async Task GetEarningCategoriesShouldWork() {
+    var categories = await finantialPlanningSpreadsheet.GetEarningCategories(new SheetConfigDTO {
+      SheetId = config.MainId,
+      SheetAccessToken = config.MainToken
+    });
+    Assert.NotEmpty(categories);
+    Assert.Equal(11, categories.Count);
   }
 
   [Fact]
