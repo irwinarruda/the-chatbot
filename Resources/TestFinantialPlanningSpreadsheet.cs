@@ -6,7 +6,7 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
     new Transaction {
       SheetId = "uniqueId",
       Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
-      Value = 3000,
+      Value = 1000,
       Category = "Salário",
       Description = "Salário de Janeiro",
       BankAccount = "NuConta"
@@ -24,7 +24,7 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
       Date = DateTime.ParseExact("2025-01-04", "yyyy-MM-dd", null),
       Value = -120,
       Category = "Telefone, internet e TV",
-      Description = "Conta de internet TIM",
+      Description = "Conta de internet Vivo",
       BankAccount = "NuConta"
     },
     new Transaction {
@@ -32,7 +32,7 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
       Date = DateTime.ParseExact("2025-01-04", "yyyy-MM-dd", null),
       Value = -120.20,
       Category = "Telefone, internet e TV",
-      Description = "Conta do celular TIM",
+      Description = "Conta do celular Vivo",
       BankAccount = "NuConta"
     },
   ];
@@ -103,7 +103,8 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   public string GetSpreadSheetIdByUrl(string url) {
     if (!url.Contains("docs.google.com/spreadsheets")) throw new Exception("Invalid URL");
     var split = url.Split("/");
-    var id = split[5] ?? throw new Exception("Invalid URL");
+    var id = split[5];
+    if (string.IsNullOrEmpty(id)) throw new Exception("Invalid URL");
     return id;
   }
 }

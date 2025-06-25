@@ -67,7 +67,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
     category.ShouldNotBeNull();
     category.Date.ToString("dd/MM/yyyy").ShouldBe("04/01/2025");
     category.Value.ShouldBe(-120.20);
-    category.Description.ShouldBe("Conta do celular TIM");
+    category.Description.ShouldBe("Conta do celular Vivo");
   }
 
   [Fact]
@@ -93,5 +93,15 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
     lastTransaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
     lastTransaction.ShouldNotBeNull();
     lastTransaction.Description.ShouldNotBe(addExpense.Description);
+  }
+
+  [Fact]
+  public void GetSpreadSheetIdByUrl() {
+    Should.Throw<Exception>(() => finantialPlanningSpreadsheet.GetSpreadSheetIdByUrl("WrongURL"));
+    Should.Throw<Exception>(() => finantialPlanningSpreadsheet.GetSpreadSheetIdByUrl("http://"));
+    Should.Throw<Exception>(() => finantialPlanningSpreadsheet.GetSpreadSheetIdByUrl("https://docs.google.com/spreadsheets/d"));
+    Should.Throw<Exception>(() => finantialPlanningSpreadsheet.GetSpreadSheetIdByUrl("https://docs.google.com/spreadsheets/d/"));
+    var id = finantialPlanningSpreadsheet.GetSpreadSheetIdByUrl("https://docs.google.com/spreadsheets/d/newidhere/edit?gid=12345#gid=12345");
+    id.ShouldBe("newidhere");
   }
 }

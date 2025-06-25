@@ -77,7 +77,8 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   public string GetSpreadSheetIdByUrl(string url) {
     if (!url.Contains("docs.google.com/spreadsheets")) throw new Exception("Invalid URL");
     var split = url.Split("/");
-    var id = split[5] ?? throw new Exception("Invalid URL");
+    var id = split[5];
+    if (string.IsNullOrEmpty(id)) throw new Exception("Invalid URL");
     return id;
   }
 
