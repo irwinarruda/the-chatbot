@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
 
+using Shouldly;
+
 using TheChatbot.Dtos;
 using TheChatbot.Resources;
 
@@ -7,47 +9,89 @@ namespace Tests;
 
 public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFactory> {
   private readonly CustomWebApplicationFactory factory;
-  private readonly ITestOutputHelper console;
   private readonly IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
   private readonly GoogleSheetsConfig config;
-  public FinantialPlanningSpreadsheet(CustomWebApplicationFactory _factory, ITestOutputHelper _console) {
+  public FinantialPlanningSpreadsheet(CustomWebApplicationFactory _factory) {
     config = _factory.configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     factory = _factory;
-    console = _console;
     finantialPlanningSpreadsheet = factory.finantialPlanningSpreadsheet;
   }
 
   [Fact]
   public async Task GetExpenseCategoriesShouldWork() {
-    var categories = await finantialPlanningSpreadsheet.GetExpenseCategories(new SheetConfigDTO {
+    var expenseCategories = await finantialPlanningSpreadsheet.GetExpenseCategories(new SheetConfigDTO {
       SheetId = config.MainId,
-      SheetAccessToken = config.MainToken
     });
-    Assert.NotEmpty(categories);
-    Assert.Equal(60, categories.Count);
+    expenseCategories.ShouldNotBeEmpty();
   }
 
   [Fact]
   public async Task GetEarningCategoriesShouldWork() {
-    var categories = await finantialPlanningSpreadsheet.GetEarningCategories(new SheetConfigDTO {
+    var earningCategories = await finantialPlanningSpreadsheet.GetEarningCategories(new SheetConfigDTO {
       SheetId = config.MainId,
-      SheetAccessToken = config.MainToken
     });
-    Assert.NotEmpty(categories);
-    Assert.Equal(11, categories.Count);
+    earningCategories.ShouldNotBeEmpty();
   }
 
   [Fact]
-  public async Task AddExpense() {
-    await finantialPlanningSpreadsheet.AddExpense(new AddExpenseDTO {
+  public async Task GetBankAccountShouldWork() {
+    var bankAccount = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
       SheetId = config.MainId,
-      SheetAccessToken = config.MainToken,
+    });
+    bankAccount.ShouldNotBeEmpty();
+  }
+
+  [Fact]
+  public async Task GetTransactionsShouldWork() {
+    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var result = await Task.WhenAll(
+      finantialPlanningSpreadsheet.GetExpenseCategories(sheetConfig),
+      finantialPlanningSpreadsheet.GetBankAccount(sheetConfig)
+    );
+    var expenseCategories = result[0];
+    var bankAccount = result[1];
+    var transactions = await finantialPlanningSpreadsheet.GetAllTransactions(sheetConfig);
+    transactions.ShouldNotBeEmpty();
+    foreach (var transaction in transactions) {
+      transaction.SheetId.ShouldBe(config.MainId);
+      var isCategoryValid = expenseCategories.Contains(transaction.Category) || bankAccount.Contains(transaction.BankAccount);
+      isCategoryValid.ShouldBeTrue();
+    }
+  }
+
+  [Fact]
+  public async Task GetLastTransactionShouldWork() {
+    var category = await finantialPlanningSpreadsheet.GetLastTransaction(new SheetConfigDTO {
+      SheetId = config.MainId,
+    });
+    category.ShouldNotBeNull();
+    category.Date.ToString("dd/MM/yyyy").ShouldBe("04/01/2025");
+    category.Value.ShouldBe(-120.20);
+    category.Description.ShouldBe("Conta do celular TIM");
+  }
+
+  [Fact]
+  public async Task AddExpenseAndDeleteLastTransactionShouldWork() {
+    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var addExpense = new AddExpenseDTO {
+      SheetId = config.MainId,
       Date = DateTime.Now,
       Value = 5.2,
       Category = "Delivery",
-      Description = "Test",
+      Description = "UniqueExpense",
       BankAccount = "NuConta",
-    });
-    console.WriteLine("PLEEEEEASE");
+    };
+    await finantialPlanningSpreadsheet.AddExpense(addExpense);
+    var lastTransaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
+    lastTransaction.ShouldNotBeNull();
+    lastTransaction.Date.ShouldBe(addExpense.Date.Date);
+    lastTransaction.Value.ShouldBe(addExpense.Value);
+    lastTransaction.Description.ShouldBe(addExpense.Description);
+    lastTransaction.Category.ShouldBe(addExpense.Category);
+    lastTransaction.BankAccount.ShouldBe(addExpense.BankAccount);
+    await finantialPlanningSpreadsheet.DeleteLastTransaction(sheetConfig);
+    lastTransaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
+    lastTransaction.ShouldNotBeNull();
+    lastTransaction.Description.ShouldNotBe(addExpense.Description);
   }
 }

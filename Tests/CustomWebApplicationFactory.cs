@@ -17,7 +17,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program> {
       .AddJsonFile("appsettings.json", optional: false)
       .AddJsonFile("appsettings.Development.json", optional: false)
       .Build();
-    finantialPlanningSpreadsheet = new TestGoogleFinantialPlanningSpreadsheet(configuration);
+    // finantialPlanningSpreadsheet = new GoogleFinantialPlanningSpreadsheet(configuration);
+    finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet();
   }
   protected override IHost CreateHost(IHostBuilder builder) {
     builder.ConfigureAppConfiguration((context, configBuilder) => {

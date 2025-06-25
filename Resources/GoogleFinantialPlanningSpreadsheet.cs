@@ -3,15 +3,37 @@ using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 
+using TheChatbot.Dtos;
+
 namespace TheChatbot.Resources;
 
 public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
-  public async Task AddTransaction(AddTransactionDTO transaction) {
-    var credential = GoogleCredential.FromAccessToken(transaction.SheetAccessToken);
-    var sheetsService = new SheetsService(new BaseClientService.Initializer {
+  private readonly GoogleOAuthConfig googleConfig;
+  private GoogleCredential credential;
+  private SheetsService sheetsService;
+
+  public GoogleFinantialPlanningSpreadsheet(IConfiguration _configuration) {
+    googleConfig = _configuration.GetSection("GoogleOAuthConfig").Get<GoogleOAuthConfig>()!;
+    var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
+      Scopes = [SheetsService.Scope.Spreadsheets],
+    };
+    initializer.FromPrivateKey(googleConfig.ServiceAccountPrivateKey);
+    credential = GoogleCredential.FromServiceAccountCredential(new ServiceAccountCredential(initializer));
+    sheetsService = new SheetsService(new BaseClientService.Initializer {
       HttpClientInitializer = credential,
       ApplicationName = "TheChatbot",
     });
+  }
+
+  public void FromAccessToken(string accessToken) {
+    credential = GoogleCredential.FromAccessToken(accessToken);
+    sheetsService = new SheetsService(new BaseClientService.Initializer {
+      HttpClientInitializer = credential,
+      ApplicationName = "TheChatbot",
+    });
+  }
+
+  public async Task AddTransaction(AddTransactionDTO transaction) {
     var query = "Diário!A:G";
     var sheet = await sheetsService.Spreadsheets.Values.Get(transaction.SheetId, query).ExecuteAsync();
     var nextLine = sheet.Values.Count + 1;
@@ -33,47 +55,57 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   }
 
   public async Task AddExpense(AddExpenseDTO expense) {
+    await Task.Delay(1000);
     expense.Value = Math.Abs(expense.Value) * -1;
     await AddTransaction(expense);
   }
 
+  public async Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
+    var query = "Diário!A:G";
+    var sheet = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync();
+    var lastItemLine = sheet.Values.Count;
+    var batch = new BatchUpdateValuesRequest {
+      Data = [
+        new ValueRange { Values = [[""]], Range = $"Diário!B{lastItemLine}" },
+        new ValueRange { Values = [["", "", "", ""]], Range = $"Diário!D{lastItemLine}:G{lastItemLine}"  },
+      ],
+      ValueInputOption = "USER_ENTERED",
+    };
+    await sheetsService.Spreadsheets.Values.BatchUpdate(batch, sheetConfig.SheetId).ExecuteAsync();
+  }
+
   public string GetSpreadSheetIdByUrl(string url) {
+    if (!url.Contains("docs.google.com/spreadsheets")) throw new Exception("Invalid URL");
     var split = url.Split("/");
     var id = split[5] ?? throw new Exception("Invalid URL");
     return id;
   }
 
+  public async Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig) {
+    var query = "Diário!B3:G";
+    var result = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync();
+    if (result == null || result.Values == null) {
+      throw new Exception("There is something wrong with your Spreadsheet");
+    }
+    return [..result.Values.Where(row => row != null && row.Count >= 5).Select((row) => {
+      return new Transaction {
+        SheetId = sheetConfig.SheetId,
+        Date = DateTime.ParseExact(row[0]?.ToString() ?? "", "dd/MM/yyyy", null),
+        Value = double.Parse(row[2]?.ToString()?.Replace("R$ ", "")?.Replace(".", "")?.Replace(",", ".") ?? ""),
+        Category = row[3]?.ToString() ?? "",
+        Description = row[4]?.ToString() ?? "",
+        BankAccount = row[5]?.ToString() ?? ""
+      };
+    })];
+  }
+
   public async Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
-    var credential = GoogleCredential.FromAccessToken(sheetConfig.SheetAccessToken);
-    var sheetsService = new SheetsService(new BaseClientService.Initializer {
-      HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot",
-    });
-    var query = "Diário!B:G";
-    var sheet = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync();
-    if (sheet == null || sheet.Values == null) {
-      throw new Exception("There is something wrong with your SpreadSheet");
-    }
-    if (sheet.Values.Count == 0) {
-      return null;
-    }
-    var lastRow = sheet.Values[^1];
-    return new Transaction {
-      SheetId = sheetConfig.SheetId,
-      Date = DateTime.ParseExact(lastRow[0]?.ToString() ?? "", "dd/MM/yyyy", null),
-      Value = double.Parse(lastRow[2]?.ToString()?.Replace(",", ".") ?? ""),
-      Category = lastRow[3]?.ToString() ?? "",
-      Description = lastRow[4]?.ToString() ?? "",
-      BankAccount = lastRow[5]?.ToString() ?? ""
-    };
+    var transactions = await GetAllTransactions(sheetConfig);
+    var lastTransaction = transactions[^1];
+    return lastTransaction;
   }
 
   public async Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig) {
-    var credential = GoogleCredential.FromAccessToken(sheetConfig.SheetAccessToken);
-    var sheetsService = new SheetsService(new BaseClientService.Initializer {
-      HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot",
-    });
     var sheet = sheetsService.Spreadsheets.Values.BatchGet(sheetConfig.SheetId);
     sheet.Ranges = new List<string> {
       "DADOS Gerais + Plano de Contas!D9:D12",
@@ -97,11 +129,6 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   }
 
   public async Task<List<string>> GetEarningCategories(SheetConfigDTO sheetConfig) {
-    var credential = GoogleCredential.FromAccessToken(sheetConfig.SheetAccessToken);
-    var sheetsService = new SheetsService(new BaseClientService.Initializer {
-      HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot",
-    });
     var sheet = sheetsService.Spreadsheets.Values.BatchGet(sheetConfig.SheetId);
     sheet.Ranges = new List<string> {
       "DADOS Gerais + Plano de Contas!B9:B14",
@@ -121,11 +148,6 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   }
 
   public async Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig) {
-    var credential = GoogleCredential.FromAccessToken(sheetConfig.SheetAccessToken);
-    var sheetsService = new SheetsService(new BaseClientService.Initializer {
-      HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot",
-    });
     var result = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, "DADOS Gerais + Plano de Contas!F9:F24").ExecuteAsync();
     if (result == null || result.Values == null) {
       throw new Exception("There is something wrong with your SpreadSheet");

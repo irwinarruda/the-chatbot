@@ -1,5 +1,3 @@
-using System.CodeDom;
-
 namespace TheChatbot.Resources;
 
 public class Transaction {
@@ -12,7 +10,7 @@ public class Transaction {
 }
 
 public class AddTransactionDTO : Transaction {
-  public required string SheetAccessToken { get; set; }
+  public string SheetAccessToken { get; set; } = string.Empty;
 }
 
 public class AddExpenseDTO : AddTransactionDTO { }
@@ -21,17 +19,20 @@ public class AddEarningDTO : AddTransactionDTO { }
 
 public class SheetConfigDTO {
   public required string SheetId { get; set; }
-  public required string SheetAccessToken { get; set; }
+  public string SheetAccessToken { get; set; } = string.Empty;
 }
 
 
 public interface IFinantialPlanningSpreadsheet {
+  void FromAccessToken(string accessToken);
   Task AddTransaction(AddTransactionDTO transaction);
   Task AddExpense(AddExpenseDTO expense);
   Task AddEarning(AddEarningDTO earning);
   string GetSpreadSheetIdByUrl(string url);
+  Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig);
   Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig);
   Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig);
   Task<List<string>> GetEarningCategories(SheetConfigDTO sheetConfig);
   Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig);
+  Task DeleteLastTransaction(SheetConfigDTO sheetConfig);
 }
