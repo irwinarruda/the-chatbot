@@ -28,11 +28,11 @@ public interface IFinantialPlanningSpreadsheet {
   Task AddTransaction(AddTransactionDTO transaction);
   Task AddExpense(AddExpenseDTO expense);
   Task AddEarning(AddEarningDTO earning);
+  Task DeleteLastTransaction(SheetConfigDTO sheetConfig);
   string GetSpreadSheetIdByUrl(string url);
   Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig);
   Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig);
   Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig);
   Task<List<string>> GetEarningCategories(SheetConfigDTO sheetConfig);
   Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig);
-  Task DeleteLastTransaction(SheetConfigDTO sheetConfig);
 }

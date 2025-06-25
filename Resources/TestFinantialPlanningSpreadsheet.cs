@@ -1,4 +1,3 @@
-
 namespace TheChatbot.Resources;
 
 public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
@@ -37,14 +36,8 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
     },
   ];
 
-  public async Task AddEarning(AddEarningDTO earning) {
-    earning.Value = Math.Abs(earning.Value);
-    await AddTransaction(earning);
-  }
-
-  public async Task AddExpense(AddExpenseDTO expense) {
-    expense.Value = Math.Abs(expense.Value) * -1;
-    await AddTransaction(expense);
+  public void FromAccessToken(string accessToken) {
+    throw new NotImplementedException();
   }
 
   public Task AddTransaction(AddTransactionDTO transaction) {
@@ -61,23 +54,42 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
     return Task.CompletedTask;
   }
 
+  public async Task AddExpense(AddExpenseDTO expense) {
+    expense.Value = Math.Abs(expense.Value) * -1;
+    await AddTransaction(expense);
+  }
+
+  public async Task AddEarning(AddEarningDTO earning) {
+    earning.Value = Math.Abs(earning.Value);
+    await AddTransaction(earning);
+  }
+
   public Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
     transactions.RemoveAt(transactions.Count - 1);
     return Task.CompletedTask;
   }
 
-  public void FromAccessToken(string accessToken) {
-    throw new NotImplementedException();
+  public string GetSpreadSheetIdByUrl(string url) {
+    if (!url.Contains("docs.google.com/spreadsheets")) throw new Exception("Invalid URL");
+    var split = url.Split("/");
+    var id = split[5];
+    if (string.IsNullOrEmpty(id)) throw new Exception("Invalid URL");
+    return id;
   }
 
   public Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig) {
     return Task.FromResult(transactions);
   }
 
-  public Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig) {
+  public Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
+    var lastTransaction = transactions[^1];
+    return Task.FromResult<Transaction?>(lastTransaction);
+  }
+
+  public Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig) {
     return Task.FromResult(new List<string> {
-      "NuConta",
-      "Caju"
+      "Telefone, internet e TV",
+      "Delivery"
     });
   }
 
@@ -88,23 +100,10 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
     });
   }
 
-  public Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig) {
+  public Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig) {
     return Task.FromResult(new List<string> {
-      "Telefone, internet e TV",
-      "Delivery"
+      "NuConta",
+      "Caju"
     });
-  }
-
-  public Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
-    var lastTransaction = transactions[^1];
-    return Task.FromResult<Transaction?>(lastTransaction);
-  }
-
-  public string GetSpreadSheetIdByUrl(string url) {
-    if (!url.Contains("docs.google.com/spreadsheets")) throw new Exception("Invalid URL");
-    var split = url.Split("/");
-    var id = split[5];
-    if (string.IsNullOrEmpty(id)) throw new Exception("Invalid URL");
-    return id;
   }
 }

@@ -49,15 +49,15 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
     await sheetsService.Spreadsheets.Values.BatchUpdate(batch, transaction.SheetId).ExecuteAsync();
   }
 
-  public async Task AddEarning(AddEarningDTO earning) {
-    earning.Value = Math.Abs(earning.Value);
-    await AddTransaction(earning);
-  }
-
   public async Task AddExpense(AddExpenseDTO expense) {
     await Task.Delay(1000);
     expense.Value = Math.Abs(expense.Value) * -1;
     await AddTransaction(expense);
+  }
+
+  public async Task AddEarning(AddEarningDTO earning) {
+    earning.Value = Math.Abs(earning.Value);
+    await AddTransaction(earning);
   }
 
   public async Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
