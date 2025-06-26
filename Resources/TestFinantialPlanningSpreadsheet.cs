@@ -1,40 +1,7 @@
 namespace TheChatbot.Resources;
 
 public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
-  static readonly List<Transaction> transactions = [
-    new Transaction {
-      SheetId = "uniqueId",
-      Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
-      Value = 1000,
-      Category = "Salário",
-      Description = "Salário de Janeiro",
-      BankAccount = "NuConta"
-    },
-    new Transaction {
-      SheetId = "uniqueId",
-      Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
-      Value = 600,
-      Category = "Salário",
-      Description = "Vale alimentação",
-      BankAccount = "Caju"
-    },
-    new Transaction {
-      SheetId = "uniqueId",
-      Date = DateTime.ParseExact("2025-01-04", "yyyy-MM-dd", null),
-      Value = -120,
-      Category = "Telefone, internet e TV",
-      Description = "Conta de internet Vivo",
-      BankAccount = "NuConta"
-    },
-    new Transaction {
-      SheetId = "uniqueId",
-      Date = DateTime.ParseExact("2025-01-04", "yyyy-MM-dd", null),
-      Value = -120.20,
-      Category = "Telefone, internet e TV",
-      Description = "Conta do celular Vivo",
-      BankAccount = "NuConta"
-    },
-  ];
+  static readonly List<Transaction> transactions = [];
 
   public void FromAccessToken(string accessToken) {
     throw new NotImplementedException();
@@ -65,6 +32,7 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   }
 
   public Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
+    if (transactions.Count == 0) throw new Exception("There is no transaction to be deleted");
     transactions.RemoveAt(transactions.Count - 1);
     return Task.CompletedTask;
   }
@@ -82,6 +50,7 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   }
 
   public Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
+    if (transactions.Count == 0) return Task.FromResult<Transaction?>(null);
     var lastTransaction = transactions[^1];
     return Task.FromResult<Transaction?>(lastTransaction);
   }

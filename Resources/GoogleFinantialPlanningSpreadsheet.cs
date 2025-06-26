@@ -35,7 +35,10 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
 
   public async Task AddTransaction(AddTransactionDTO transaction) {
     var query = "Diário!A:G";
-    var sheet = await sheetsService.Spreadsheets.Values.Get(transaction.SheetId, query).ExecuteAsync();
+    var sheet = await sheetsService.Spreadsheets.Values.Get(transaction.SheetId, query).ExecuteAsync() ?? throw new Exception("There is something wrong with your Spreadsheet");
+    if (sheet.Values == null || sheet.Values.Count == 0) {
+      throw new Exception("There are no items to be deleted");
+    }
     var nextLine = sheet.Values.Count + 1;
     var transactionDate = transaction.Date.ToString("dd/MM/yyyy");
     var transactionValue = transaction.Value.ToString().Replace(".", ",");
@@ -50,7 +53,6 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
   }
 
   public async Task AddExpense(AddExpenseDTO expense) {
-    await Task.Delay(1000);
     expense.Value = Math.Abs(expense.Value) * -1;
     await AddTransaction(expense);
   }
@@ -62,8 +64,12 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
 
   public async Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
     var query = "Diário!A:G";
-    var sheet = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync();
+    var sheet = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync() ?? throw new Exception("There is something wrong with your Spreadsheet");
+    if (sheet.Values == null || sheet.Values.Count == 0) {
+      throw new Exception("There are no items to be deleted");
+    }
     var lastItemLine = sheet.Values.Count;
+    if (lastItemLine <= 2) throw new Exception("There are no items to be deleted");
     var batch = new BatchUpdateValuesRequest {
       Data = [
         new ValueRange { Values = [[""]], Range = $"Diário!B{lastItemLine}" },
@@ -84,9 +90,9 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
 
   public async Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig) {
     var query = "Diário!B3:G";
-    var result = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync();
-    if (result == null || result.Values == null) {
-      throw new Exception("There is something wrong with your Spreadsheet");
+    var result = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync() ?? throw new Exception("There is something wrong with your Spreadsheet");
+    if (result.Values == null || result.Values.Count == 0) {
+      return [];
     }
     return [..result.Values.Where(row => row != null && row.Count >= 5).Select((row) => {
       return new Transaction {
@@ -102,6 +108,7 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
 
   public async Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
     var transactions = await GetAllTransactions(sheetConfig);
+    if (transactions.Count == 0) return null;
     var lastTransaction = transactions[^1];
     return lastTransaction;
   }
