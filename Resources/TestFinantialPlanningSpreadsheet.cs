@@ -1,14 +1,19 @@
+using TheChatbot.Infra;
+
 namespace TheChatbot.Resources;
 
 public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   static readonly List<Transaction> transactions = [];
+  private const string ValidSheetId = "uniqueId";
 
   public void FromAccessToken(string accessToken) {
     throw new NotImplementedException();
   }
 
   public Task AddTransaction(AddTransactionDTO transaction) {
-    if (transaction.SheetId != "uniqueId") throw new Exception("The sheet does not exist.");
+    if (transaction.SheetId != ValidSheetId) {
+      throw new ServiceException(cause: null, "The provided sheet ID is not valid");
+    }
     var newTransaction = new Transaction {
       SheetId = transaction.SheetId,
       Date = transaction.Date.Date,
@@ -32,30 +37,39 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   }
 
   public Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
-    if (transactions.Count == 0) throw new Exception("There is no transaction to be deleted");
+    if (sheetConfig.SheetId != ValidSheetId) {
+      throw new ServiceException(cause: null, "The provided sheet ID is not valid");
+    }
+    if (transactions.Count == 0) {
+      throw new ValidationException(
+        "There are no items to be deleted",
+        "Verify if deleting is the correct operation"
+      );
+    }
     transactions.RemoveAt(transactions.Count - 1);
     return Task.CompletedTask;
   }
 
-  public string GetSpreadSheetIdByUrl(string url) {
-    if (!url.Contains("docs.google.com/spreadsheets")) throw new Exception("Invalid URL");
-    var split = url.Split("/");
-    var id = split[5];
-    if (string.IsNullOrEmpty(id)) throw new Exception("Invalid URL");
-    return id;
-  }
-
   public Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig) {
+    if (sheetConfig.SheetId != ValidSheetId) {
+      throw new ServiceException(cause: null, "The provided sheet ID is not valid");
+    }
     return Task.FromResult(transactions);
   }
 
   public Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
+    if (sheetConfig.SheetId != ValidSheetId) {
+      throw new ServiceException(cause: null, "The provided sheet ID is not valid");
+    }
     if (transactions.Count == 0) return Task.FromResult<Transaction?>(null);
     var lastTransaction = transactions[^1];
     return Task.FromResult<Transaction?>(lastTransaction);
   }
 
   public Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig) {
+    if (sheetConfig.SheetId != ValidSheetId) {
+      throw new ServiceException(cause: null, "The provided sheet ID is not valid");
+    }
     return Task.FromResult(new List<string> {
       "Telefone, internet e TV",
       "Delivery"
@@ -63,6 +77,9 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   }
 
   public Task<List<string>> GetEarningCategories(SheetConfigDTO sheetConfig) {
+    if (sheetConfig.SheetId != ValidSheetId) {
+      throw new ServiceException(cause: null, "The provided sheet ID is not valid");
+    }
     return Task.FromResult(new List<string> {
       "Salário",
       "Outras Receitas"
@@ -70,9 +87,24 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   }
 
   public Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig) {
+    if (sheetConfig.SheetId != ValidSheetId) {
+      throw new ServiceException(cause: null, "The provided sheet ID is not valid");
+    }
     return Task.FromResult(new List<string> {
       "NuConta",
       "Caju"
     });
+  }
+
+  public string GetSpreadSheetIdByUrl(string url) {
+    if (!url.Contains("docs.google.com/spreadsheets")) ThrowWrongUrlException();
+    var split = url.Split("/");
+    var id = split[5];
+    if (string.IsNullOrEmpty(id)) ThrowWrongUrlException();
+    return id;
+
+    static void ThrowWrongUrlException() {
+      throw new ValidationException("Invalid url", "Please provide a valid Google Sheets URL");
+    }
   }
 }

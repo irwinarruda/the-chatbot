@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Shouldly;
 
 using TheChatbot.Dtos;
+using TheChatbot.Infra;
 using TheChatbot.Resources;
 
 using Xunit.v3.Priority;
@@ -27,7 +28,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
     transactions.ShouldBeEmpty();
     var transaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
     transaction.ShouldBeNull();
-    await Should.ThrowAsync<Exception>(async () => await finantialPlanningSpreadsheet.DeleteLastTransaction(sheetConfig));
+    await Should.ThrowAsync<ValidationException>(() => finantialPlanningSpreadsheet.DeleteLastTransaction(sheetConfig));
   }
 
   [Fact, Priority(2)]
@@ -73,17 +74,17 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
         SheetId = config.MainId,
         Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
         Value = 1000,
-        Category = "Salário",
-        Description = "Salário de Janeiro",
+        Category = "Supermercado",
+        Description = "Compras do mês",
         BankAccount = "NuConta"
       },
       new() {
         SheetId = config.MainId,
         Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
         Value = 600,
-        Category = "Salário",
-        Description = "Vale alimentação",
-        BankAccount = "Caju"
+        Category = "Seguro do carro",
+        Description = "Seguro do meu carro",
+        BankAccount = "NuConta"
       },
     };
     foreach (var newTransaction in newTransactions) {
@@ -103,27 +104,48 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
   }
 
   [Fact]
+  public async Task GetWorngSheetIdShouldNotWork() {
+    var sheetConfig = new SheetConfigDTO { SheetId = "WrongSheet" };
+    var transactionDTO = new AddTransactionDTO {
+      BankAccount = "",
+      Category = "",
+      Description = "",
+      SheetId = "WrongSheet"
+    };
+    await Should.ThrowAsync<ServiceException>(() => finantialPlanningSpreadsheet.GetAllTransactions(sheetConfig));
+    await Should.ThrowAsync<ServiceException>(() => finantialPlanningSpreadsheet.DeleteLastTransaction(sheetConfig));
+    await Should.ThrowAsync<ServiceException>(() => finantialPlanningSpreadsheet.AddTransaction(transactionDTO));
+  }
+
+  [Fact]
   public async Task GetExpenseCategoriesShouldWork() {
-    var expenseCategories = await finantialPlanningSpreadsheet.GetExpenseCategories(new SheetConfigDTO {
-      SheetId = config.MainId,
-    });
+    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var expenseCategories = await finantialPlanningSpreadsheet.GetExpenseCategories(sheetConfig);
     expenseCategories.ShouldNotBeEmpty();
+    sheetConfig.SheetId = "WrongSheet";
+    await Should.ThrowAsync<ServiceException>(() => finantialPlanningSpreadsheet.GetExpenseCategories(sheetConfig));
   }
 
   [Fact]
   public async Task GetEarningCategoriesShouldWork() {
+    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
     var earningCategories = await finantialPlanningSpreadsheet.GetEarningCategories(new SheetConfigDTO {
       SheetId = config.MainId,
     });
     earningCategories.ShouldNotBeEmpty();
+    sheetConfig.SheetId = "WrongSheet";
+    await Should.ThrowAsync<ServiceException>(() => finantialPlanningSpreadsheet.GetEarningCategories(sheetConfig));
   }
 
   [Fact]
   public async Task GetBankAccountShouldWork() {
+    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
     var bankAccount = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
       SheetId = config.MainId,
     });
     bankAccount.ShouldNotBeEmpty();
+    sheetConfig.SheetId = "WrongSheet";
+    await Should.ThrowAsync<ServiceException>(() => finantialPlanningSpreadsheet.GetEarningCategories(sheetConfig));
   }
 
   [Fact]
