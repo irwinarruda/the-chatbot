@@ -226,4 +226,5 @@ AppPackages/
 #####
 
 appsettings.*.json
+!appsettings.Development.json
 the-chatbot.json

@@ -12,13 +12,17 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program> {
   readonly public IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
   readonly public IConfiguration configuration;
   public CustomWebApplicationFactory() {
+    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
     configuration = new ConfigurationBuilder()
       .SetBasePath(Directory.GetCurrentDirectory())
       .AddJsonFile("appsettings.json", optional: false)
-      .AddJsonFile("appsettings.Development.json", optional: false)
+      .AddJsonFile($"appsettings.{env}.json", optional: true)
       .Build();
-    // finantialPlanningSpreadsheet = new GoogleFinantialPlanningSpreadsheet(configuration);
-    finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet();
+    if (env == "Development") {
+      finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet();
+    } else {
+      finantialPlanningSpreadsheet = new GoogleFinantialPlanningSpreadsheet(configuration);
+    }
   }
   protected override IHost CreateHost(IHostBuilder builder) {
     builder.ConfigureAppConfiguration((context, configBuilder) => {
