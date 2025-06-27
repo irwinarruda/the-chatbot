@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 
 using Shouldly;
 
-using TheChatbot.Dtos;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 
@@ -23,7 +22,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact, Priority(1)]
   public async Task GetAndDeleteTransactionShouldNotWorkWithoutData() {
-    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var sheetConfig = new SheetConfigDTO { SheetId = config.TestSheetId };
     var transactions = await finantialPlanningSpreadsheet.GetAllTransactions(sheetConfig);
     transactions.ShouldBeEmpty();
     var transaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
@@ -33,9 +32,9 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact, Priority(2)]
   public async Task AddExpenseShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var sheetConfig = new SheetConfigDTO { SheetId = config.TestSheetId };
     var addExpense = new AddExpenseDTO {
-      SheetId = config.MainId,
+      SheetId = config.TestSheetId,
       Date = DateTime.Now,
       Value = 5.2,
       Category = "Delivery",
@@ -54,7 +53,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact, Priority(3)]
   public async Task DeleteLastTransactionShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var sheetConfig = new SheetConfigDTO { SheetId = config.TestSheetId };
     await finantialPlanningSpreadsheet.DeleteLastTransaction(sheetConfig);
     var lastTransaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
     lastTransaction.ShouldBeNull();
@@ -62,7 +61,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact, Priority(4)]
   public async Task GetTransactionsShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var sheetConfig = new SheetConfigDTO { SheetId = config.TestSheetId };
     var result = await Task.WhenAll(
       finantialPlanningSpreadsheet.GetExpenseCategories(sheetConfig),
       finantialPlanningSpreadsheet.GetBankAccount(sheetConfig)
@@ -71,7 +70,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
     var bankAccount = result[1];
     var newTransactions = new List<AddExpenseDTO> {
       new() {
-        SheetId = config.MainId,
+        SheetId = config.TestSheetId,
         Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
         Value = 1000,
         Category = "Supermercado",
@@ -79,7 +78,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
         BankAccount = "NuConta"
       },
       new() {
-        SheetId = config.MainId,
+        SheetId = config.TestSheetId,
         Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
         Value = 600,
         Category = "Seguro do carro",
@@ -94,7 +93,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
     transactions.Count.ShouldBe(2);
     transactions.ShouldNotBeEmpty();
     foreach (var transaction in transactions) {
-      transaction.SheetId.ShouldBe(config.MainId);
+      transaction.SheetId.ShouldBe(config.TestSheetId);
       var isCategoryValid = expenseCategories.Contains(transaction.Category) || bankAccount.Contains(transaction.BankAccount);
       isCategoryValid.ShouldBeTrue();
     }
@@ -119,7 +118,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact]
   public async Task GetExpenseCategoriesShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var sheetConfig = new SheetConfigDTO { SheetId = config.TestSheetId };
     var expenseCategories = await finantialPlanningSpreadsheet.GetExpenseCategories(sheetConfig);
     expenseCategories.ShouldNotBeEmpty();
     sheetConfig.SheetId = "WrongSheet";
@@ -128,9 +127,9 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact]
   public async Task GetEarningCategoriesShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var sheetConfig = new SheetConfigDTO { SheetId = config.TestSheetId };
     var earningCategories = await finantialPlanningSpreadsheet.GetEarningCategories(new SheetConfigDTO {
-      SheetId = config.MainId,
+      SheetId = config.TestSheetId,
     });
     earningCategories.ShouldNotBeEmpty();
     sheetConfig.SheetId = "WrongSheet";
@@ -139,9 +138,9 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact]
   public async Task GetBankAccountShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = config.MainId };
+    var sheetConfig = new SheetConfigDTO { SheetId = config.TestSheetId };
     var bankAccount = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
-      SheetId = config.MainId,
+      SheetId = config.TestSheetId,
     });
     bankAccount.ShouldNotBeEmpty();
     sheetConfig.SheetId = "WrongSheet";

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using TheChatbot.Dtos;
+using TheChatbot.Infra;
 using TheChatbot.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +14,7 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IFinantialPlanningSpreadsheet, GoogleFinantialPlanningSpreadsheet>();
 
-builder.Services.Configure<GoogleOAuthConfig>(builder.Configuration.GetSection("GoogleOAuthConfig"));
+builder.Services.Configure<GoogleConfig>(builder.Configuration.GetSection("GoogleConfig"));
 builder.Services.Configure<GoogleSheetsConfig>(builder.Configuration.GetSection("GoogleSheetsConfig"));
 
 var app = builder.Build();

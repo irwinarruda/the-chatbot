@@ -4,18 +4,17 @@ using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 
-using TheChatbot.Dtos;
 using TheChatbot.Infra;
 
 namespace TheChatbot.Resources;
 
 public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
-  private readonly GoogleOAuthConfig googleConfig;
+  private readonly GoogleConfig googleConfig;
   private GoogleCredential credential;
   private SheetsService sheetsService;
 
   public GoogleFinantialPlanningSpreadsheet(IConfiguration _configuration) {
-    googleConfig = _configuration.GetSection("GoogleOAuthConfig").Get<GoogleOAuthConfig>()!;
+    googleConfig = _configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
       Scopes = [SheetsService.Scope.Spreadsheets],
     };

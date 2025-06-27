@@ -1,8 +1,8 @@
 using Newtonsoft.Json;
 
-namespace TheChatbot.Dtos;
+namespace TheChatbot.Infra;
 
-public class GoogleOAuthConfig {
+public class GoogleConfig {
   public string ClientId { get; set; } = string.Empty;
   public string SecretClientKey { get; set; } = string.Empty;
   public string AuthorizationEndpoint { get; set; } = string.Empty;
@@ -14,8 +14,7 @@ public class GoogleOAuthConfig {
 }
 
 public class GoogleSheetsConfig {
-  public string MainId { get; set; } = string.Empty;
-  public string MainToken { get; set; } = string.Empty;
+  public string TestSheetId { get; set; } = string.Empty;
 }
 
 public class GoogleTokenResponse {

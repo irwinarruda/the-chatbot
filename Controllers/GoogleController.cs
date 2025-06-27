@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using TheChatbot.Dtos;
 using TheChatbot.Resources;
 using Google.Apis.Tasks.v1;
 using Google.Apis.Services;
@@ -9,13 +8,14 @@ using Microsoft.Extensions.Caching.Memory;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource.UpdateRequest;
+using TheChatbot.Infra;
 
 namespace TheChatbot.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class GoogleController : ControllerBase {
-  readonly GoogleOAuthConfig googleConfig;
+  readonly GoogleConfig googleConfig;
   readonly GoogleSheetsConfig googleSheetsConfig;
   readonly GoogleTokenResponse? userToken;
   readonly IMemoryCache cache;
@@ -23,7 +23,7 @@ public class GoogleController : ControllerBase {
 
   public GoogleController(IFinantialPlanningSpreadsheet _finantialPlanningSpreadsheet, IConfiguration configuration, IMemoryCache _cache) {
     finantialPlanningSpreadsheet = _finantialPlanningSpreadsheet;
-    googleConfig = configuration.GetSection("GoogleOAuthConfig").Get<GoogleOAuthConfig>()!;
+    googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     cache = _cache;
     _cache.Set("UserGoogleToken", new GoogleTokenResponse {
@@ -56,7 +56,7 @@ public class GoogleController : ControllerBase {
     var token = JsonConvert.DeserializeObject<GoogleTokenResponse>(tokenResponseContent);
     cache.Set("UserGoogleToken", token, cacheOptions);
     var acconuts = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
-      SheetId = googleSheetsConfig.MainId,
+      SheetId = googleSheetsConfig.TestSheetId,
       SheetAccessToken = token!.AccessToken!,
     });
     return Ok(acconuts);
@@ -128,7 +128,7 @@ public class GoogleController : ControllerBase {
         ApplicationName = "TheChatbot",
       });
       var query = "Diário!A:G";
-      var id = googleSheetsConfig.MainId;
+      var id = googleSheetsConfig.TestSheetId;
       var tsheet = await sheetsService.Spreadsheets.Values.Get(id, query).ExecuteAsync();
       var count = tsheet.Values.Count + 1;
       query = $"Diário!B{count}";
