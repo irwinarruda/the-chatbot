@@ -10,5 +10,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
+      - run: echo $APPSETTINGS_PREVIEW > appsettings.Preview.json
+        env:
+          APPSETTINGS_PREVIEW: ${{ secrets.APPSETTINGS_PREVIEW }}
       - run: dotnet build
       - run: make test-preview
