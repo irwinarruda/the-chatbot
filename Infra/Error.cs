@@ -27,3 +27,17 @@ public class ServiceException : Exception {
     StatusCode = 503;
   }
 }
+
+public class InternalServerException : Exception {
+  public string Action;
+  public string Name;
+  public int StatusCode;
+  public InternalServerException(
+    Exception? cause,
+    int statusCode = 500
+  ) : base("An unexpected error occurred.", cause) {
+    Name = "InternalServerException";
+    Action = "Please contact our support team for assistance.";
+    StatusCode = statusCode;
+  }
+}
