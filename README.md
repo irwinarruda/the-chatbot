@@ -1,7 +1,15 @@
 # The Chatbot
 
+## Infra
+
+- [x] **Automated Tests** Create integration tests project.
+- [ ] **Tests to CI** Integrate tests into Github Actions CI.
+- [ ] **Database** Implement database integration.
+- [ ] **Migration** Define migration infra.
+
 ## Authentication
 
+- [ ] **Database Auth** Define auth structure in the database to support all kinds of products.
 - [ ] **Get login URL** Generate Google OAuth2 authorization URL.
 - [ ] **Authenticate via Google** Exchange authorization code for access and refresh tokens.
 - [ ] **Token Refresh** Automatically refresh expired access tokens.
@@ -27,3 +35,7 @@
 - [ ] **Standard Message** Send plain text responses.
 - [ ] **Option Message** Send choices or quick-reply buttons.
 - [ ] **Receive & Process** Handle incoming user messages and dispatch to appropriate services.
+
+## For later
+
+- [ ] **Optimize Sheets** improve performance by using the database as a SOT.
