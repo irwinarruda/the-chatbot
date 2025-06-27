@@ -3,7 +3,7 @@
 ## Infra
 
 - [x] **Automated Tests** Create integration tests project.
-- [ ] **Tests to CI** Integrate tests into Github Actions CI.
+- [x] **Tests to CI** Integrate tests into Github Actions CI.
 - [ ] **Database** Implement database integration.
 - [ ] **Migration** Define migration infra.
 
