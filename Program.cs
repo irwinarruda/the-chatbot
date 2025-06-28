@@ -12,6 +12,7 @@ builder.Services.AddControllers().AddJsonOptions(options => {
   options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 builder.Services.AddMemoryCache();
+builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 builder.Services.AddSingleton<IFinantialPlanningSpreadsheet, GoogleFinantialPlanningSpreadsheet>();
 
 builder.Services.Configure<GoogleConfig>(builder.Configuration.GetSection("GoogleConfig"));

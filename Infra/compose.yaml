@@ -1,0 +1,10 @@
+services:
+  database:
+    container_name: the-chatbot-pg
+    image: postgres:17.5-alpine3.21
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: local_password
+      POSTGRES_USER: local_user
+      POSTGRES_DB: local_db

@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 using TheChatbot.Resources;
+using TheChatbot.Utils;
 
 namespace Tests;
 
@@ -13,38 +11,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program> {
   readonly public IConfiguration configuration;
   public CustomWebApplicationFactory() {
     var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-    configuration = new ConfigurationBuilder()
-      .SetBasePath(Directory.GetCurrentDirectory())
-      .AddJsonFile("appsettings.json", optional: false)
-      .AddJsonFile($"appsettings.{env}.json", optional: true)
-      .Build();
+    configuration = Configurable.Make();
     if (env == "Development") {
       finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet();
     } else {
       finantialPlanningSpreadsheet = new GoogleFinantialPlanningSpreadsheet(configuration);
     }
-  }
-  protected override IHost CreateHost(IHostBuilder builder) {
-    builder.ConfigureAppConfiguration((context, configBuilder) => {
-      configBuilder.AddInMemoryCollection([
-        new KeyValuePair<string, string?>("IsTestingEnvironment", "true")
-      ]);
-    });
-    return base.CreateHost(builder);
-  }
-
-  protected override void ConfigureWebHost(IWebHostBuilder builder) {
-    builder.UseEnvironment("Development");
-
-    builder.ConfigureServices(services => {
-      // You can replace services with test doubles here
-      // For example, you could mock external dependencies
-    });
-
-    builder.ConfigureLogging(logging => {
-      logging.ClearProviders();
-      logging.AddConsole();
-      logging.AddDebug();
-    });
   }
 }
