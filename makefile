@@ -5,7 +5,14 @@ test-dev:
 	$(env-dev) dotnet test
 test-preview:
 	$(env-preview) dotnet test
-test-dev-watch:
-	$(env-dev) dotnet watch test
-test-preview-watch:
-	$(env-preview) dotnet watch test
+services-up:
+	docker compose -f Infra/compose.yaml up -d
+services-down:
+	docker compose -f Infra/compose.yaml down
+name ?=
+migrations-create:
+	@[ -n "$(name)" ] || (echo "Usage: make migrations-create name=<Name>" && exit 1)
+	dotnet ef migrations add $(name) --output-dir Infra/Migrations
+migrations-remove:
+	dotnet ef migrations remove
+

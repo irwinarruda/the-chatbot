@@ -1,5 +1,3 @@
-using System.Runtime.Serialization;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -14,5 +12,17 @@ public class Printable {
       }
     };
     return JsonConvert.SerializeObject(obj, settings);
+  }
+  public static T Convert<T>(string json) {
+    var settings = new JsonSerializerSettings {
+      ContractResolver = new DefaultContractResolver {
+        NamingStrategy = new SnakeCaseNamingStrategy {
+          ProcessDictionaryKeys = true,
+          OverrideSpecifiedNames = false
+        }
+      },
+      MissingMemberHandling = MissingMemberHandling.Ignore
+    };
+    return JsonConvert.DeserializeObject<T>(json, settings)!;
   }
 }
