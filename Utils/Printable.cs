@@ -23,10 +23,6 @@ public class Printable {
       },
       MissingMemberHandling = MissingMemberHandling.Ignore
     };
-    try {
-      return JsonConvert.DeserializeObject<T>(json, settings);
-    } catch {
-      return null;
-    }
+    return JsonConvert.DeserializeObject<T>(json, settings);
   }
 }
