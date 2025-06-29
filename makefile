@@ -3,7 +3,7 @@ env-prod = ASPNETCORE_ENVIRONMENT=Production
 
 test-dev: services-ready
 	$(env-dev) dotnet test
-test-prod: services-ready
+test-prod:
 	$(env-prod) dotnet test
 services-up:
 	docker compose -f Infra/compose.yaml up -d
