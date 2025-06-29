@@ -1,5 +1,3 @@
-using Newtonsoft.Json;
-
 using Microsoft.Extensions.Configuration;
 
 using Shouldly;
@@ -12,7 +10,7 @@ using Xunit.v3.Priority;
 namespace Tests;
 
 [TestCaseOrderer(typeof(PriorityOrderer))]
-public class Status : IClassFixture<CustomWebApplicationFactory> {
+public class StatusController : IClassFixture<CustomWebApplicationFactory> {
   private readonly HttpClient client;
   private readonly DatabaseConfig databaseConfig;
   private record StatusDto(
@@ -20,10 +18,12 @@ public class Status : IClassFixture<CustomWebApplicationFactory> {
     DatabaseDto Database
   );
   private record DatabaseDto(
-     string ServerVersion
+    string ServerVersion,
+    int MaxConnections,
+    int OpenConnections
   );
 
-  public Status(CustomWebApplicationFactory _factory) {
+  public StatusController(CustomWebApplicationFactory _factory) {
     databaseConfig = _factory.configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
     client = _factory.CreateClient();
   }
@@ -36,5 +36,7 @@ public class Status : IClassFixture<CustomWebApplicationFactory> {
     var dto = Printable.Convert<StatusDto>(json);
     dto.ShouldNotBeNull();
     dto.Database.ServerVersion.ShouldBe(databaseConfig.ServerVersion);
+    dto.Database.MaxConnections.ShouldBeGreaterThan(0);
+    dto.Database.OpenConnections.ShouldBe(1);
   }
 }
