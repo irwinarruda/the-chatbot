@@ -9,10 +9,11 @@ public class Main
   public static void Run()
   {
     Console.Write("\n🟨 Waiting for postgres");
-    Check();
+    var maxTries = 0;
+    Check(maxTries);
   }
 
-  public static void Check()
+  public static void Check(int maxTries)
   {
     var output = ExecuteDockerCheck("docker", "exec the-chatbot-pg pg_isready --host localhost");
     if (output.Contains("accepting connections"))
@@ -20,9 +21,14 @@ public class Main
       Console.WriteLine("\n✅ Postgres is accepting connections\n");
       return;
     }
+    if (maxTries <= 0)
+    {
+      Console.WriteLine("\n❌ Failed to connect to Postgres\n");
+      Environment.Exit(130);
+    }
     Console.Write(".");
     Thread.Sleep(350);
-    Check();
+    Check(maxTries);
   }
   public static string ExecuteDockerCheck(string command, string arguments)
   {

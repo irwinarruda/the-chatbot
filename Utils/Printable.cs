@@ -13,7 +13,7 @@ public class Printable {
     };
     return JsonConvert.SerializeObject(obj, settings);
   }
-  public static T Convert<T>(string json) {
+  public static T? Convert<T>(string json) where T : class {
     var settings = new JsonSerializerSettings {
       ContractResolver = new DefaultContractResolver {
         NamingStrategy = new SnakeCaseNamingStrategy {
@@ -23,6 +23,10 @@ public class Printable {
       },
       MissingMemberHandling = MissingMemberHandling.Ignore
     };
-    return JsonConvert.DeserializeObject<T>(json, settings)!;
+    try {
+      return JsonConvert.DeserializeObject<T>(json, settings);
+    } catch {
+      return null;
+    }
   }
 }
