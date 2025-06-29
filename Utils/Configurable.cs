@@ -6,7 +6,7 @@ public class Configurable {
     var configuration = new ConfigurationBuilder()
       .SetBasePath(Directory.GetCurrentDirectory())
       .AddJsonFile("appsettings.json", optional: false)
-      .AddJsonFile($"appsettings.{env}.json", optional: false)
+      .AddJsonFile($"appsettings.{env}.json", optional: true)
       .Build();
     return configuration;
   }

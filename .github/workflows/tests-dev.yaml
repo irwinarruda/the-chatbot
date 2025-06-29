@@ -10,5 +10,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
+      - run: dotnet tool install -g dotnet-script
       - run: dotnet build
       - run: make test-dev

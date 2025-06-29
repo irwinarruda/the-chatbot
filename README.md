@@ -1,5 +1,10 @@
 # The Chatbot
 
+```sh
+dotnet tool install -g dotnet-ef
+dotnet tool install -g dotnet-script
+```
+
 ## Infra
 
 - [x] **Automated Tests** Create integration tests project.
