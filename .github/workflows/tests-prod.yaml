@@ -1,9 +1,9 @@
 on:
   push:
-    branches-ignore: [main]
+    branches: [main]
 
 jobs:
-  run-tests:
+  run-prod-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,4 +11,7 @@ jobs:
         with:
           dotnet-version: "8.0.x"
       - run: dotnet tool install -g dotnet-script
-      - run: make test-dev
+      - run: echo $APPSETTINGS_PRODUCTION > appsettings.Production.json
+        env:
+          APPSETTINGS_PRODUCTION: ${{ secrets.APPSETTINGS_PRODUCTION }}
+      - run: make test-prod
