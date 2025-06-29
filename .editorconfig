@@ -13,7 +13,7 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.cs]
+[*.{cs,csx}]
 # New line preferences
 csharp_new_line_before_catch = false
 csharp_new_line_before_else = false
