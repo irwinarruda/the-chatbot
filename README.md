@@ -9,8 +9,16 @@ dotnet tool install -g dotnet-script
 
 - [x] **Automated Tests** Create integration tests project.
 - [x] **Tests to CI** Integrate tests into Github Actions CI.
-- [ ] **Database** Implement database integration.
+- [x] **Database** Implement database integration.
 - [ ] **Migration** Define migration infra.
+
+## Status
+
+- [x] **Status Endpoint** Create status endpoint that contains the following entries
+- [x] **Database Status** Version, Max Connections, Open Connections, etc...
+- [ ] **Sheets Setatus** Google Status
+- [ ] **Task Setatus** Google Status
+- [ ] **Messagin Setatus** WhatsApp Status
 
 ## Authentication
 
