@@ -5,8 +5,9 @@ namespace TheChatbot.Utils;
 
 public class Printable {
   public static string Make(object? obj) {
+    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
     var settings = new JsonSerializerSettings {
-      Formatting = Formatting.Indented,
+      Formatting = env == "Development" ? Formatting.Indented : Formatting.None,
       ContractResolver = new DefaultContractResolver {
         NamingStrategy = new SnakeCaseNamingStrategy(),
       }
