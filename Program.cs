@@ -20,6 +20,8 @@ builder.Services.Configure<GoogleSheetsConfig>(builder.Configuration.GetSection(
 
 var app = builder.Build();
 
+app.UseExceptionHandler(errorApp => errorApp.Run(Controller.HandleException));
+app.UseStatusCodePages(Controller.HandleInternal);
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

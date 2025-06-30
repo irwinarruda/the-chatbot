@@ -10,7 +10,7 @@ dotnet tool install -g dotnet-script
 - [x] **Automated Tests** Create integration tests project.
 - [x] **Tests to CI** Integrate tests into Github Actions CI.
 - [x] **Database** Implement database integration.
-- [ ] **Error** Implement generic error handling.
+- [x] **Error** Implement generic error handling.
 - [ ] **Migration** Define migration infra.
 
 ## Status
