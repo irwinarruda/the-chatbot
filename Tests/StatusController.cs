@@ -39,4 +39,15 @@ public class StatusController : IClassFixture<CustomWebApplicationFactory> {
     dto.Database.MaxConnections.ShouldBeGreaterThan(0);
     dto.Database.OpenConnections.ShouldBe(1);
   }
+
+  [Fact]
+  public async Task OtherMethodsShouldNotWork() {
+    var result = await client.PutAsync("/status", null, TestContext.Current.CancellationToken);
+    var json = await result.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+    result.IsSuccessStatusCode.ShouldBeFalse();
+    var dto = Printable.Convert<ResponseException>(json);
+    dto.ShouldNotBeNull();
+    dto.Name.ShouldBe("MethodNotAllowedException");
+    dto.StatusCode.ShouldBe(405);
+  }
 }
