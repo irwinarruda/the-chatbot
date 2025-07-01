@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using TheChatbot.Infra;
 
@@ -23,16 +24,16 @@ public class StatusController : ControllerBase {
   private readonly AppDbContext context;
   private DatabaseConfig databaseConfig;
   private record OpenConnectionsQuery(int Count);
-  public StatusController(AppDbContext _context, IConfiguration configuration) {
+  public StatusController(AppDbContext _context, DatabaseConfig _databaseConfig) {
     context = _context;
-    databaseConfig = configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
+    databaseConfig = _databaseConfig;
   }
 
   [HttpGet]
-  public async Task<ActionResult> Get() {
-    var versionQuery = (FormattableString)$"SHOW server_version;";
-    var maxConnectionsQuery = (FormattableString)$"SHOW max_connections;";
-    var openConnectionsQuery = (FormattableString)$"""
+  public async Task<ActionResult> GetStatus() {
+    FormattableString versionQuery = $"SHOW server_version;";
+    FormattableString maxConnectionsQuery = $"SHOW max_connections;";
+    FormattableString openConnectionsQuery = $"""
       SELECT count(*) FROM pg_stat_activity
       WHERE datname = {databaseConfig.DatabaseName}
     """;

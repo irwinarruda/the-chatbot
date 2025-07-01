@@ -12,19 +12,19 @@ namespace Tests;
 [TestCaseOrderer(typeof(PriorityOrderer))]
 public class StatusController : IClassFixture<CustomWebApplicationFactory> {
   private readonly HttpClient client;
-  private readonly DatabaseConfig databaseConfig;
-  private record StatusDto(
+  private readonly CustomWebApplicationFactory factory;
+  private record StatusDTO(
     DateTime UpdatedAt,
-    DatabaseDto Database
+    DatabaseDTO Database
   );
-  private record DatabaseDto(
+  private record DatabaseDTO(
     string ServerVersion,
     int MaxConnections,
     int OpenConnections
   );
 
   public StatusController(CustomWebApplicationFactory _factory) {
-    databaseConfig = _factory.configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
+    factory = _factory;
     client = _factory.CreateClient();
   }
 
@@ -33,9 +33,11 @@ public class StatusController : IClassFixture<CustomWebApplicationFactory> {
     var result = await client.GetAsync("/status", TestContext.Current.CancellationToken);
     result.IsSuccessStatusCode.ShouldBeTrue();
     var json = await result.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-    var dto = Printable.Convert<StatusDto>(json);
+    var dto = Printable.Convert<StatusDTO>(json);
     dto.ShouldNotBeNull();
-    dto.Database.ServerVersion.ShouldBe(databaseConfig.ServerVersion);
+    var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+    dto.UpdatedAt.ToString("yyyy-MM-dd").ShouldBe(date);
+    dto.Database.ServerVersion.ShouldBe(factory.databaseConfig.ServerVersion);
     dto.Database.MaxConnections.ShouldBeGreaterThan(0);
     dto.Database.OpenConnections.ShouldBe(1);
   }
