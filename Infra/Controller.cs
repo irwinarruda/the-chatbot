@@ -16,11 +16,11 @@ public class Controller {
     }
     if (context.HttpContext.Response.StatusCode == 405) {
       context.HttpContext.Response.ContentType = "application/json";
-      var notFoundEx = new MethodNotAllowedException(
+      var methodNotAllowedEx = new MethodNotAllowedException(
         "The requested endpoint is not allowed.",
         "Make sure you are using the correct URL and HTTP method."
       );
-      await context.HttpContext.Response.WriteAsync(Printable.Make(notFoundEx.ToResponseError()));
+      await context.HttpContext.Response.WriteAsync(Printable.Make(methodNotAllowedEx.ToResponseError()));
     }
   }
   public static async Task HandleException(HttpContext context) {

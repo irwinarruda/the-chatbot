@@ -61,7 +61,7 @@ public class NotFoundException : Exception {
     string? action
   ) : base(message ?? "The resource was not found") {
     Name = "NotFoundException";
-    Action = action ?? "Change the filers and try again";
+    Action = action ?? "Change the filters and try again";
     StatusCode = 404;
   }
   public ResponseException ToResponseError() {
@@ -81,7 +81,7 @@ public class MethodNotAllowedException : Exception {
   public MethodNotAllowedException(
     string? message,
     string? action
-  ) : base(message ?? "The method is not allowed for this endpoint.") {
+  ) : base(message ?? "The method is not allowed.") {
     Name = "MethodNotAllowedException";
     Action = action ?? "Check the HTTP method for this endpoint.";
     StatusCode = 405;

@@ -14,9 +14,9 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 builder.Services.AddSingleton<IFinantialPlanningSpreadsheet, GoogleFinantialPlanningSpreadsheet>();
-
-builder.Services.Configure<GoogleConfig>(builder.Configuration.GetSection("GoogleConfig"));
-builder.Services.Configure<GoogleSheetsConfig>(builder.Configuration.GetSection("GoogleSheetsConfig"));
+builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!);
+builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!);
+builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!);
 
 var app = builder.Build();
 
