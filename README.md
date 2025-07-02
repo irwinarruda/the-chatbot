@@ -12,14 +12,13 @@ dotnet tool install -g dotnet-script
 - [x] **Database** Implement database integration.
 - [x] **Error** Implement generic error handling.
 - [x] **Migration** Define migration infra.
+- [x] **Architecture** Define the MVC like architecture where Services and Entities represent the Model.
 
 ## Status
 
 - [x] **Status Endpoint** Create status endpoint that contains the following entries
 - [x] **Database Status** Version, Max Connections, Open Connections, etc...
-- [ ] **Sheets Setatus** Google Status
-- [ ] **Task Setatus** Google Status
-- [ ] **Messagin Setatus** WhatsApp Status
+- [ ] **Messaging Setatus** WhatsApp Status
 
 ## Authentication
 

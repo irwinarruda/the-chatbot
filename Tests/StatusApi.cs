@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-
 using Shouldly;
 
 using TheChatbot.Infra;
@@ -10,7 +8,7 @@ using Xunit.v3.Priority;
 namespace Tests;
 
 [TestCaseOrderer(typeof(PriorityOrderer))]
-public class StatusController : IClassFixture<CustomWebApplicationFactory> {
+public class StatusApi : IClassFixture<CustomWebApplicationFactory> {
   private readonly HttpClient client;
   private readonly CustomWebApplicationFactory factory;
   private record StatusDTO(
@@ -23,17 +21,18 @@ public class StatusController : IClassFixture<CustomWebApplicationFactory> {
     int OpenConnections
   );
 
-  public StatusController(CustomWebApplicationFactory _factory) {
+  public StatusApi(CustomWebApplicationFactory _factory) {
     factory = _factory;
     client = _factory.CreateClient();
   }
 
   [Fact]
   public async Task GetShouldWork() {
-    var result = await client.GetAsync("/status", TestContext.Current.CancellationToken);
+    using var result = await client.GetAsync("/api/v1/status", TestContext.Current.CancellationToken);
     result.IsSuccessStatusCode.ShouldBeTrue();
     var json = await result.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
     var dto = Printable.Convert<StatusDTO>(json);
+
     dto.ShouldNotBeNull();
     var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
     dto.UpdatedAt.ToString("yyyy-MM-dd").ShouldBe(date);
@@ -44,7 +43,7 @@ public class StatusController : IClassFixture<CustomWebApplicationFactory> {
 
   [Fact]
   public async Task OtherMethodsShouldNotWork() {
-    var result = await client.PutAsync("/status", null, TestContext.Current.CancellationToken);
+    using var result = await client.PutAsync("/api/v1/status", null, TestContext.Current.CancellationToken);
     var json = await result.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
     result.IsSuccessStatusCode.ShouldBeFalse();
     var dto = Printable.Convert<ResponseException>(json);

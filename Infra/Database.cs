@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Query;
 
 using TheChatbot.Utils;
 
@@ -16,6 +19,8 @@ public class AppDbContext : DbContext {
     var configuration = Configurable.Make();
     databaseConfig = configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
   }
+  public IQueryable<TResult> Sql<TResult>(FormattableString sql) => Database.SqlQuery<TResult>(sql);
+
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
     optionsBuilder.UseNpgsql(databaseConfig.ConnectionString);
   }
