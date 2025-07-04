@@ -14,14 +14,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program> {
   readonly public GoogleSheetsConfig googleSheetsConfig;
 
   public CustomWebApplicationFactory() {
-    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
     configuration = Configurable.Make();
     databaseConfig = configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
-    if (env == "Development") {
-      finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet();
-    } else {
+    if (googleSheetsConfig.TestSheetId != "uniqueId") {
       finantialPlanningSpreadsheet = new GoogleFinantialPlanningSpreadsheet(configuration);
+    } else {
+      finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet();
     }
   }
 }

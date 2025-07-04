@@ -1,5 +1,6 @@
 using Shouldly;
 
+using TheChatbot.Entities;
 using TheChatbot.Infra;
 using TheChatbot.Utils;
 
@@ -11,15 +12,6 @@ namespace Tests;
 public class StatusApi : IClassFixture<CustomWebApplicationFactory> {
   private readonly HttpClient client;
   private readonly CustomWebApplicationFactory factory;
-  private record StatusDTO(
-    DateTime UpdatedAt,
-    DatabaseDTO Database
-  );
-  private record DatabaseDTO(
-    string ServerVersion,
-    int MaxConnections,
-    int OpenConnections
-  );
 
   public StatusApi(CustomWebApplicationFactory _factory) {
     factory = _factory;
@@ -31,7 +23,7 @@ public class StatusApi : IClassFixture<CustomWebApplicationFactory> {
     using var result = await client.GetAsync("/api/v1/status", TestContext.Current.CancellationToken);
     result.IsSuccessStatusCode.ShouldBeTrue();
     var json = await result.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-    var dto = Printable.Convert<StatusDTO>(json);
+    var dto = Printable.Convert<Status>(json);
 
     dto.ShouldNotBeNull();
     var date = DateTime.UtcNow.ToString("yyyy-MM-dd");

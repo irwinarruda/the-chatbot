@@ -9,6 +9,10 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource.UpdateRequest;
 using TheChatbot.Infra;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Auth.OAuth2.Flows;
+using TheChatbot.Utils;
+using Google.Apis.Auth.OAuth2.Responses;
 
 namespace TheChatbot.Controllers;
 
@@ -17,7 +21,7 @@ namespace TheChatbot.Controllers;
 public class GoogleController : ControllerBase {
   readonly GoogleConfig googleConfig;
   readonly GoogleSheetsConfig googleSheetsConfig;
-  readonly GoogleTokenResponse? userToken;
+  readonly TokenResponse? userToken;
   readonly IMemoryCache cache;
   readonly IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
 
@@ -26,54 +30,44 @@ public class GoogleController : ControllerBase {
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     cache = _cache;
-    _cache.Set("UserGoogleToken", new GoogleTokenResponse {
-      AccessToken = "",
-      RefreshToken = null,
-      TokenType = "Bearer",
-      ExpiresIn = 3598,
-      IdToken = "",
-      Scope = "openid https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive"
-    });
     _cache.TryGetValue("UserGoogleToken", out userToken);
+    Console.WriteLine(Printable.Make(userToken));
   }
 
   [HttpGet("redirect")]
   public async Task<ActionResult> GetLogin([FromQuery] string code) {
-    var tokenRequest = new Dictionary<string, string> {
-      { "code", code },
-      { "client_id", googleConfig.ClientId },
-      { "client_secret", googleConfig.SecretClientKey },
-      { "redirect_uri", googleConfig.RedirectUri },
-      { "grant_type", "authorization_code" }
+    var scopes = new[] { SheetsService.Scope.Spreadsheets, TasksService.Scope.Tasks, Oauth2Service.Scope.UserinfoEmail, Oauth2Service.Scope.UserinfoProfile, Oauth2Service.Scope.Openid };
+    var clientSecrets = new ClientSecrets {
+      ClientId = googleConfig.ClientId,
+      ClientSecret = googleConfig.SecretClientKey
     };
-    using var client = new HttpClient();
-    var tokenResponse = await client.PostAsync(googleConfig.TokenEndpoint, new FormUrlEncodedContent(tokenRequest));
-    if (!tokenResponse.IsSuccessStatusCode) {
-      return StatusCode((int)tokenResponse.StatusCode, "Failed to retrieve tokens.");
-    }
-    var tokenResponseContent = await tokenResponse.Content.ReadAsStringAsync();
+    var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+      ClientSecrets = clientSecrets,
+      Scopes = scopes,
+    });
+    var tokenResponse = await flow.ExchangeCodeForTokenAsync("user", code, googleConfig.RedirectUri, CancellationToken.None);
     var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(30));
-    var token = JsonConvert.DeserializeObject<GoogleTokenResponse>(tokenResponseContent);
-    cache.Set("UserGoogleToken", token, cacheOptions);
+    cache.Set("UserGoogleToken", tokenResponse, cacheOptions);
     var acconuts = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
       SheetId = googleSheetsConfig.TestSheetId,
-      SheetAccessToken = token!.AccessToken!,
+      SheetAccessToken = tokenResponse.AccessToken,
     });
     return Ok(acconuts);
   }
 
   [HttpGet("login")]
   public RedirectResult GetRedirect() {
-    var scopes = new List<string> { TasksService.Scope.Tasks, SheetsService.Scope.Spreadsheets, SheetsService.Scope.Drive, "openid email profile" };
-    var queryParams = new Dictionary<string, string> {
-      { "client_id", googleConfig.ClientId },
-      { "response_type", "code" },
-      { "scope", string.Join(" ", scopes)},
-      { "redirect_uri", googleConfig.RedirectUri },
-      { "access_type", "offline" }  // RefreshToken
+    var scopes = new[] { SheetsService.Scope.Spreadsheets, TasksService.Scope.Tasks, Oauth2Service.Scope.UserinfoEmail, Oauth2Service.Scope.UserinfoProfile, Oauth2Service.Scope.Openid };
+    var clientSecrets = new ClientSecrets {
+      ClientId = googleConfig.ClientId,
+      ClientSecret = googleConfig.SecretClientKey
     };
-    var url = $"{googleConfig.AuthorizationEndpoint}?{string.Join("&", queryParams.Select(item => $"{item.Key}={Uri.EscapeDataString(item.Value)}").ToList())}";
-    return Redirect(url);
+    var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+      ClientSecrets = clientSecrets,
+      Scopes = scopes,
+    });
+    var uri = flow.CreateAuthorizationCodeRequest(googleConfig.RedirectUri).Build();
+    return Redirect(uri.ToString());
   }
 
   [HttpGet("tasks")]

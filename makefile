@@ -1,12 +1,17 @@
+env-local = ASPNETCORE_ENVIRONMENT=Local
 env-dev = ASPNETCORE_ENVIRONMENT=Development
 env-prod = ASPNETCORE_ENVIRONMENT=Production
 
 install-tools:
 	dotnet tool install -g dotnet-ef && dotnet tool install -g dotnet-script
+test-local: services-ready
+	$(env-local) dotnet test
 test-dev: services-ready
 	$(env-dev) dotnet test
 test-prod:
 	$(env-prod) dotnet test
+run-local: services-ready
+	$(env-local) dotnet watch
 services-up:
 	docker compose -f Infra/compose.yaml up -d
 services-down:

@@ -5,26 +5,18 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "google/login",
+      "launchUrl": "/api/v1/status",
       "applicationUrl": "http://localhost:8080",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Local"
       }
     },
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "google/login",
+      "launchUrl": "/api/v1/status",
       "applicationUrl": "https://localhost:7006;http://localhost:8080",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "google/login",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

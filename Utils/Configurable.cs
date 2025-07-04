@@ -10,4 +10,12 @@ public class Configurable {
       .Build();
     return configuration;
   }
+
+  public static void Enhance(ConfigurationManager configuration) {
+    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    configuration.SetBasePath(Directory.GetCurrentDirectory())
+      .AddJsonFile("appsettings.json", optional: false)
+      .AddJsonFile($"appsettings.{env}.json", optional: true)
+      .Build();
+  }
 }
