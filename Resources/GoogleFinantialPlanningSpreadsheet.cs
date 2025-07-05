@@ -9,12 +9,10 @@ using TheChatbot.Infra;
 namespace TheChatbot.Resources;
 
 public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
-  private readonly GoogleConfig googleConfig;
   private GoogleCredential credential;
   private SheetsService sheetsService;
 
-  public GoogleFinantialPlanningSpreadsheet(IConfiguration _configuration) {
-    googleConfig = _configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
+  public GoogleFinantialPlanningSpreadsheet(GoogleConfig googleConfig) {
     var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
       Scopes = [SheetsService.Scope.Spreadsheets],
     };
