@@ -12,6 +12,7 @@ namespace TheChatbot.Infra.Migrations {
         columns: (table) => new {
           Id = table.Column<Guid>(type: "uuid", nullable: false),
           Name = table.Column<string>(type: "varchar(30)", nullable: false),
+          PhoneNumber = table.Column<string>(type: "varchar(20)", nullable: false)
         },
         constraints: (table) => {
           table.PrimaryKey("PK_users", x => x.Id);

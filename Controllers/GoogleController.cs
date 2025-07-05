@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using TheChatbot.Resources;
 using Google.Apis.Tasks.v1;
 using Google.Apis.Services;
@@ -13,6 +12,7 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Auth.OAuth2.Flows;
 using TheChatbot.Utils;
 using Google.Apis.Auth.OAuth2.Responses;
+using Google;
 
 namespace TheChatbot.Controllers;
 
@@ -21,16 +21,13 @@ namespace TheChatbot.Controllers;
 public class GoogleController : ControllerBase {
   readonly GoogleConfig googleConfig;
   readonly GoogleSheetsConfig googleSheetsConfig;
-  readonly TokenResponse? userToken;
-  readonly IMemoryCache cache;
+  static TokenResponse? userToken;
   readonly IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
 
-  public GoogleController(IFinantialPlanningSpreadsheet _finantialPlanningSpreadsheet, IConfiguration configuration, IMemoryCache _cache) {
+  public GoogleController(IFinantialPlanningSpreadsheet _finantialPlanningSpreadsheet, IConfiguration configuration) {
     finantialPlanningSpreadsheet = _finantialPlanningSpreadsheet;
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
-    cache = _cache;
-    _cache.TryGetValue("UserGoogleToken", out userToken);
     Console.WriteLine(Printable.Make(userToken));
   }
 
@@ -45,14 +42,8 @@ public class GoogleController : ControllerBase {
       ClientSecrets = clientSecrets,
       Scopes = scopes,
     });
-    var tokenResponse = await flow.ExchangeCodeForTokenAsync("user", code, googleConfig.RedirectUri, CancellationToken.None);
-    var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(30));
-    cache.Set("UserGoogleToken", tokenResponse, cacheOptions);
-    var acconuts = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
-      SheetId = googleSheetsConfig.TestSheetId,
-      SheetAccessToken = tokenResponse.AccessToken,
-    });
-    return Ok(acconuts);
+    userToken = await flow.ExchangeCodeForTokenAsync("user", code, googleConfig.RedirectUri, CancellationToken.None);
+    return Ok(userToken);
   }
 
   [HttpGet("login")]
@@ -70,13 +61,25 @@ public class GoogleController : ControllerBase {
     return Redirect(uri.ToString());
   }
 
+  [HttpGet("refresh")]
+  public async Task<ActionResult> GetRefresh() {
+    var scopes = new[] { SheetsService.Scope.Spreadsheets, TasksService.Scope.Tasks, Oauth2Service.Scope.UserinfoEmail, Oauth2Service.Scope.UserinfoProfile, Oauth2Service.Scope.Openid };
+    var clientSecrets = new ClientSecrets {
+      ClientId = googleConfig.ClientId,
+      ClientSecret = googleConfig.SecretClientKey
+    };
+    var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+      ClientSecrets = clientSecrets,
+      Scopes = scopes,
+    });
+    userToken = await flow.RefreshTokenAsync("user", userToken!.RefreshToken, CancellationToken.None);
+    return Ok(userToken);
+  }
+
   [HttpGet("tasks")]
   public async Task<ActionResult> GetTaskList() {
     try {
-      if (userToken == null) {
-        return Ok("User not authenticated");
-      }
-      var credential = GoogleCredential.FromAccessToken(userToken.AccessToken);
+      var credential = GoogleCredential.FromAccessToken(userToken?.AccessToken ?? "teste");
       var taskService = new TasksService(new BaseClientService.Initializer() {
         HttpClientInitializer = credential,
         ApplicationName = "TheChatbot"
@@ -86,6 +89,9 @@ public class GoogleController : ControllerBase {
       var tasks = await taskService.Tasks.List(taskListId).ExecuteAsync();
       return Ok(tasks);
     } catch (Exception ex) {
+      if (ex is GoogleApiException googleEx) {
+        return StatusCode((int)googleEx.HttpStatusCode, googleEx.Error);
+      }
       return StatusCode(500, $"Error accessing Google Tasks: {ex.Message}");
     }
   }
