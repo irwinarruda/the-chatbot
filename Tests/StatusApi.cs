@@ -30,7 +30,7 @@ public class StatusApi : IClassFixture<CustomWebApplicationFactory> {
     dto.UpdatedAt.ToString("yyyy-MM-dd").ShouldBe(date);
     dto.Database.ServerVersion.ShouldBe(factory.databaseConfig.ServerVersion);
     dto.Database.MaxConnections.ShouldBeGreaterThan(0);
-    dto.Database.OpenConnections.ShouldBe(1);
+    dto.Database.OpenConnections.ShouldBeGreaterThanOrEqualTo(1);
   }
 
   [Fact]

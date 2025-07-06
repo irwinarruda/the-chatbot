@@ -16,9 +16,11 @@ public class AppDbContext : DbContext {
     var configuration = Configurable.Make();
     databaseConfig = configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
   }
-  public IQueryable<TResult> Sql<TResult>(FormattableString sql) => Database.SqlQuery<TResult>(sql);
+  public IQueryable<TResult> Query<TResult>(FormattableString sql) => Database.SqlQuery<TResult>(sql);
+  public Task<int> Execute(FormattableString sql) => Database.ExecuteSqlAsync(sql);
 
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-    optionsBuilder.UseNpgsql(databaseConfig.ConnectionString);
+    optionsBuilder.UseNpgsql(databaseConfig.ConnectionString)
+                  .UseSnakeCaseNamingConvention();
   }
 }

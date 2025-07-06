@@ -1,4 +1,5 @@
 using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Util;
 
 using Newtonsoft.Json;
@@ -11,30 +12,17 @@ public class GoogleTokenResponse {
   internal const int TokenRefreshWindowSeconds = 60 * 3 + 45;
   internal const int TokenInvalidWindowSeconds = 60;
 
-  [JsonProperty("access_token")]
   public string AccessToken { get; set; } = string.Empty;
 
-  [JsonProperty("token_type")]
   public string TokenType { get; set; } = string.Empty;
 
-  [JsonProperty("expires_in")]
   public long? ExpiresInSeconds { get; set; }
 
-  [JsonProperty("refresh_token")]
   public string RefreshToken { get; set; } = string.Empty;
 
-  [JsonProperty("scope")]
   public string Scope { get; set; } = string.Empty;
 
-  [JsonProperty("id_token")]
   public string IdToken { get; set; } = string.Empty;
-
-  [Obsolete("Use IssuedUtc instead")]
-  [JsonProperty(Order = 1)] // Serialize this before IssuedUtc, so that IssuedUtc takes priority when deserializing
-  public DateTime Issued {
-    get { return IssuedUtc.ToLocalTime(); }
-    set { IssuedUtc = value.ToUniversalTime(); }
-  }
 
   [JsonProperty(Order = 2)]
   public DateTime IssuedUtc { get; set; }
@@ -60,10 +48,22 @@ public class GoogleTokenResponse {
   internal bool MayBeUsed(IClock clock) => (AccessToken is not null || IdToken is not null) &&
     ExpiresInSeconds.HasValue &&
     clock.UtcNow < ExpiryWindowStartUtc;
+
+  public static GoogleTokenResponse FromTokenResponse(TokenResponse tokenResponse) {
+    return new GoogleTokenResponse {
+      AccessToken = tokenResponse.AccessToken,
+      RefreshToken = tokenResponse.RefreshToken,
+      ExpiresInSeconds = tokenResponse.ExpiresInSeconds,
+      IdToken = tokenResponse.IdToken,
+      IssuedUtc = tokenResponse.IssuedUtc,
+      Scope = tokenResponse.Scope,
+      TokenType = tokenResponse.TokenType,
+    };
+  }
 }
 
 public interface IGoogleAuthGateway {
   string CreateAuthorizationCodeUrl();
-  Task<GoogleTokenResponse> ExchangeCodeForTokenAsync();
+  Task<GoogleTokenResponse> ExchangeCodeForTokenAsync(string code);
   Task<GoogleTokenResponse> RefreshToken(GoogleTokenResponse response);
 }

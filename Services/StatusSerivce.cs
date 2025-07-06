@@ -9,9 +9,9 @@ public class StatusService(AppDbContext database, DatabaseConfig databaseConfig)
   private record OpenConnectionsQueryResult(int Count);
 
   public async Task<Status> GetStatus() {
-    var version = await database.Sql<string>($"SHOW server_version;").ToListAsync();
-    var maxConnections = await database.Sql<string>($"SHOW max_connections;").ToListAsync();
-    var openConnections = await database.Sql<OpenConnectionsQueryResult>($@"
+    var version = await database.Query<string>($"SHOW server_version;").ToListAsync();
+    var maxConnections = await database.Query<string>($"SHOW max_connections;").ToListAsync();
+    var openConnections = await database.Query<OpenConnectionsQueryResult>($@"
       SELECT count(*) FROM pg_stat_activity
       WHERE datname = {databaseConfig.DatabaseName};
     ").ToListAsync();
