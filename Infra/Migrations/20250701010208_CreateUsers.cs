@@ -9,13 +9,18 @@ namespace TheChatbot.Infra.Migrations {
     protected override void Up(MigrationBuilder migrationBuilder) {
       migrationBuilder.CreateTable(
         name: "users",
+        schema: "public",
         columns: (table) => new {
-          Id = table.Column<Guid>(type: "uuid", nullable: false),
-          Name = table.Column<string>(type: "varchar(30)", nullable: false),
-          PhoneNumber = table.Column<string>(type: "varchar(20)", nullable: false)
+          id = table.Column<Guid>(type: "uuid", defaultValueSql: "gen_random_uuid()"),
+          name = table.Column<string>(type: "varchar(30)", nullable: false),
+          phone_number = table.Column<string>(type: "varchar(20)", nullable: false),
+          is_inactive = table.Column<string>(type: "boolean", nullable: false, defaultValue: false),
+          created_at = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "timezone('utc', now())"),
+          updated_at = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "timezone('utc', now())"),
         },
         constraints: (table) => {
-          table.PrimaryKey("PK_users", x => x.Id);
+          table.PrimaryKey("PK_users", x => x.id);
+          table.UniqueConstraint("UC_users_phone_number", x => x.phone_number);
         }
       );
     }

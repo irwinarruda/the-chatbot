@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="9.0.0" />
     <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
     <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3806" />
     <PackageReference Include="Google.Apis.Tasks.v1" Version="1.65.0.3015" />
