@@ -8,17 +8,17 @@ using Xunit.v3.Priority;
 namespace Tests;
 
 [TestCaseOrderer(typeof(PriorityOrderer))]
-public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFactory> {
-  private readonly CustomWebApplicationFactory factory;
+public class FinantialPlanningSpreadsheet : IClassFixture<Orquestrator> {
+  private readonly Orquestrator orquestrator;
   private readonly IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
-  public FinantialPlanningSpreadsheet(CustomWebApplicationFactory _factory) {
-    factory = _factory;
-    finantialPlanningSpreadsheet = factory.finantialPlanningSpreadsheet;
+  public FinantialPlanningSpreadsheet(Orquestrator _orquestrator) {
+    orquestrator = _orquestrator;
+    finantialPlanningSpreadsheet = orquestrator.finantialPlanningSpreadsheet;
   }
 
   [Fact, Priority(1)]
   public async Task GetAndDeleteTransactionShouldNotWorkWithoutData() {
-    var sheetConfig = new SheetConfigDTO { SheetId = factory.googleSheetsConfig.TestSheetId };
+    var sheetConfig = new SheetConfigDTO { SheetId = orquestrator.googleSheetsConfig.TestSheetId };
     var transactions = await finantialPlanningSpreadsheet.GetAllTransactions(sheetConfig);
     transactions.ShouldBeEmpty();
     var transaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
@@ -28,9 +28,9 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact, Priority(2)]
   public async Task AddExpenseShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = factory.googleSheetsConfig.TestSheetId };
+    var sheetConfig = new SheetConfigDTO { SheetId = orquestrator.googleSheetsConfig.TestSheetId };
     var addExpense = new AddExpenseDTO {
-      SheetId = factory.googleSheetsConfig.TestSheetId,
+      SheetId = orquestrator.googleSheetsConfig.TestSheetId,
       Date = DateTime.Now,
       Value = 5.2,
       Category = "Delivery",
@@ -49,7 +49,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact, Priority(3)]
   public async Task DeleteLastTransactionShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = factory.googleSheetsConfig.TestSheetId };
+    var sheetConfig = new SheetConfigDTO { SheetId = orquestrator.googleSheetsConfig.TestSheetId };
     await finantialPlanningSpreadsheet.DeleteLastTransaction(sheetConfig);
     var lastTransaction = await finantialPlanningSpreadsheet.GetLastTransaction(sheetConfig);
     lastTransaction.ShouldBeNull();
@@ -57,7 +57,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact, Priority(4)]
   public async Task GetTransactionsShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = factory.googleSheetsConfig.TestSheetId };
+    var sheetConfig = new SheetConfigDTO { SheetId = orquestrator.googleSheetsConfig.TestSheetId };
     var result = await Task.WhenAll(
       finantialPlanningSpreadsheet.GetExpenseCategories(sheetConfig),
       finantialPlanningSpreadsheet.GetBankAccount(sheetConfig)
@@ -66,7 +66,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
     var bankAccount = result[1];
     var newTransactions = new List<AddExpenseDTO> {
       new() {
-        SheetId = factory.googleSheetsConfig.TestSheetId,
+        SheetId = orquestrator.googleSheetsConfig.TestSheetId,
         Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
         Value = 1000,
         Category = "Supermercado",
@@ -74,7 +74,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
         BankAccount = "NuConta"
       },
       new() {
-        SheetId = factory.googleSheetsConfig.TestSheetId,
+        SheetId = orquestrator.googleSheetsConfig.TestSheetId,
         Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
         Value = 600,
         Category = "Seguro do carro",
@@ -89,7 +89,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
     transactions.Count.ShouldBe(2);
     transactions.ShouldNotBeEmpty();
     foreach (var transaction in transactions) {
-      transaction.SheetId.ShouldBe(factory.googleSheetsConfig.TestSheetId);
+      transaction.SheetId.ShouldBe(orquestrator.googleSheetsConfig.TestSheetId);
       var isCategoryValid = expenseCategories.Contains(transaction.Category) || bankAccount.Contains(transaction.BankAccount);
       isCategoryValid.ShouldBeTrue();
     }
@@ -114,7 +114,7 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact]
   public async Task GetExpenseCategoriesShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = factory.googleSheetsConfig.TestSheetId };
+    var sheetConfig = new SheetConfigDTO { SheetId = orquestrator.googleSheetsConfig.TestSheetId };
     var expenseCategories = await finantialPlanningSpreadsheet.GetExpenseCategories(sheetConfig);
     expenseCategories.ShouldNotBeEmpty();
     sheetConfig.SheetId = "WrongSheet";
@@ -123,9 +123,9 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact]
   public async Task GetEarningCategoriesShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = factory.googleSheetsConfig.TestSheetId };
+    var sheetConfig = new SheetConfigDTO { SheetId = orquestrator.googleSheetsConfig.TestSheetId };
     var earningCategories = await finantialPlanningSpreadsheet.GetEarningCategories(new SheetConfigDTO {
-      SheetId = factory.googleSheetsConfig.TestSheetId,
+      SheetId = orquestrator.googleSheetsConfig.TestSheetId,
     });
     earningCategories.ShouldNotBeEmpty();
     sheetConfig.SheetId = "WrongSheet";
@@ -134,9 +134,9 @@ public class FinantialPlanningSpreadsheet : IClassFixture<CustomWebApplicationFa
 
   [Fact]
   public async Task GetBankAccountShouldWork() {
-    var sheetConfig = new SheetConfigDTO { SheetId = factory.googleSheetsConfig.TestSheetId };
+    var sheetConfig = new SheetConfigDTO { SheetId = orquestrator.googleSheetsConfig.TestSheetId };
     var bankAccount = await finantialPlanningSpreadsheet.GetBankAccount(new SheetConfigDTO {
-      SheetId = factory.googleSheetsConfig.TestSheetId,
+      SheetId = orquestrator.googleSheetsConfig.TestSheetId,
     });
     bankAccount.ShouldNotBeEmpty();
     sheetConfig.SheetId = "WrongSheet";
