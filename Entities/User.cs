@@ -9,6 +9,7 @@ public class User {
   public bool IsInactive { get; set; } = false;
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+  public Credentials? GoogleCredentials { get; set; }
   public User() {
     InitializeDefaults();
   }
