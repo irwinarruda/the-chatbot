@@ -34,11 +34,13 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
     return uri.ToString();
   }
 
-  public Task<GoogleTokenResponse> ExchangeCodeForTokenAsync() {
-    throw new NotImplementedException();
+  public async Task<GoogleTokenResponse> ExchangeCodeForTokenAsync(string code) {
+    var tokenResponse = await flow.ExchangeCodeForTokenAsync("user", code, googleConfig.RedirectUri, CancellationToken.None);
+    return GoogleTokenResponse.FromTokenResponse(tokenResponse);
   }
 
-  public Task<GoogleTokenResponse> RefreshToken(GoogleTokenResponse response) {
-    throw new NotImplementedException();
+  public async Task<GoogleTokenResponse> RefreshToken(GoogleTokenResponse response) {
+    var tokenResponse = await flow.RefreshTokenAsync(response.AccessToken, response.RefreshToken, CancellationToken.None);
+    return GoogleTokenResponse.FromTokenResponse(tokenResponse);
   }
 }
