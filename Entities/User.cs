@@ -7,10 +7,11 @@ public class User {
   public string Name { get; set; } = string.Empty;
   public string PhoneNumber { get; set; } = string.Empty;
   public bool IsInactive { get; set; } = false;
-  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+  public DateTime CreatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
+  public DateTime UpdatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
+  public Credentials? GoogleCredentials { get; set; }
   public User() {
-    InitializeDefaults();
+    Id = Guid.NewGuid();
   }
 
   public User(string name, string phoneNumber) {
@@ -24,12 +25,6 @@ public class User {
     );
     Name = name;
     PhoneNumber = phoneNumber;
-    InitializeDefaults();
-  }
-
-  void InitializeDefaults() {
     Id = Guid.NewGuid();
-    CreatedAt = DateTime.UtcNow;
-    UpdatedAt = DateTime.UtcNow;
   }
 }

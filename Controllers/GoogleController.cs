@@ -57,7 +57,9 @@ public class GoogleController : ControllerBase {
       ClientSecrets = clientSecrets,
       Scopes = scopes,
     });
-    var uri = flow.CreateAuthorizationCodeRequest(googleConfig.RedirectUri).Build();
+    var request = flow.CreateAuthorizationCodeRequest(googleConfig.RedirectUri);
+    request.State = "";
+    var uri = request.Build();
     return Redirect(uri.ToString());
   }
 

@@ -5,24 +5,25 @@ using Google.Apis.Tasks.v1;
 using Shouldly;
 
 using TheChatbot.Services;
-using TheChatbot.Utils;
 
 namespace Tests;
 
-public class AuthServiceTest : IClassFixture<CustomWebApplicationFactory> {
-  public CustomWebApplicationFactory factory;
+public class AuthServiceTest : IClassFixture<Orquestrator> {
+  public Orquestrator orquestrator;
   public AuthService authService;
-  public AuthServiceTest(CustomWebApplicationFactory _factory) {
-    factory = _factory;
-    authService = _factory.authService;
+  public ITestOutputHelper output;
+  public AuthServiceTest(Orquestrator _orquestrator, ITestOutputHelper _output) {
+    orquestrator = _orquestrator;
+    authService = _orquestrator.authService;
+    output = _output;
   }
 
   [Fact]
   public void GetGoogleLoginUrl() {
     var uri = authService.GetGoogleLoginUrl();
     uri = Uri.UnescapeDataString(uri);
-    uri.ShouldContain(factory.googleConfig.RedirectUri);
-    uri.ShouldContain(factory.googleConfig.ClientId);
+    uri.ShouldContain(orquestrator.googleConfig.RedirectUri);
+    uri.ShouldContain(orquestrator.googleConfig.ClientId);
     uri.ShouldContain(SheetsService.Scope.Spreadsheets);
     uri.ShouldContain(TasksService.Scope.Tasks);
     uri.ShouldContain(Oauth2Service.Scope.UserinfoEmail);
@@ -34,8 +35,8 @@ public class AuthServiceTest : IClassFixture<CustomWebApplicationFactory> {
 
   [Fact]
   public async Task CreateUser() {
-    await factory.ClearDatabase();
-    await factory.RunPendingMigrations();
+    await orquestrator.ClearDatabase();
+    await orquestrator.RunPendingMigrations();
     var user = await authService.CreateUser("Irwin Arruda", "+5511984444444");
     user.Name.ShouldBe("Irwin Arruda");
     user.PhoneNumber.ShouldBe("+5511984444444");
@@ -46,12 +47,16 @@ public class AuthServiceTest : IClassFixture<CustomWebApplicationFactory> {
 
   [Fact]
   public async Task GetUsers() {
-    await factory.ClearDatabase();
-    await factory.RunPendingMigrations();
-    var user = await factory.CreateUser();
+    await orquestrator.ClearDatabase();
+    await orquestrator.RunPendingMigrations();
+    var user = await orquestrator.CreateUser();
     var users = await authService.GetUsers();
     users.Count.ShouldBe(1);
-    users[0].Name.ShouldBe(user.Name);
     users[0].Id.ShouldBe(user.Id);
+    users[0].Name.ShouldBe(user.Name);
+    users[0].PhoneNumber.ShouldBe(user.PhoneNumber);
+    users[0].IsInactive.ShouldBe(user.IsInactive);
+    users[0].CreatedAt.ShouldBe(user.CreatedAt);
+    users[0].UpdatedAt.ShouldBe(user.UpdatedAt);
   }
 }

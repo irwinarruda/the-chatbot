@@ -12,7 +12,7 @@ using TheChatbot.Utils;
 
 namespace Tests;
 
-public class CustomWebApplicationFactory : WebApplicationFactory<Program> {
+public class Orquestrator : WebApplicationFactory<Program> {
   readonly public AuthService authService;
   readonly public IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
   readonly public IGoogleAuthGateway googleAuthGateway;
@@ -22,7 +22,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program> {
   readonly public GoogleSheetsConfig googleSheetsConfig;
   readonly public GoogleConfig googleConfig;
 
-  public CustomWebApplicationFactory() {
+  public Orquestrator() {
     configuration = Configurable.Make();
     databaseConfig = configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
