@@ -9,13 +9,13 @@ using Xunit.v3.Priority;
 namespace Tests;
 
 [TestCaseOrderer(typeof(PriorityOrderer))]
-public class StatusApi : IClassFixture<CustomWebApplicationFactory> {
+public class StatusApi : IClassFixture<Orquestrator> {
   private readonly HttpClient client;
-  private readonly CustomWebApplicationFactory factory;
+  private readonly Orquestrator orquestrator;
 
-  public StatusApi(CustomWebApplicationFactory _factory) {
-    factory = _factory;
-    client = _factory.CreateClient();
+  public StatusApi(Orquestrator _orquestrator) {
+    orquestrator = _orquestrator;
+    client = _orquestrator.CreateClient();
   }
 
   [Fact]
@@ -28,7 +28,7 @@ public class StatusApi : IClassFixture<CustomWebApplicationFactory> {
     dto.ShouldNotBeNull();
     var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
     dto.UpdatedAt.ToString("yyyy-MM-dd").ShouldBe(date);
-    dto.Database.ServerVersion.ShouldBe(factory.databaseConfig.ServerVersion);
+    dto.Database.ServerVersion.ShouldBe(orquestrator.databaseConfig.ServerVersion);
     dto.Database.MaxConnections.ShouldBeGreaterThan(0);
     dto.Database.OpenConnections.ShouldBeGreaterThanOrEqualTo(1);
   }

@@ -10,7 +10,7 @@ public class AuthService(AppDbContext database, IGoogleAuthGateway googleAuthGat
   public string GetGoogleLoginUrl() {
     return googleAuthGateway.CreateAuthorizationCodeUrl();
   }
-  public async Task<object?> SaveGoogleCredentials(string userId) {
+  public async Task<object?> SaveGoogleCredentials(string userId, string code) {
     return await Task.FromResult("");
   }
   public async Task<string> GetThankYouPageHtmlString() {
@@ -36,12 +36,12 @@ public class AuthService(AppDbContext database, IGoogleAuthGateway googleAuthGat
     }).ToList();
     return users;
   }
+  private record DbUser(
+    Guid Id,
+    string Name,
+    string PhoneNumber,
+    bool IsInactive,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+  );
 }
-public record DbUser(
-  Guid Id,
-  string Name,
-  string PhoneNumber,
-  bool IsInactive,
-  DateTime CreatedAt,
-  DateTime UpdatedAt
-);
