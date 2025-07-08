@@ -4,7 +4,11 @@ namespace TheChatbot.Resources;
 
 public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
   static readonly List<Transaction> transactions = [];
-  private const string ValidSheetId = "uniqueId";
+  public string ValidSheetId;
+
+  public TestFinantialPlanningSpreadsheet(GoogleSheetsConfig googleSheetsConfig) {
+    ValidSheetId = googleSheetsConfig.TestSheetId;
+  }
 
   public void FromAccessToken(string accessToken) {
     throw new NotImplementedException();
