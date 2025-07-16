@@ -1,4 +1,3 @@
-
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Oauth2.v2;
@@ -29,8 +28,12 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
       Scopes = scopes,
     });
   }
-  public string CreateAuthorizationCodeUrl() {
-    var uri = flow.CreateAuthorizationCodeRequest(googleConfig.RedirectUri).Build();
+  public string CreateAuthorizationCodeUrl(string? state = null) {
+    var request = flow.CreateAuthorizationCodeRequest(googleConfig.RedirectUri);
+    if (state != null) {
+      request.State = state;
+    }
+    var uri = request.Build();
     return uri.ToString();
   }
 
