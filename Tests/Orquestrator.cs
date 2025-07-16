@@ -18,6 +18,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public IGoogleAuthGateway googleAuthGateway;
   readonly public IConfiguration configuration;
   readonly public AppDbContext database;
+  readonly public EncryptionConfig encryptionConfig;
   readonly public DatabaseConfig databaseConfig;
   readonly public GoogleSheetsConfig googleSheetsConfig;
   readonly public GoogleConfig googleConfig;
@@ -27,6 +28,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     databaseConfig = configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
+    encryptionConfig = configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!;
     database = new AppDbContext();
     if (googleSheetsConfig.TestSheetId != "TestSheetId") {
       finantialPlanningSpreadsheet = new GoogleFinantialPlanningSpreadsheet(googleConfig);
@@ -34,7 +36,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
       finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet(googleSheetsConfig);
     }
     googleAuthGateway = new GoogleAuthGateway(googleConfig);
-    authService = new AuthService(database, googleAuthGateway);
+    authService = new AuthService(database, encryptionConfig, googleAuthGateway);
   }
 
   public async Task ClearDatabase() {

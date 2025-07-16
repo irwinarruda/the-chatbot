@@ -38,6 +38,8 @@ public class Controller {
       int? statusCode = null;
       if (ex is ServiceException serviceEx) {
         statusCode = serviceEx.StatusCode;
+      } else if (ex is DeveloperException developerEx) {
+        statusCode = developerEx.StatusCode;
       }
       var internalServer = new InternalServerException(ex, statusCode);
       context.Response.StatusCode = internalServer.StatusCode;

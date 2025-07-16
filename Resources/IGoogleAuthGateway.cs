@@ -45,7 +45,7 @@ public class GoogleTokenResponse {
 }
 
 public interface IGoogleAuthGateway {
-  string CreateAuthorizationCodeUrl();
+  string CreateAuthorizationCodeUrl(string? state = null);
   Task<GoogleTokenResponse> ExchangeCodeForTokenAsync(string code);
   Task<GoogleTokenResponse> RefreshToken(GoogleTokenResponse response);
 }

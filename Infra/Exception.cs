@@ -117,3 +117,17 @@ public class InternalServerException : Exception {
     );
   }
 }
+
+public class DeveloperException : Exception {
+  public string Action { get; set; }
+  public string Name { get; set; }
+  public int StatusCode { get; set; }
+  public DeveloperException(
+    string context,
+    string? action = "Please redo your last steps to debugg the problem."
+  ) : base(context + " " + action) {
+    Name = "DeveloperException";
+    Action = action!;
+    StatusCode = 501;
+  }
+}

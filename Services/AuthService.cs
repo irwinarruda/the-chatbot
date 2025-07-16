@@ -6,11 +6,18 @@ using TheChatbot.Resources;
 
 namespace TheChatbot.Services;
 
-public class AuthService(AppDbContext database, IGoogleAuthGateway googleAuthGateway) {
-  public string GetGoogleLoginUrl() {
-    return googleAuthGateway.CreateAuthorizationCodeUrl();
+public class AuthService(AppDbContext database, EncryptionConfig encryptionConfig, IGoogleAuthGateway googleAuthGateway) {
+  public string GetGoogleLoginUrl(string phoneNumber) {
+    if (phoneNumber.Length == 0) {
+      throw new ValidationException("Phone number has no length");
+    }
+    var encryption = new Encryption(encryptionConfig.Text32Bytes, encryptionConfig.Text16Bytes);
+    var state = encryption.Encrypt(phoneNumber);
+    return googleAuthGateway.CreateAuthorizationCodeUrl(state);
   }
-  public async Task<object?> SaveGoogleCredentials(string userId, string code) {
+  public async Task<object?> SaveGoogleCredentials(string state, string code) {
+    var encryption = new Encryption(encryptionConfig.Text32Bytes, encryptionConfig.Text16Bytes);
+    var phoneNumber = encryption.Decrypt(state);
     return await Task.FromResult("");
   }
   public async Task<string> GetThankYouPageHtmlString() {
