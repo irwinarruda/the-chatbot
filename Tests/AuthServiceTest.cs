@@ -86,5 +86,11 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     var phoneNumber = "+5511984444444";
     var wrongCode = "wrongCode";
     await Should.ThrowAsync<Exception>(() => authService.SaveGoogleCredentials(encryption.Encrypt(phoneNumber), wrongCode));
+    var rightCode = "rightCode";
+    await authService.SaveGoogleCredentials(encryption.Encrypt(phoneNumber), rightCode);
+    var users = await authService.GetUsers();
+    users.Count.ShouldBe(1);
+    users[0].Name.ShouldBe("Save Google Credentials User");
+    users[0].PhoneNumber.ShouldBe("+5511984444444");
   }
 }
