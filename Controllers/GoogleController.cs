@@ -22,10 +22,8 @@ public class GoogleController : ControllerBase {
   readonly GoogleConfig googleConfig;
   readonly GoogleSheetsConfig googleSheetsConfig;
   static TokenResponse? userToken;
-  readonly IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
 
-  public GoogleController(IFinantialPlanningSpreadsheet _finantialPlanningSpreadsheet, IConfiguration configuration) {
-    finantialPlanningSpreadsheet = _finantialPlanningSpreadsheet;
+  public GoogleController(IConfiguration configuration) {
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     Console.WriteLine(Printable.Make(userToken));
