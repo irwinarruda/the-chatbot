@@ -35,12 +35,13 @@ public class Orquestrator : WebApplicationFactory<Program> {
     } else {
       finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet(googleSheetsConfig);
     }
-    googleAuthGateway = new GoogleAuthGateway(googleConfig);
+    googleAuthGateway = new TestGoogleAuthGateway(googleConfig);
     authService = new AuthService(database, encryptionConfig, googleAuthGateway);
   }
 
   public async Task ClearDatabase() {
     await database.Execute($"DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+    await RunPendingMigrations();
   }
 
   public async Task RunPendingMigrations() {
@@ -49,7 +50,10 @@ public class Orquestrator : WebApplicationFactory<Program> {
 
   public async Task<User> CreateUser(string? name = null, string? phoneNumber = null) {
     var faker = new Faker();
-    var user = await authService.CreateUser(name ?? faker.Name.FullName(), phoneNumber ?? faker.Phone.PhoneNumber("+55###########"));
+    var user = await authService.CreateUser(
+      name ?? faker.Name.FullName(),
+      phoneNumber ?? faker.Phone.PhoneNumber("+55###########")
+    );
     return user;
   }
 }

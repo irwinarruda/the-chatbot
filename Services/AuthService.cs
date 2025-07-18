@@ -15,13 +15,16 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     var state = encryption.Encrypt(phoneNumber);
     return googleAuthGateway.CreateAuthorizationCodeUrl(state);
   }
-  public async Task<object?> SaveGoogleCredentials(string state, string code) {
+  public async Task SaveGoogleCredentials(string state, string code) {
     var encryption = new Encryption(encryptionConfig.Text32Bytes, encryptionConfig.Text16Bytes);
     var phoneNumber = encryption.Decrypt(state);
-    return await Task.FromResult("");
+    var userToken = await googleAuthGateway.ExchangeCodeForTokenAsync(code);
+    var userinfo = await googleAuthGateway.GetUserinfo(userToken);
+    await CreateUser(userinfo.Name, phoneNumber);
   }
   public async Task<string> GetThankYouPageHtmlString() {
-    return await Task.FromResult("");
+    var template = await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "Templates", "ThankYouPage.html"));
+    return template;
   }
   public async Task<User> CreateUser(string name, string phoneNumber) {
     var user = new User(name, phoneNumber);

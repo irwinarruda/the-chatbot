@@ -50,7 +50,6 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task CreateUser() {
     await orquestrator.ClearDatabase();
-    await orquestrator.RunPendingMigrations();
     var phoneNumber = "+5511984444444";
     var user = await authService.CreateUser("Irwin Arruda", phoneNumber);
     user.Name.ShouldBe("Irwin Arruda");
@@ -63,7 +62,6 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task GetUsers() {
     await orquestrator.ClearDatabase();
-    await orquestrator.RunPendingMigrations();
     var user = await orquestrator.CreateUser();
     var users = await authService.GetUsers();
     users.Count.ShouldBe(1);
@@ -78,7 +76,6 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task SaveGoogleCredentials() {
     await orquestrator.ClearDatabase();
-    await orquestrator.RunPendingMigrations();
     var encryption = new Encryption(
       orquestrator.encryptionConfig.Text32Bytes,
       orquestrator.encryptionConfig.Text16Bytes
@@ -92,5 +89,12 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     users.Count.ShouldBe(1);
     users[0].Name.ShouldBe("Save Google Credentials User");
     users[0].PhoneNumber.ShouldBe("+5511984444444");
+  }
+
+  [Fact]
+  public async Task GetThankYouPageHtmlString() {
+    var template = await authService.GetThankYouPageHtmlString();
+    template.ShouldContain("<html ");
+    template.ShouldContain("</html>");
   }
 }
