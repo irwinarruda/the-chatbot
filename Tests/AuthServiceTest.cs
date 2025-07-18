@@ -51,9 +51,14 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   public async Task CreateUser() {
     await orquestrator.ClearDatabase();
     var phoneNumber = "+5511984444444";
-    var user = await authService.CreateUser("Irwin Arruda", phoneNumber);
+    var user = new User {
+      Name = "Irwin Arruda",
+      PhoneNumber = phoneNumber,
+    };
+    await authService.CreateUser(user);
     user.Name.ShouldBe("Irwin Arruda");
     user.PhoneNumber.ShouldBe(phoneNumber);
+    user.GoogleCredential.ShouldBeNull();
     user.IsInactive.ShouldBeFalse();
     user.CreatedAt.ToString("yyyy-MM-dd").ShouldBe(DateTime.UtcNow.ToString("yyyy-MM-dd"));
     user.UpdatedAt.ToString("yyyy-MM-dd").ShouldBe(DateTime.UtcNow.ToString("yyyy-MM-dd"));
@@ -69,6 +74,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     users[0].Name.ShouldBe(user.Name);
     users[0].PhoneNumber.ShouldBe(user.PhoneNumber);
     users[0].IsInactive.ShouldBe(user.IsInactive);
+    users[0].GoogleCredential.ShouldBeNull();
     users[0].CreatedAt.ShouldBe(user.CreatedAt);
     users[0].UpdatedAt.ShouldBe(user.UpdatedAt);
   }
@@ -89,6 +95,8 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     users.Count.ShouldBe(1);
     users[0].Name.ShouldBe("Save Google Credentials User");
     users[0].PhoneNumber.ShouldBe("+5511984444444");
+    users[0].GoogleCredential.ShouldNotBeNull();
+    users[0].GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9test_access_token_123456789");
   }
 
   [Fact]

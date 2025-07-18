@@ -9,7 +9,7 @@ public class User {
   public bool IsInactive { get; set; } = false;
   public DateTime CreatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
   public DateTime UpdatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
-  public Credentials? GoogleCredentials { get; set; }
+  public Credential? GoogleCredential { get; set; }
   public User() {
     Id = Guid.NewGuid();
   }
@@ -26,5 +26,10 @@ public class User {
     Name = name;
     PhoneNumber = phoneNumber;
     Id = Guid.NewGuid();
+  }
+
+  public void AddGoogleCredential(Credential googleCredential) {
+    if (googleCredential.Type != CredentialType.Google) throw new DeveloperException("The credential must be from google");
+    GoogleCredential = googleCredential;
   }
 }

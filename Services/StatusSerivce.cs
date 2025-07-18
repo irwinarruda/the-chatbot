@@ -7,7 +7,6 @@ namespace TheChatbot.Services;
 
 public class StatusService(AppDbContext database, DatabaseConfig databaseConfig) {
   private record OpenConnectionsQueryResult(int Count);
-
   public async Task<Status> GetStatus() {
     var version = await database.Query<string>($"SHOW server_version;").ToListAsync();
     var maxConnections = await database.Query<string>($"SHOW max_connections;").ToListAsync();
