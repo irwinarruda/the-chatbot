@@ -56,8 +56,8 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
     return userInfo;
   }
 
-  public async Task<TokenResponse> RefreshToken(TokenResponse response) {
-    var tokenResponse = await flow.RefreshTokenAsync(response.AccessToken, response.RefreshToken, CancellationToken.None);
+  public async Task<TokenResponse> RefreshToken(string accessToken, string refreshToken) {
+    var tokenResponse = await flow.RefreshTokenAsync(accessToken, refreshToken, CancellationToken.None);
     return tokenResponse;
   }
 }

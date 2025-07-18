@@ -80,7 +80,7 @@ public class TestGoogleAuthGateway : IGoogleAuthGateway {
     return Task.FromResult(userinfo);
   }
 
-  public Task<TokenResponse> RefreshToken(TokenResponse response) {
+  public Task<TokenResponse> RefreshToken(string accessToken, string refreshToken) {
     throw new NotImplementedException();
   }
 }

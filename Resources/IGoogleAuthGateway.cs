@@ -7,5 +7,5 @@ public interface IGoogleAuthGateway {
   string CreateAuthorizationCodeUrl(string? state = null);
   Task<Userinfo> GetUserinfo(TokenResponse userToken);
   Task<TokenResponse> ExchangeCodeForTokenAsync(string code);
-  Task<TokenResponse> RefreshToken(TokenResponse response);
+  Task<TokenResponse> RefreshToken(string accessToken, string refreshToken);
 }

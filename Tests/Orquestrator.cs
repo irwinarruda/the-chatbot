@@ -50,10 +50,11 @@ public class Orquestrator : WebApplicationFactory<Program> {
 
   public async Task<User> CreateUser(string? name = null, string? phoneNumber = null) {
     var faker = new Faker();
-    var user = await authService.CreateUser(
-      name ?? faker.Name.FullName(),
-      phoneNumber ?? faker.Phone.PhoneNumber("+55###########")
-    );
+    var user = new User {
+      Name = name ?? faker.Name.FullName(),
+      PhoneNumber = phoneNumber ?? faker.Phone.PhoneNumber("+55###########")
+    };
+    await authService.CreateUser(user);
     return user;
   }
 }
