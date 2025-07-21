@@ -1,5 +1,6 @@
 env-local = ASPNETCORE_ENVIRONMENT=Local
 env-dev = ASPNETCORE_ENVIRONMENT=Development
+env-prev = ASPNETCORE_ENVIRONMENT=Preview
 env-prod = ASPNETCORE_ENVIRONMENT=Production
 
 install-tools:
@@ -8,8 +9,8 @@ test-local: services-ready
 	$(env-local) dotnet test
 test-dev: services-ready
 	$(env-dev) dotnet test
-test-prod:
-	$(env-prod) dotnet test
+test-prev:
+	$(env-prev) make migrations-up && $(env-prev) dotnet test
 run-local: services-ready
 	$(env-local) dotnet watch
 services-up:
