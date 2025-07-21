@@ -1,3 +1,5 @@
+using System.Web;
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -25,7 +27,7 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
     };
     var clientSecrets = new ClientSecrets {
       ClientId = googleConfig.ClientId,
-      ClientSecret = googleConfig.SecretClientKey
+      ClientSecret = googleConfig.SecretClientKey,
     };
     flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
       ClientSecrets = clientSecrets,
@@ -38,7 +40,12 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
       request.State = state;
     }
     var uri = request.Build();
-    return uri.ToString();
+    var uriBuilder = new UriBuilder(uri);
+    var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+    query["access_type"] = "offline";
+    query["prompt"] = "consent";
+    uriBuilder.Query = query.ToString();
+    return uriBuilder.ToString();
   }
 
   public async Task<TokenResponse> ExchangeCodeForTokenAsync(string code) {

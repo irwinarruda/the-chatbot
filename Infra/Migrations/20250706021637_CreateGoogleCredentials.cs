@@ -14,9 +14,10 @@ public partial class CreateGoogleCredentials : Migration {
       columns: (table) => new {
         id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
         id_user = table.Column<Guid>(type: "uuid", nullable: false),
-        access_token = table.Column<string>(type: "varchar(200)", nullable: false),
-        refresh_token = table.Column<string>(type: "varchar(200)", nullable: false),
+        access_token = table.Column<string>(type: "varchar(500)", nullable: false),
+        refresh_token = table.Column<string>(type: "varchar(500)", nullable: false),
         expires_in_seconds = table.Column<long>(type: "bigint", nullable: true),
+        expiration_date = table.Column<DateTime>(type: "timestamptz", nullable: true),
         created_at = table.Column<DateTime>(type: "timestamptz", defaultValueSql: "timezone('utc', now())"),
         updated_at = table.Column<DateTime>(type: "timestamptz", defaultValueSql: "timezone('utc', now())"),
       },

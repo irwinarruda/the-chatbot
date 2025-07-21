@@ -5,14 +5,12 @@ using System.Threading;
 
 public class Main
 {
-
   public static void Run()
   {
     Console.Write("\n🟨 Waiting for postgres");
-    var maxTries = 0;
+    var maxTries = 30;
     Check(maxTries);
   }
-
   public static void Check(int maxTries)
   {
     var output = ExecuteDockerCheck("docker", "exec the-chatbot-pg pg_isready --host localhost");
@@ -52,7 +50,6 @@ public class Main
 
     return string.IsNullOrEmpty(error) ? output : error;
   }
-
 }
 
 Main.Run();

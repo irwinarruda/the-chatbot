@@ -48,6 +48,13 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   }
 
   [Fact]
+  public async Task GetThankYouPageHtmlString() {
+    var template = await authService.GetThankYouPageHtmlString();
+    template.ShouldContain("<html ");
+    template.ShouldContain("</html>");
+  }
+
+  [Fact]
   public async Task CreateUser() {
     await orquestrator.ClearDatabase();
     var phoneNumber = "+5511984444444";
@@ -80,7 +87,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   }
 
   [Fact]
-  public async Task SaveGoogleCredentials() {
+  public async Task SaveUserByGoogleCredential() {
     await orquestrator.ClearDatabase();
     var encryption = new Encryption(
       orquestrator.encryptionConfig.Text32Bytes,
@@ -88,21 +95,34 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     );
     var phoneNumber = "+5511984444444";
     var wrongCode = "wrongCode";
-    await Should.ThrowAsync<Exception>(() => authService.SaveGoogleCredentials(encryption.Encrypt(phoneNumber), wrongCode));
+    await Should.ThrowAsync<Exception>(() => authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber), wrongCode));
     var rightCode = "rightCode";
-    await authService.SaveGoogleCredentials(encryption.Encrypt(phoneNumber), rightCode);
+    await authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber), rightCode);
     var users = await authService.GetUsers();
     users.Count.ShouldBe(1);
     users[0].Name.ShouldBe("Save Google Credentials User");
     users[0].PhoneNumber.ShouldBe("+5511984444444");
     users[0].GoogleCredential.ShouldNotBeNull();
     users[0].GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9test_access_token_123456789");
+    users[0].GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_test_abcdefghijklmnopqrstuvwxyz");
+    await Should.NotThrowAsync(() => authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber), rightCode));
   }
 
   [Fact]
-  public async Task GetThankYouPageHtmlString() {
-    var template = await authService.GetThankYouPageHtmlString();
-    template.ShouldContain("<html ");
-    template.ShouldContain("</html>");
+  public async Task RefreshGoogleCredential() {
+    await orquestrator.ClearDatabase();
+    var encryption = new Encryption(
+      orquestrator.encryptionConfig.Text32Bytes,
+      orquestrator.encryptionConfig.Text16Bytes
+    );
+    await authService.SaveUserByGoogleCredential(encryption.Encrypt("+5511984444444"), "rightCode");
+    var users = await authService.GetUsers();
+    users[0].GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9test_access_token_123456789");
+    users[0].GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_test_abcdefghijklmnopqrstuvwxyz");
+    await authService.RefreshGoogleCredential(users[0].Id);
+    var refreshedUser = await authService.GetUserById(users[0].Id);
+    refreshedUser.ShouldNotBeNull();
+    refreshedUser.GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9refreshed_access_token_123456789");
+    refreshedUser.GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_refreshed_abcdefghijklmnopqrstuvwxyz");
   }
 }

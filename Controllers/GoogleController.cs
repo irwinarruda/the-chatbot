@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 
 using TheChatbot.Infra;
 using TheChatbot.Services;
@@ -17,7 +16,7 @@ public class GoogleController : ControllerBase {
 
   [HttpGet("redirect")]
   public async Task<ContentResult> GetLogin([FromQuery] string state, [FromQuery] string code) {
-    await authService.SaveGoogleCredentials(state, code);
+    await authService.SaveUserByGoogleCredential(state, code);
     var template = await authService.GetThankYouPageHtmlString();
     return Content(template, "text/html");
   }
@@ -29,9 +28,9 @@ public class GoogleController : ControllerBase {
   }
 
   [HttpGet("refresh")]
-  public async Task<ActionResult> GetRefresh() {
-    // Implement
-    return Ok("");
+  public async Task<ActionResult> GetRefresh([FromQuery] string idUser) {
+    await authService.RefreshGoogleCredential(Guid.Parse(idUser));
+    return StatusCode(201);
   }
 }
 
