@@ -22,11 +22,11 @@ dotnet tool install -g dotnet-script
 
 ## Authentication
 
-- [ ] **Database Auth** Define auth structure in the database to support all kinds of products.
-- [ ] **Get login URL** Generate Google OAuth2 authorization URL.
-- [ ] **Authenticate via Google** Exchange authorization code for access and refresh tokens.
-- [ ] **Token Refresh** Automatically refresh expired access tokens.
-- [ ] **Thank You Page** Redirect mobile users to a confirmation page after login.
+- [x] **Database Auth** Define auth structure in the database to support all kinds of products.
+- [x] **Get login URL** Generate Google OAuth2 authorization URL.
+- [x] **Authenticate via Google** Exchange authorization code for access and refresh tokens.
+- [x] **Token Refresh** Automatically refresh expired access tokens.
+- [x] **Thank You Page** Redirect mobile users to a confirmation page after login.
 
 ## Sheets Integration
 
