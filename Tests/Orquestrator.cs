@@ -14,6 +14,7 @@ namespace Tests;
 
 public class Orquestrator : WebApplicationFactory<Program> {
   readonly public AuthService authService;
+  readonly public StatusService statusService;
   readonly public IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
   readonly public IGoogleAuthGateway googleAuthGateway;
   readonly public IConfiguration configuration;
@@ -37,6 +38,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     }
     googleAuthGateway = new TestGoogleAuthGateway(googleConfig);
     authService = new AuthService(database, encryptionConfig, googleAuthGateway);
+    statusService = new StatusService(database, databaseConfig);
   }
 
   public async Task ClearDatabase() {

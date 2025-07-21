@@ -12,13 +12,11 @@ using TheChatbot.Services;
 namespace Tests;
 
 public class AuthServiceTest : IClassFixture<Orquestrator> {
-  public Orquestrator orquestrator;
-  public AuthService authService;
-  public ITestOutputHelper output;
-  public AuthServiceTest(Orquestrator _orquestrator, ITestOutputHelper _output) {
+  private readonly Orquestrator orquestrator;
+  private readonly AuthService authService;
+  public AuthServiceTest(Orquestrator _orquestrator) {
     orquestrator = _orquestrator;
     authService = _orquestrator.authService;
-    output = _output;
   }
 
   [Fact]
