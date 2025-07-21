@@ -8,10 +8,10 @@ using Xunit.v3.Priority;
 namespace Tests;
 
 [TestCaseOrderer(typeof(PriorityOrderer))]
-public class FinantialPlanningSpreadsheet : IClassFixture<Orquestrator> {
+public class FinantialPlanningSpreadsheetTest : IClassFixture<Orquestrator> {
   private readonly Orquestrator orquestrator;
   private readonly IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
-  public FinantialPlanningSpreadsheet(Orquestrator _orquestrator) {
+  public FinantialPlanningSpreadsheetTest(Orquestrator _orquestrator) {
     orquestrator = _orquestrator;
     finantialPlanningSpreadsheet = orquestrator.finantialPlanningSpreadsheet;
   }
