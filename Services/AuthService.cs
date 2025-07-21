@@ -15,22 +15,45 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     var state = encryption.Encrypt(phoneNumber);
     return googleAuthGateway.CreateAuthorizationCodeUrl(state);
   }
-  public async Task SaveGoogleCredentials(string state, string code) {
+  public async Task SaveUserByGoogleCredential(string state, string code) {
     var encryption = new Encryption(encryptionConfig.Text32Bytes, encryptionConfig.Text16Bytes);
     var phoneNumber = encryption.Decrypt(state);
     var userToken = await googleAuthGateway.ExchangeCodeForTokenAsync(code);
     var userinfo = await googleAuthGateway.GetUserinfo(userToken);
-
-    var user = new User(userinfo.Name, phoneNumber);
-    var credential = new Credential {
-      Type = CredentialType.Google,
-      AccessToken = userToken.AccessToken,
-      RefreshToken = userToken.RefreshToken,
-      ExpiresInSeconds = userToken.ExpiresInSeconds,
-    };
-    user.AddGoogleCredential(credential);
-
-    await CreateUser(user);
+    var user = await GetUserByPhoneNumber(phoneNumber);
+    if (user == null) {
+      var credential = new Credential(userToken.ExpiresInSeconds) {
+        Type = CredentialType.Google,
+        AccessToken = userToken.AccessToken,
+        RefreshToken = userToken.RefreshToken,
+      };
+      user = new User(userinfo.Name, phoneNumber);
+      user.AddGoogleCredential(credential);
+      await CreateUser(user);
+      return;
+    }
+    if (user.GoogleCredential == null) {
+      throw new ValidationException("Something went wrong with your request");
+    }
+    user.GoogleCredential.UpdateCredential(
+      accessToken: userToken.AccessToken,
+      refreshToken: userToken.RefreshToken,
+      expiresInSeconds: userToken.ExpiresInSeconds
+    );
+    await SaveGoogleCredential(user.GoogleCredential);
+  }
+  public async Task RefreshGoogleCredential(Guid userId) {
+    var user = await GetUserById(userId);
+    if (user == null || user.GoogleCredential == null) {
+      throw new ValidationException("Something went wrong refreshing user credentials.");
+    }
+    var userToken = await googleAuthGateway.RefreshToken(user.GoogleCredential.AccessToken, user.GoogleCredential.RefreshToken);
+    user.GoogleCredential.UpdateCredential(
+      accessToken: userToken.AccessToken,
+      refreshToken: userToken.RefreshToken,
+      expiresInSeconds: userToken.ExpiresInSeconds
+    );
+    await SaveGoogleCredential(user.GoogleCredential);
   }
   public async Task<string> GetThankYouPageHtmlString() {
     var template = await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "Templates", "ThankYouPage.html"));
@@ -44,11 +67,95 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     if (user.GoogleCredential != null) {
       var credential = user.GoogleCredential;
       await database.Execute($@"
-        INSERT INTO google_credentials (id, id_user, access_token, refresh_token, expires_in_seconds, created_at, updated_at)
-        VALUES ({credential.Id}, {user.Id}, {credential.AccessToken}, {credential.RefreshToken}, {credential.ExpiresInSeconds}, {credential.CreatedAt}, {credential.UpdatedAt});
+        INSERT INTO google_credentials (id, id_user, access_token, refresh_token, expires_in_seconds, expiration_date, created_at, updated_at)
+        VALUES ({credential.Id}, {user.Id}, {credential.AccessToken}, {credential.RefreshToken}, {credential.ExpiresInSeconds}, {credential.ExpirationDate}, {credential.CreatedAt}, {credential.UpdatedAt});
       ");
     }
     return user;
+  }
+  public async Task<User?> GetUserByPhoneNumber(string phoneNumber) {
+    var dbUsers = await database.Query<DbUser>($@"
+      SELECT * FROM users
+      WHERE phone_number = {phoneNumber};
+    ").ToListAsync();
+    if (dbUsers.Count != 1) {
+      return null;
+    }
+    var user = new User {
+      Id = dbUsers[0].Id,
+      Name = dbUsers[0].Name,
+      PhoneNumber = dbUsers[0].PhoneNumber,
+      IsInactive = dbUsers[0].IsInactive,
+      CreatedAt = dbUsers[0].CreatedAt,
+      UpdatedAt = dbUsers[0].UpdatedAt,
+    };
+    var dbGoogleCredential = await database.Query<DbGoogleCredential>($@"
+      SELECT * FROM google_credentials
+      WHERE id_user = {user.Id}
+    ").ToListAsync();
+    if (dbGoogleCredential.Count != 0) {
+      var credential = new Credential {
+        Id = dbGoogleCredential[0].Id,
+        IdUser = dbGoogleCredential[0].IdUser,
+        AccessToken = dbGoogleCredential[0].AccessToken,
+        RefreshToken = dbGoogleCredential[0].RefreshToken,
+        ExpiresInSeconds = dbGoogleCredential[0].ExpiresInSeconds,
+        ExpirationDate = dbGoogleCredential[0].ExpirationDate,
+        CreatedAt = dbGoogleCredential[0].CreatedAt,
+        UpdatedAt = dbGoogleCredential[0].UpdatedAt,
+        Type = CredentialType.Google,
+      };
+      user.AddGoogleCredential(credential);
+    }
+    return user;
+  }
+  public async Task<User?> GetUserById(Guid id) {
+    var dbUsers = await database.Query<DbUser>($@"
+      SELECT * FROM users
+      WHERE id = {id};
+    ").ToListAsync();
+    if (dbUsers.Count != 1) {
+      return null;
+    }
+    var user = new User {
+      Id = dbUsers[0].Id,
+      Name = dbUsers[0].Name,
+      PhoneNumber = dbUsers[0].PhoneNumber,
+      IsInactive = dbUsers[0].IsInactive,
+      CreatedAt = dbUsers[0].CreatedAt,
+      UpdatedAt = dbUsers[0].UpdatedAt,
+    };
+    var dbGoogleCredential = await database.Query<DbGoogleCredential>($@"
+      SELECT * FROM google_credentials
+      WHERE id_user = {user.Id}
+    ").ToListAsync();
+    if (dbGoogleCredential.Count != 0) {
+      var credential = new Credential {
+        Id = dbGoogleCredential[0].Id,
+        IdUser = dbGoogleCredential[0].IdUser,
+        AccessToken = dbGoogleCredential[0].AccessToken,
+        RefreshToken = dbGoogleCredential[0].RefreshToken,
+        ExpiresInSeconds = dbGoogleCredential[0].ExpiresInSeconds,
+        ExpirationDate = dbGoogleCredential[0].ExpirationDate,
+        CreatedAt = dbGoogleCredential[0].CreatedAt,
+        UpdatedAt = dbGoogleCredential[0].UpdatedAt,
+        Type = CredentialType.Google,
+      };
+      user.AddGoogleCredential(credential);
+    }
+    return user;
+  }
+  public async Task SaveGoogleCredential(Credential googleCredential) {
+    await database.Execute($@"
+      UPDATE google_credentials
+      SET
+        access_token = {googleCredential.AccessToken},
+        refresh_token = {googleCredential.RefreshToken},
+        expires_in_seconds = {googleCredential.ExpiresInSeconds},
+        expiration_date = {googleCredential.ExpirationDate},
+        updated_at = {googleCredential.UpdatedAt}
+      WHERE id = {googleCredential.Id};
+    ");
   }
   public async Task<List<User>> GetUsers() {
     var dbUsers = await database.Query<DbUser>($"SELECT * FROM users;").ToListAsync();
@@ -72,6 +179,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
         AccessToken = dbGoogleCredential[0].AccessToken,
         RefreshToken = dbGoogleCredential[0].RefreshToken,
         ExpiresInSeconds = dbGoogleCredential[0].ExpiresInSeconds,
+        ExpirationDate = dbGoogleCredential[0].ExpirationDate,
         CreatedAt = dbGoogleCredential[0].CreatedAt,
         UpdatedAt = dbGoogleCredential[0].UpdatedAt,
         Type = CredentialType.Google,
@@ -94,6 +202,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     string AccessToken,
     string RefreshToken,
     long? ExpiresInSeconds,
+    DateTime? ExpirationDate,
     DateTime CreatedAt,
     DateTime UpdatedAt
   );

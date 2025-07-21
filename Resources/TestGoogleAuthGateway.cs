@@ -42,7 +42,7 @@ public class TestGoogleAuthGateway : IGoogleAuthGateway {
 
   public Task<TokenResponse> ExchangeCodeForTokenAsync(string code) {
     if (code != "rightCode") {
-      throw new DeveloperException("Wrong code testing variable!");
+      throw new DeveloperException("[ExchangeCodeForTokenAsync]", "Wrong code testing variable!");
     }
     var scopes = new string[] {
       SheetsService.Scope.Spreadsheets,
@@ -81,6 +81,20 @@ public class TestGoogleAuthGateway : IGoogleAuthGateway {
   }
 
   public Task<TokenResponse> RefreshToken(string accessToken, string refreshToken) {
-    throw new NotImplementedException();
+    if (accessToken != "ya29.a0ARrdaM9test_access_token_123456789") {
+      throw new DeveloperException("[RefreshToken]", "Wrong accessToken");
+    }
+    if (refreshToken != "1//0G_refresh_token_test_abcdefghijklmnopqrstuvwxyz") {
+      throw new DeveloperException("[RefreshToken]", "Wrong refreshToken");
+    }
+    var tokenResponse = new TokenResponse {
+      AccessToken = "ya29.a0ARrdaM9refreshed_access_token_123456789",
+      TokenType = "Bearer",
+      ExpiresInSeconds = 3600,
+      RefreshToken = "1//0G_refresh_token_refreshed_abcdefghijklmnopqrstuvwxyz",
+      IdToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.test_id_token_payload.test_signature",
+      IssuedUtc = DateTime.UtcNow
+    };
+    return Task.FromResult(tokenResponse);
   }
 }
