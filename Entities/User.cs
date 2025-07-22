@@ -29,7 +29,7 @@ public class User {
   }
 
   public void AddGoogleCredential(Credential googleCredential) {
-    if (googleCredential.Type != CredentialType.Google) throw new DeveloperException("The credential must be from google");
+    if (googleCredential.Type != CredentialType.Google) throw new ValidationException("The credential must be from google");
     GoogleCredential = googleCredential;
   }
 }
