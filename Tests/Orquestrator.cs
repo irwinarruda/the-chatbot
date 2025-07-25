@@ -14,8 +14,10 @@ namespace Tests;
 
 public class Orquestrator : WebApplicationFactory<Program> {
   readonly public AuthService authService;
+  readonly public MessagingService messagingService;
   readonly public StatusService statusService;
   readonly public IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
+  readonly public IWhatsAppMessagingGateway whatsAppMessagingGateway;
   readonly public IGoogleAuthGateway googleAuthGateway;
   readonly public IConfiguration configuration;
   readonly public AppDbContext database;
@@ -37,7 +39,9 @@ public class Orquestrator : WebApplicationFactory<Program> {
       finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet(googleSheetsConfig);
     }
     googleAuthGateway = new TestGoogleAuthGateway(googleConfig);
+    whatsAppMessagingGateway = new TestWhatsAppMessagingGateway();
     authService = new AuthService(database, encryptionConfig, googleAuthGateway);
+    messagingService = new MessagingService(database, whatsAppMessagingGateway, authService);
     statusService = new StatusService(database, databaseConfig);
   }
 
