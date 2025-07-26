@@ -3,6 +3,7 @@ using Bogus;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 using TheChatbot.Entities;
 using TheChatbot.Infra;
@@ -20,7 +21,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public IWhatsAppMessagingGateway whatsAppMessagingGateway;
   readonly public IGoogleAuthGateway googleAuthGateway;
   readonly public IConfiguration configuration;
-  readonly public AppDbContext database;
+  readonly public IServiceProvider serviceProvider;
   readonly public EncryptionConfig encryptionConfig;
   readonly public DatabaseConfig databaseConfig;
   readonly public GoogleSheetsConfig googleSheetsConfig;
@@ -32,25 +33,48 @@ public class Orquestrator : WebApplicationFactory<Program> {
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     encryptionConfig = configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!;
-    database = new AppDbContext();
+
+    // Create a service collection for tests
+    var services = new ServiceCollection();
+    services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
+    services.AddSingleton(databaseConfig);
+    services.AddSingleton(encryptionConfig);
+    services.AddSingleton(googleConfig);
+    services.AddSingleton(googleSheetsConfig);
+
     if (googleSheetsConfig.TestSheetId != "TestSheetId") {
-      finantialPlanningSpreadsheet = new GoogleFinantialPlanningSpreadsheet(googleConfig);
+      services.AddSingleton<IFinantialPlanningSpreadsheet, GoogleFinantialPlanningSpreadsheet>();
     } else {
-      finantialPlanningSpreadsheet = new TestFinantialPlanningSpreadsheet(googleSheetsConfig);
+      services.AddSingleton<IFinantialPlanningSpreadsheet, TestFinantialPlanningSpreadsheet>();
     }
-    googleAuthGateway = new TestGoogleAuthGateway(googleConfig);
-    whatsAppMessagingGateway = new TestWhatsAppMessagingGateway();
-    authService = new AuthService(database, encryptionConfig, googleAuthGateway);
-    messagingService = new MessagingService(database, whatsAppMessagingGateway, authService);
-    statusService = new StatusService(database, databaseConfig);
+
+    services.AddSingleton<IGoogleAuthGateway, TestGoogleAuthGateway>();
+    services.AddSingleton<IWhatsAppMessagingGateway, TestWhatsAppMessagingGateway>();
+    services.AddTransient<AuthService>();
+    services.AddTransient<MessagingService>();
+    services.AddTransient<StatusService>();
+
+    serviceProvider = services.BuildServiceProvider();
+
+    // Get services from DI container
+    finantialPlanningSpreadsheet = serviceProvider.GetRequiredService<IFinantialPlanningSpreadsheet>();
+    googleAuthGateway = serviceProvider.GetRequiredService<IGoogleAuthGateway>();
+    whatsAppMessagingGateway = serviceProvider.GetRequiredService<IWhatsAppMessagingGateway>();
+    authService = serviceProvider.GetRequiredService<AuthService>();
+    messagingService = serviceProvider.GetRequiredService<MessagingService>();
+    statusService = serviceProvider.GetRequiredService<StatusService>();
   }
 
   public async Task ClearDatabase() {
+    using var scope = serviceProvider.CreateScope();
+    var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await database.Execute($"DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
     await RunPendingMigrations();
   }
 
   public async Task RunPendingMigrations() {
+    using var scope = serviceProvider.CreateScope();
+    var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await database.Database.MigrateAsync();
   }
 
