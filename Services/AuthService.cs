@@ -15,6 +15,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     var state = encryption.Encrypt(phoneNumber);
     return googleAuthGateway.CreateAuthorizationCodeUrl(state);
   }
+
   public async Task SaveUserByGoogleCredential(string state, string code) {
     var encryption = new Encryption(encryptionConfig.Text32Bytes, encryptionConfig.Text16Bytes);
     var phoneNumber = encryption.Decrypt(state);
@@ -41,6 +42,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     );
     await SaveGoogleCredential(user.GoogleCredential);
   }
+
   public async Task RefreshGoogleCredential(Guid userId) {
     var user = await GetUserById(userId);
     if (user == null || user.GoogleCredential == null) {
@@ -58,6 +60,28 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     var template = await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "Templates", "ThankYouPage.html"));
     return template;
   }
+  public async Task<string> GetAlreadySignedInPageHtmlString() {
+    var template = await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "Templates", "AlreadySignedIn.html"));
+    return template;
+  }
+
+  public async Task<(bool IsRedirect, string Content)> HandleGoogleLogin(string phoneNumber) {
+    var user = await GetUserByPhoneNumber(phoneNumber);
+    if (user?.GoogleCredential != null) {
+      await RefreshGoogleCredential(user.Id);
+      var template = await GetAlreadySignedInPageHtmlString();
+      return (IsRedirect: false, Content: template);
+    }
+    var url = GetGoogleLoginUrl(phoneNumber);
+    return (IsRedirect: true, Content: url);
+  }
+
+  public async Task<string> HandleGoogleRedirect(string state, string code) {
+    await SaveUserByGoogleCredential(state, code);
+    var template = await GetThankYouPageHtmlString();
+    return template;
+  }
+
   public async Task<User> CreateUser(User user) {
     await database.Execute($@"
       INSERT INTO users (id, name, phone_number, created_at, updated_at)
@@ -72,6 +96,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     }
     return user;
   }
+
   public async Task<User?> GetUserByPhoneNumber(string phoneNumber) {
     var dbUsers = await database.Query<DbUser>($@"
       SELECT * FROM users
@@ -106,6 +131,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     }
     return user;
   }
+
   public async Task<User?> GetUserById(Guid id) {
     var dbUsers = await database.Query<DbUser>($@"
       SELECT * FROM users
@@ -141,6 +167,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     }
     return user;
   }
+
   public async Task SaveGoogleCredential(Credential googleCredential) {
     await database.Execute($@"
       UPDATE google_credentials
@@ -153,6 +180,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
       WHERE id = {googleCredential.Id}
     ");
   }
+
   public async Task<List<User>> GetUsers() {
     var dbUsers = await database.Query<DbUser>($"SELECT * FROM users").ToListAsync();
     var users = dbUsers.Select((u) => new User {
@@ -184,6 +212,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     }
     return users;
   }
+
   private record DbUser(
     Guid Id,
     string Name,
@@ -192,6 +221,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     DateTime CreatedAt,
     DateTime UpdatedAt
   );
+
   private record DbGoogleCredential(
     Guid Id,
     Guid IdUser,
