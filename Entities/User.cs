@@ -28,8 +28,23 @@ public class User {
     Id = Guid.NewGuid();
   }
 
+  public void CreateGoogleCredential(string accessToken, string refreshToken, long? expiresInSeconds) {
+    var googleCredential = new Credential(expiresInSeconds) {
+      IdUser = Id,
+      AccessToken = accessToken,
+      RefreshToken = refreshToken,
+      Type = CredentialType.Google,
+    };
+    GoogleCredential = googleCredential;
+  }
+
   public void AddGoogleCredential(Credential googleCredential) {
     if (googleCredential.Type != CredentialType.Google) throw new ValidationException("The credential must be from google");
     GoogleCredential = googleCredential;
+  }
+
+  public void UpdateGoogleCredential(string accessToken, string refreshToken, long? expiresInSeconds) {
+    if (GoogleCredential == null) throw new ValidationException("The user does not have credentials to be updated");
+    GoogleCredential.Update(accessToken, refreshToken, expiresInSeconds);
   }
 }

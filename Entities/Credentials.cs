@@ -27,7 +27,7 @@ public class Credential {
     }
   }
 
-  public void UpdateCredential(string accessToken, string refreshToken, long? expiresInSeconds) {
+  public void Update(string accessToken, string refreshToken, long? expiresInSeconds) {
     AccessToken = accessToken;
     RefreshToken = refreshToken;
     UpdatedAt = DatePrecision.SixDigitPrecisionUtcNow;

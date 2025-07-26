@@ -20,7 +20,6 @@ public class AppDbContext : DbContext {
   public Task<int> Execute(FormattableString sql) => Database.ExecuteSqlAsync(sql);
 
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-    optionsBuilder.UseNpgsql(databaseConfig.ConnectionString)
-                  .UseSnakeCaseNamingConvention();
+    optionsBuilder.UseNpgsql(databaseConfig.ConnectionString).UseSnakeCaseNamingConvention();
   }
 }
