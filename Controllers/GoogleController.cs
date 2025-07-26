@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 
-using TheChatbot.Infra;
 using TheChatbot.Services;
 
 namespace TheChatbot.Controllers;
