@@ -15,15 +15,17 @@ public class GoogleController : ControllerBase {
 
   [HttpGet("redirect")]
   public async Task<ContentResult> GetLogin([FromQuery] string state, [FromQuery] string code) {
-    await authService.SaveUserByGoogleCredential(state, code);
-    var template = await authService.GetThankYouPageHtmlString();
+    var template = await authService.HandleGoogleRedirect(state, code);
     return Content(template, "text/html");
   }
 
   [HttpGet("login")]
-  public RedirectResult GetRedirect([FromQuery] string phoneNumber) {
-    var url = authService.GetGoogleLoginUrl(phoneNumber);
-    return Redirect(url);
+  public async Task<ActionResult> GetRedirect([FromQuery] string phoneNumber) {
+    var result = await authService.HandleGoogleLogin(phoneNumber);
+    if (result.IsRedirect) {
+      return Redirect(result.Content);
+    }
+    return Content(result.Content, "text/html");
   }
 
   [HttpGet("refresh")]

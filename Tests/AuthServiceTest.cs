@@ -53,6 +53,14 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   }
 
   [Fact]
+  public async Task GetAlreadySignedInPageHtmlString() {
+    var template = await authService.GetAlreadySignedInPageHtmlString();
+    template.ShouldContain("<html");
+    template.ShouldContain("</html>");
+    template.ShouldContain("Already Signed In");
+  }
+
+  [Fact]
   public async Task CreateUser() {
     await orquestrator.ClearDatabase();
     var phoneNumber = "+5511984444444";
@@ -122,5 +130,59 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     refreshedUser.ShouldNotBeNull();
     refreshedUser.GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9refreshed_access_token_123456789");
     refreshedUser.GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_refreshed_abcdefghijklmnopqrstuvwxyz");
+  }
+
+  [Fact]
+  public async Task HandleGoogleLogin() {
+    await orquestrator.ClearDatabase();
+    var encryption = new Encryption(
+      orquestrator.encryptionConfig.Text32Bytes,
+      orquestrator.encryptionConfig.Text16Bytes
+    );
+
+    var phoneNumber1 = "+5511984444444";
+    var result = await authService.HandleGoogleLogin(phoneNumber1);
+    result.IsRedirect.ShouldBeTrue();
+    result.Content.ShouldContain("accounts.google.com");
+
+    var user = await orquestrator.CreateUser();
+    result = await authService.HandleGoogleLogin(user.PhoneNumber);
+    result.IsRedirect.ShouldBeTrue();
+    result.Content.ShouldContain("accounts.google.com");
+
+    var phoneNumber3 = "+5511999888777";
+    await authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber3), "rightCode");
+    result = await authService.HandleGoogleLogin(phoneNumber3);
+    result.IsRedirect.ShouldBeFalse();
+    result.Content.ShouldContain("<html");
+    result.Content.ShouldContain("</html>");
+    result.Content.ShouldContain("Already Signed In");
+  }
+
+  [Fact]
+  public async Task HandleGoogleRedirect() {
+    await orquestrator.ClearDatabase();
+    var encryption = new Encryption(
+      orquestrator.encryptionConfig.Text32Bytes,
+      orquestrator.encryptionConfig.Text16Bytes
+    );
+
+    var phoneNumber1 = "+5511984444444";
+    var state = encryption.Encrypt(phoneNumber1);
+    var result = await authService.HandleGoogleRedirect(state, "rightCode");
+    result.ShouldContain("Thank You");
+    var users = await authService.GetUsers();
+    users.Count.ShouldBe(1);
+    users[0].GoogleCredential.ShouldNotBeNull();
+
+    var phoneNumber2 = "+5511987654321";
+    var state2 = encryption.Encrypt(phoneNumber2);
+    await Should.ThrowAsync<Exception>(() => authService.HandleGoogleRedirect(state2, "wrongCode"));
+
+    result = await authService.HandleGoogleRedirect(state, "rightCode");
+    result.ShouldContain("Thank You");
+    users = await authService.GetUsers();
+    users.Count.ShouldBe(1);
+    users[0].GoogleCredential.ShouldNotBeNull();
   }
 }
