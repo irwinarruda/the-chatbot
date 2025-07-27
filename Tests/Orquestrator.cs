@@ -34,7 +34,6 @@ public class Orquestrator : WebApplicationFactory<Program> {
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     encryptionConfig = configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!;
 
-    // Create a service collection for tests
     var services = new ServiceCollection();
     services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
     services.AddSingleton(databaseConfig);
@@ -56,7 +55,6 @@ public class Orquestrator : WebApplicationFactory<Program> {
 
     serviceProvider = services.BuildServiceProvider();
 
-    // Get services from DI container
     finantialPlanningSpreadsheet = serviceProvider.GetRequiredService<IFinantialPlanningSpreadsheet>();
     googleAuthGateway = serviceProvider.GetRequiredService<IGoogleAuthGateway>();
     whatsAppMessagingGateway = serviceProvider.GetRequiredService<IWhatsAppMessagingGateway>();
@@ -66,15 +64,13 @@ public class Orquestrator : WebApplicationFactory<Program> {
   }
 
   public async Task ClearDatabase() {
-    using var scope = serviceProvider.CreateScope();
-    var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var database = serviceProvider.GetRequiredService<AppDbContext>();
     await database.Execute($"DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
     await RunPendingMigrations();
   }
 
   public async Task RunPendingMigrations() {
-    using var scope = serviceProvider.CreateScope();
-    var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var database = serviceProvider.GetRequiredService<AppDbContext>();
     await database.Database.MigrateAsync();
   }
 
