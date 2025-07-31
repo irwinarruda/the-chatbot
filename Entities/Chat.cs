@@ -1,3 +1,5 @@
+using TheChatbot.Entities.Extensions;
+
 namespace TheChatbot.Entities;
 
 public enum ChatType {
@@ -9,12 +11,14 @@ public class Chat {
   public Guid IdUser { get; set; }
   public ChatType Type { get; set; }
   public List<Message> Messages { get; set; }
-  public DateTime CreatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
-  public DateTime UpdatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
+  public DateTime CreatedAt { get; set; }
+  public DateTime UpdatedAt { get; set; }
   public Chat() {
     Id = Guid.NewGuid();
     Type = ChatType.WhatsApp;
     Messages = [];
+    CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 
   public Message AddUserTextMessage(string text) {

@@ -5,14 +5,20 @@ env-prod = ASPNETCORE_ENVIRONMENT=Production
 
 install-tools:
 	dotnet tool install -g dotnet-ef && dotnet tool install -g dotnet-script
+install-app:
+	npm add -g concurrently
 test-local: services-ready
 	$(env-local) dotnet test
 test-dev: services-ready
 	$(env-dev) dotnet test
 test-prev:
 	$(env-prev) make migrations-up && $(env-prev) dotnet test
-run-local: services-ready
+run-api:
 	$(env-local) dotnet watch
+run-ngrok:
+	ngrok http --url=parrot-fun-nicely.ngrok-free.app 8080
+run-local: services-ready
+	concurrently -n dotnet,ngrok -c red,blue -k "make run-api" "make run-ngrok"
 services-up:
 	docker compose -f Infra/compose.yaml up -d
 services-down:
