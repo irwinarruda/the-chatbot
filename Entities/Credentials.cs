@@ -1,3 +1,5 @@
+using TheChatbot.Entities.Extensions;
+
 namespace TheChatbot.Entities;
 
 public enum CredentialType {
@@ -12,28 +14,32 @@ public class Credential {
   public long? ExpiresInSeconds { get; set; }
   public DateTime? ExpirationDate { get; set; }
   public required CredentialType Type { get; set; }
-  public DateTime CreatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
-  public DateTime UpdatedAt { get; set; } = DatePrecision.SixDigitPrecisionUtcNow;
+  public DateTime CreatedAt { get; set; }
+  public DateTime UpdatedAt { get; set; }
 
   public Credential() {
     Id = Guid.NewGuid();
+    CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 
   public Credential(long? expiresInSeconds) {
-    Id = Guid.NewGuid();
     ExpiresInSeconds = expiresInSeconds;
     if (expiresInSeconds != null) {
-      ExpirationDate = DatePrecision.SixDigitPrecisionUtcNow.AddSeconds((double)expiresInSeconds);
+      ExpirationDate = DateTime.UtcNow.TruncateToMicroseconds().AddSeconds((double)expiresInSeconds);
     }
+    Id = Guid.NewGuid();
+    CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 
   public void Update(string accessToken, string refreshToken, long? expiresInSeconds) {
     AccessToken = accessToken;
     RefreshToken = refreshToken;
-    UpdatedAt = DatePrecision.SixDigitPrecisionUtcNow;
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
     ExpiresInSeconds = expiresInSeconds;
     if (expiresInSeconds != null) {
-      ExpirationDate = DatePrecision.SixDigitPrecisionUtcNow.AddSeconds((double)expiresInSeconds);
+      ExpirationDate = DateTime.UtcNow.TruncateToMicroseconds().AddSeconds((double)expiresInSeconds);
     }
   }
 }

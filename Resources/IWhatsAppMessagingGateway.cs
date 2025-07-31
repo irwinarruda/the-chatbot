@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace TheChatbot.Resources;
 
 public class SendTextMessageDTO {
@@ -10,8 +12,14 @@ public class ReceiveTextMessageDTO {
   public required string From { get; set; }
 }
 
+public class ReceiveButtonReplyDTO {
+  public required string ButtonId { get; set; }
+  public required string ButtonText { get; set; }
+  public required string From { get; set; }
+}
+
 public interface IWhatsAppMessagingGateway {
   Task SendTextMessage(SendTextMessageDTO textMessage);
-  Action SubscribeToReceiveMessage(Func<ReceiveTextMessageDTO, Task> onMessageReceived);
-  Task StartReceiveMessage();
+  void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage);
+  string GetVerifyToken();
 }

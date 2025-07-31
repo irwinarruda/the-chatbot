@@ -33,9 +33,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     encryptionConfig = configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!;
-
     var services = new ServiceCollection();
-    services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
     services.AddSingleton(databaseConfig);
     services.AddSingleton(encryptionConfig);
     services.AddSingleton(googleConfig);
@@ -49,6 +47,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
 
     services.AddSingleton<IGoogleAuthGateway, TestGoogleAuthGateway>();
     services.AddSingleton<IWhatsAppMessagingGateway, TestWhatsAppMessagingGateway>();
+    services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
     services.AddTransient<AuthService>();
     services.AddTransient<MessagingService>();
     services.AddTransient<StatusService>();
@@ -78,7 +77,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     var faker = new Faker();
     var user = new User {
       Name = name ?? faker.Name.FullName(),
-      PhoneNumber = phoneNumber ?? faker.Phone.PhoneNumber("+55###########")
+      PhoneNumber = phoneNumber ?? faker.Phone.PhoneNumber("55###########")
     };
     await authService.CreateUser(user);
     return user;

@@ -1,8 +1,6 @@
-namespace TheChatbot.Entities;
+namespace TheChatbot.Entities.Extensions;
 
-public static class DatePrecision {
-  public static DateTime SixDigitPrecisionUtcNow => TruncateToMicroseconds(DateTime.UtcNow);
-
+public static class DateTimeExtensions {
   public static DateTime TruncateToMicroseconds(this DateTime dateTime) {
     return new DateTime(dateTime.Ticks / 10 * 10, dateTime.Kind);
   }

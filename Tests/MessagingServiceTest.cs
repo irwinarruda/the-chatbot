@@ -1,3 +1,7 @@
+using System.Text.Json;
+
+using Microsoft.VisualBasic;
+
 using Shouldly;
 
 using TheChatbot.Entities;
@@ -16,11 +20,11 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task SendMessage() {
     await orquestrator.ClearDatabase();
-    var user = await orquestrator.CreateUser(phoneNumber: "+5511984444444");
+    var user = await orquestrator.CreateUser(phoneNumber: "5511984444444");
     var chat = await messagingService.GetChatByUserPhoneNumber(user.PhoneNumber);
     chat.ShouldBeNull();
-    await orquestrator.whatsAppMessagingGateway.StartReceiveMessage();
-    await Task.Delay(100, TestContext.Current.CancellationToken);
+    var jsonString = JsonSerializer.Serialize("User 1");
+    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(jsonString));
     chat = await messagingService.GetChatByUserPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBe(user.Id);
@@ -33,7 +37,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     responseMessage.Text.ShouldBe("Response to: " + userMessage.Text);
     responseMessage.IdUser.ShouldBeNull();
     responseMessage.UserType.ShouldBe(MessageUserType.Bot);
-    await messagingService.SendMessage(user.PhoneNumber, "Bot 1");
+    await messagingService.SendTextMessage(user.PhoneNumber, "Bot 1");
     chat = await messagingService.GetChatByUserPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.Messages.Count.ShouldBe(3);

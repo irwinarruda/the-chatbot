@@ -21,7 +21,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
 
   [Fact]
   public void GetGoogleLoginUrl() {
-    var phoneNumber = "+5511984444444";
+    var phoneNumber = "5511984444444";
     var url = authService.GetGoogleLoginUrl(phoneNumber);
     var uri = new Uri(url);
     var queryParams = HttpUtility.ParseQueryString(uri.Query);
@@ -63,11 +63,8 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task CreateUser() {
     await orquestrator.ClearDatabase();
-    var phoneNumber = "+5511984444444";
-    var user = new User {
-      Name = "Irwin Arruda",
-      PhoneNumber = phoneNumber,
-    };
+    var phoneNumber = "5511984444444";
+    var user = new User("Irwin Arruda", phoneNumber);
     await authService.CreateUser(user);
     user.Name.ShouldBe("Irwin Arruda");
     user.PhoneNumber.ShouldBe(phoneNumber);
@@ -99,7 +96,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
       orquestrator.encryptionConfig.Text32Bytes,
       orquestrator.encryptionConfig.Text16Bytes
     );
-    var phoneNumber = "+5511984444444";
+    var phoneNumber = "5511984444444";
     var wrongCode = "wrongCode";
     await Should.ThrowAsync<Exception>(() => authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber), wrongCode));
     var rightCode = "rightCode";
@@ -107,10 +104,13 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     var users = await authService.GetUsers();
     users.Count.ShouldBe(1);
     users[0].Name.ShouldBe("Save Google Credentials User");
-    users[0].PhoneNumber.ShouldBe("+5511984444444");
+    users[0].PhoneNumber.ShouldBe("5511984444444");
     users[0].GoogleCredential.ShouldNotBeNull();
     users[0].GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9test_access_token_123456789");
     users[0].GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_test_abcdefghijklmnopqrstuvwxyz");
+    var createdAt = users[0].GoogleCredential?.CreatedAt!;
+    var updatedAt = users[0].GoogleCredential?.UpdatedAt!;
+    ((DateTimeOffset)createdAt).ToUnixTimeMilliseconds().ShouldBe(((DateTimeOffset)updatedAt).ToUnixTimeMilliseconds());
     await Should.NotThrowAsync(() => authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber), rightCode));
   }
 
@@ -121,7 +121,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
       orquestrator.encryptionConfig.Text32Bytes,
       orquestrator.encryptionConfig.Text16Bytes
     );
-    await authService.SaveUserByGoogleCredential(encryption.Encrypt("+5511984444444"), "rightCode");
+    await authService.SaveUserByGoogleCredential(encryption.Encrypt("5511984444444"), "rightCode");
     var users = await authService.GetUsers();
     users[0].GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9test_access_token_123456789");
     users[0].GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_test_abcdefghijklmnopqrstuvwxyz");
@@ -130,17 +130,16 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     refreshedUser.ShouldNotBeNull();
     refreshedUser.GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9refreshed_access_token_123456789");
     refreshedUser.GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_refreshed_abcdefghijklmnopqrstuvwxyz");
+    var createdAt = refreshedUser.GoogleCredential?.CreatedAt!;
+    var updatedAt = refreshedUser.GoogleCredential?.UpdatedAt!;
+    ((DateTimeOffset)createdAt).ToUnixTimeMilliseconds().ShouldNotBe(((DateTimeOffset)updatedAt).ToUnixTimeMilliseconds());
   }
 
   [Fact]
   public async Task HandleGoogleLogin() {
     await orquestrator.ClearDatabase();
-    var encryption = new Encryption(
-      orquestrator.encryptionConfig.Text32Bytes,
-      orquestrator.encryptionConfig.Text16Bytes
-    );
 
-    var phoneNumber1 = "+5511984444444";
+    var phoneNumber1 = "5511984444444";
     var result = await authService.HandleGoogleLogin(phoneNumber1);
     result.IsRedirect.ShouldBeTrue();
     result.Content.ShouldContain("accounts.google.com");
@@ -150,7 +149,11 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     result.IsRedirect.ShouldBeTrue();
     result.Content.ShouldContain("accounts.google.com");
 
-    var phoneNumber3 = "+5511999888777";
+    var encryption = new Encryption(
+      orquestrator.encryptionConfig.Text32Bytes,
+      orquestrator.encryptionConfig.Text16Bytes
+    );
+    var phoneNumber3 = "5511999888777";
     await authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber3), "rightCode");
     result = await authService.HandleGoogleLogin(phoneNumber3);
     result.IsRedirect.ShouldBeFalse();
@@ -167,7 +170,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
       orquestrator.encryptionConfig.Text16Bytes
     );
 
-    var phoneNumber1 = "+5511984444444";
+    var phoneNumber1 = "5511984444444";
     var state = encryption.Encrypt(phoneNumber1);
     var result = await authService.HandleGoogleRedirect(state, "rightCode");
     result.ShouldContain("Thank You");
@@ -175,7 +178,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     users.Count.ShouldBe(1);
     users[0].GoogleCredential.ShouldNotBeNull();
 
-    var phoneNumber2 = "+5511987654321";
+    var phoneNumber2 = "5511987654321";
     var state2 = encryption.Encrypt(phoneNumber2);
     await Should.ThrowAsync<Exception>(() => authService.HandleGoogleRedirect(state2, "wrongCode"));
 
