@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 using TheChatbot.Entities;
 
@@ -10,10 +9,7 @@ using WhatsappBusiness.CloudApi.Webhook;
 
 namespace TheChatbot.Resources;
 
-public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig _whatsAppBusinessCloudApiConfig, IWhatsAppBusinessClient _whatsAppBusinessClient) : IWhatsAppMessagingGateway {
-  private readonly WhatsAppBusinessCloudApiConfig whatsAppBusinessCloudApiConfig = _whatsAppBusinessCloudApiConfig;
-  private readonly IWhatsAppBusinessClient whatsAppBusinessClient = _whatsAppBusinessClient;
-
+public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBusinessCloudApiConfig, IWhatsAppBusinessClient whatsAppBusinessClient) : IWhatsAppMessagingGateway {
   public async Task SendTextMessage(SendTextMessageDTO textMessage) {
     await whatsAppBusinessClient.SendTextMessageAsync(new TextMessageRequest {
       To = textMessage.To,
@@ -29,9 +25,11 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig _whatsAppBu
     if (TryDeserializeMessage<TextMessage>(jsonElement, out var textMessageData)) {
       var message = textMessageData.Entry[0].Changes[0].Value.Messages[0];
       var contact = textMessageData.Entry[0].Changes[0].Value.Contacts[0];
+      var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).DateTime;
       receiveTextMessage = new ReceiveTextMessageDTO {
         Text = message.Text.Body,
-        From = PhoneNumberUtils.AddDigitNine(contact.WaId)
+        From = PhoneNumberUtils.AddDigitNine(contact.WaId),
+        CreatedAt = createdAt
       };
       return;
     }
@@ -39,6 +37,10 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig _whatsAppBu
 
   public string GetVerifyToken() {
     return whatsAppBusinessCloudApiConfig.WebhookVerifyToken;
+  }
+
+  public string GetAllowedDomain() {
+    return "https://graph.facebook.com";
   }
 
   private static bool TryDeserializeMessage<T>(JsonElement jsonElement, out MessageReceived<T> messageData) where T : IGenericMessage {

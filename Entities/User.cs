@@ -26,8 +26,8 @@ public class User {
       "Chose another name and continue"
     );
     phoneNumber = PhoneNumberUtils.Sanitize(phoneNumber);
-    if (PhoneNumberUtils.IsValid(phoneNumber)) throw new ValidationException(
-      "User phone number cannot have more than 19 characters",
+    if (!PhoneNumberUtils.IsValid(phoneNumber)) throw new ValidationException(
+      "User phone number is not valid",
       "Chose another phone number and continue"
     );
     Name = name;

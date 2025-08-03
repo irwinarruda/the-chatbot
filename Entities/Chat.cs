@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Identity;
+
 using TheChatbot.Entities.Extensions;
+using TheChatbot.Infra;
 
 namespace TheChatbot.Entities;
 
@@ -8,7 +11,8 @@ public enum ChatType {
 
 public class Chat {
   public Guid Id { get; set; }
-  public Guid IdUser { get; set; }
+  public Guid? IdUser { get; set; }
+  public required string PhoneNumber { get; set; }
   public ChatType Type { get; set; }
   public List<Message> Messages { get; set; }
   public DateTime CreatedAt { get; set; }
@@ -21,10 +25,17 @@ public class Chat {
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 
+  public void AddUser(Guid idUser) {
+    if (IdUser != null) {
+      throw new ValidationException("There already is a user ID for this chat");
+    }
+    IdUser = idUser;
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+  }
+
   public Message AddUserTextMessage(string text) {
     var message = new Message {
       IdChat = Id,
-      IdUser = IdUser,
       UserType = MessageUserType.User,
       Text = text,
     };
@@ -35,7 +46,6 @@ public class Chat {
   public Message AddBotTextMessage(string text) {
     var message = new Message {
       IdChat = Id,
-      IdUser = null,
       UserType = MessageUserType.Bot,
       Text = text,
     };

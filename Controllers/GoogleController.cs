@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using Microsoft.AspNetCore.Mvc;
 
 using TheChatbot.Services;
@@ -5,7 +7,7 @@ using TheChatbot.Services;
 namespace TheChatbot.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("/api/v1/[controller]")]
 public class GoogleController : ControllerBase {
   private readonly AuthService authService;
 
@@ -20,7 +22,7 @@ public class GoogleController : ControllerBase {
   }
 
   [HttpGet("login")]
-  public async Task<ActionResult> GetRedirect([FromQuery] string phoneNumber) {
+  public async Task<ActionResult> GetRedirect([Required][FromQuery(Name = "phone_number")] string phoneNumber) {
     var result = await authService.HandleGoogleLogin(phoneNumber);
     if (result.IsRedirect) {
       return Redirect(result.Content);
@@ -29,7 +31,7 @@ public class GoogleController : ControllerBase {
   }
 
   [HttpGet("refresh")]
-  public async Task<ActionResult> GetRefresh([FromQuery] string idUser) {
+  public async Task<ActionResult> GetRefresh([Required][FromQuery(Name = "id_user")] string idUser) {
     await authService.RefreshGoogleCredential(Guid.Parse(idUser));
     return StatusCode(201);
   }

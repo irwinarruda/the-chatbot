@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using TheChatbot.Entities.Extensions;
+
 namespace TheChatbot.Resources;
 
 public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
@@ -13,11 +15,16 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
   public void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage) {
     receiveTextMessage = new ReceiveTextMessageDTO {
       From = phoneNumber,
-      Text = messageReceived.ToString()
+      Text = messageReceived.ToString(),
+      CreatedAt = DateTime.UtcNow.TruncateToMicroseconds()
     };
   }
 
   public string GetVerifyToken() {
     return "ValidToken";
+  }
+
+  public string GetAllowedDomain() {
+    return "https://graph.facebook.com";
   }
 }

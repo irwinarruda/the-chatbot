@@ -1,3 +1,5 @@
+using System.Web;
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -96,5 +98,13 @@ public class TestGoogleAuthGateway : IGoogleAuthGateway {
       IssuedUtc = DateTime.UtcNow
     };
     return Task.FromResult(tokenResponse);
+  }
+
+  public string GetAppLoginUrl(string phoneNumber) {
+    var builder = new UriBuilder(googleConfig.LoginUri);
+    var query = HttpUtility.ParseQueryString(builder.Query);
+    query["phone_number"] = HttpUtility.UrlEncode(phoneNumber);
+    builder.Query = query.ToString();
+    return builder.ToString();
   }
 }

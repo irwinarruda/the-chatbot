@@ -47,6 +47,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
 
     services.AddSingleton<IGoogleAuthGateway, TestGoogleAuthGateway>();
     services.AddSingleton<IWhatsAppMessagingGateway, TestWhatsAppMessagingGateway>();
+    services.AddSingleton<IMediator, Mediator>();
     services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
     services.AddTransient<AuthService>();
     services.AddTransient<MessagingService>();

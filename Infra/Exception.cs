@@ -73,6 +73,53 @@ public class NotFoundException : Exception {
     );
   }
 }
+
+public class UnauthorizedException : Exception {
+  public string Action { get; set; }
+  public string Name { get; set; }
+  public int StatusCode { get; set; }
+
+  public UnauthorizedException(
+    string? message = null,
+    string? action = null
+  ) : base(message ?? "The authentication data is invalid.") {
+    Name = "UnauthorizedException";
+    Action = action ?? "Adjust the provided data and try again.";
+    StatusCode = 401;
+  }
+  public ResponseException ToResponseError() {
+    return new ResponseException(
+      Message: Message,
+      Action: Action,
+      Name: Name,
+      StatusCode: StatusCode
+    );
+  }
+}
+
+public class ForbiddenException : Exception {
+  public string Action { get; set; }
+  public string Name { get; set; }
+  public int StatusCode { get; set; }
+
+  public ForbiddenException(
+    string? message = null,
+    string? action = null
+  ) : base(message ?? "You are not allowed to use this functionality.") {
+    Name = "ForbiddenException";
+    Action = action ?? "Adjust the provided data and try again.";
+    StatusCode = 403;
+  }
+  public ResponseException ToResponseError() {
+    return new ResponseException(
+      Message: Message,
+      Action: Action,
+      Name: Name,
+      StatusCode: StatusCode
+    );
+  }
+}
+
 public class MethodNotAllowedException : Exception {
   public string Action { get; set; }
   public string Name { get; set; }

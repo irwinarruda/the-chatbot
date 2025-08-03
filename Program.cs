@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 using TheChatbot.Services;
+using TheChatbot.Utils;
 
 using WhatsappBusiness.CloudApi.Configurations;
 using WhatsappBusiness.CloudApi.Extensions;
@@ -17,10 +18,11 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
-builder.Services.AddSingleton<StatusService>();
+builder.Services.AddSingleton<IMediator, Mediator>();
 builder.Services.AddSingleton<IFinantialPlanningSpreadsheet, GoogleFinantialPlanningSpreadsheet>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
 builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
+builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<MessagingService>();
 builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!);
@@ -32,6 +34,12 @@ builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(whatsAppConfig);
 
 var app = builder.Build();
+
+var mediator = app.Services.GetRequiredService<IMediator>();
+mediator.Register("SaveUserByGoogleCredential", async (string phoneNumber) => {
+  var messagingService = app.Services.GetRequiredService<MessagingService>();
+  await messagingService.SendSignedInMessage(phoneNumber);
+});
 
 app.UseExceptionHandler(errorApp => errorApp.Run(Controller.HandleException));
 app.UseStatusCodePages(Controller.HandleInternal);

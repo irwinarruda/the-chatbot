@@ -2,38 +2,41 @@ using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc;
 
-using TheChatbot.Entities;
+using TheChatbot.Infra;
 using TheChatbot.Services;
 
 namespace TheChatbot.Controllers;
 
 [ApiController]
 [Route("/api/v1/[controller]")]
-public class WhatsAppController(MessagingService messagingService, AuthService authService) : ControllerBase {
-  [HttpGet("configure")]
+public class WhatsAppController(MessagingService messagingService) : ControllerBase {
+
+  [HttpGet("webhook")]
   public ActionResult<string> ConfigureWhatsAppMessageWebhook(
     [FromQuery(Name = "hub.mode")] string hubMode,
-    [FromQuery(Name = "hub.challenge")] int hubChallenge,
+    [FromQuery(Name = "hub.challenge")] string hubChallenge,
     [FromQuery(Name = "hub.verify_token")] string hubVerifyToken
   ) {
+    if (!IsValidMetaDomain()) {
+      throw new ForbiddenException("Request not from authorized Meta domain");
+    }
     messagingService.ValidateWebhook(hubMode, hubVerifyToken);
     return Ok(hubChallenge);
   }
-  [HttpPost("configure")]
+  [HttpPost("webhook")]
   public async Task<ActionResult> ReceiveWhatsAppTextMessage([FromBody] JsonElement messageReceived) {
+    if (!IsValidMetaDomain()) {
+      throw new ForbiddenException("Request not from authorized Meta domain");
+    }
     await messagingService.ReceiveMessage(messageReceived);
     return Ok();
   }
-  [HttpGet("message")]
-  public async Task<ActionResult> SendMessage([FromQuery] string phoneNumber) {
-    await messagingService.SendTextMessage(phoneNumber, "Message test sending here");
-    return Ok();
-  }
-  [HttpGet("user")]
-  public async Task<ActionResult> CreateUser([FromQuery] string phoneNumber) {
-    var user = new User("Irwin Arruda", phoneNumber);
-    await authService.CreateUser(user);
-    return Ok();
+  private bool IsValidMetaDomain() {
+    var userAgent = Request.Headers.UserAgent.ToString();
+    var allowedDomain = messagingService.GetAllowedDomain();
+    return userAgent.Contains("facebookplatform") ||
+      userAgent.Contains("facebookexternalua") ||
+      userAgent.Contains(allowedDomain);
   }
 }
 

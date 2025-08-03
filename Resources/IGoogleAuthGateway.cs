@@ -8,4 +8,5 @@ public interface IGoogleAuthGateway {
   Task<Userinfo> GetUserinfo(TokenResponse userToken);
   Task<TokenResponse> ExchangeCodeForTokenAsync(string code);
   Task<TokenResponse> RefreshToken(string accessToken, string refreshToken);
+  string GetAppLoginUrl(string phoneNumber);
 }

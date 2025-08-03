@@ -18,6 +18,6 @@ public static class PhoneNumberUtils {
     return Regex.Replace(number, @"\D", "");
   }
   public static bool IsValid(string number) {
-    return number.Length >= 20;
+    return number.Length >= 8 && number.Length <= 15;
   }
 }

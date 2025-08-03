@@ -7,6 +7,7 @@ public class GoogleConfig {
   public string TokenEndpoint { get; set; } = string.Empty;
   public string UserInfoEndpoint { get; set; } = string.Empty;
   public string RedirectUri { get; set; } = string.Empty;
+  public string LoginUri { get; set; } = string.Empty;
   public string ServiceAccountId { get; set; } = string.Empty;
   public string ServiceAccountPrivateKey { get; set; } = string.Empty;
 }
