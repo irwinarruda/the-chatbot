@@ -13,7 +13,8 @@ public partial class CreateChatAndMessage : Migration {
       schema: "public",
       columns: (table) => new {
         id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-        id_user = table.Column<Guid>(type: "uuid", nullable: false),
+        id_user = table.Column<Guid>(type: "uuid", nullable: true),
+        phone_number = table.Column<string>(type: "varchar(20)", nullable: false),
         type = table.Column<string>(type: "varchar(8)", nullable: false),
         created_at = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "timezone('utc', now())"),
         updated_at = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "timezone('utc', now())"),
@@ -37,7 +38,7 @@ public partial class CreateChatAndMessage : Migration {
         id_user = table.Column<Guid>(type: "uuid", nullable: true),
         id_chat = table.Column<Guid>(type: "uuid", nullable: false),
         user_type = table.Column<string>(type: "varchar(4)", nullable: false),
-        text = table.Column<string>(type: "varchar(500)", nullable: true),
+        text = table.Column<string>(type: "varchar(10000)", nullable: true),
         created_at = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "timezone('utc', now())"),
         updated_at = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "timezone('utc', now())"),
       },

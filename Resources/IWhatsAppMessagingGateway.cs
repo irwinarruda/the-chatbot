@@ -10,6 +10,7 @@ public class SendTextMessageDTO {
 public class ReceiveTextMessageDTO {
   public required string Text { get; set; }
   public required string From { get; set; }
+  public required DateTime CreatedAt { get; set; }
 }
 
 public class ReceiveButtonReplyDTO {
@@ -22,4 +23,5 @@ public interface IWhatsAppMessagingGateway {
   Task SendTextMessage(SendTextMessageDTO textMessage);
   void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage);
   string GetVerifyToken();
+  string GetAllowedDomain();
 }

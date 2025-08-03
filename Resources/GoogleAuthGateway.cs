@@ -67,4 +67,12 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
     var tokenResponse = await flow.RefreshTokenAsync(accessToken, refreshToken, CancellationToken.None);
     return tokenResponse;
   }
+
+  public string GetAppLoginUrl(string phoneNumber) {
+    var builder = new UriBuilder(googleConfig.LoginUri);
+    var query = HttpUtility.ParseQueryString(builder.Query);
+    query["phone_number"] = HttpUtility.UrlEncode(phoneNumber);
+    builder.Query = query.ToString();
+    return builder.ToString();
+  }
 }

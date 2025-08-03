@@ -3,10 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using TheChatbot.Entities;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
+using TheChatbot.Utils;
 
 namespace TheChatbot.Services;
 
-public class AuthService(AppDbContext database, EncryptionConfig encryptionConfig, IGoogleAuthGateway googleAuthGateway) {
+public class AuthService(AppDbContext database, EncryptionConfig encryptionConfig, IGoogleAuthGateway googleAuthGateway, IMediator mediator) {
+  public string GetAppLoginUrl(string phoneNumber) {
+    return googleAuthGateway.GetAppLoginUrl(phoneNumber);
+  }
   public string GetGoogleLoginUrl(string phoneNumber) {
     if (string.IsNullOrEmpty(phoneNumber)) {
       throw new ValidationException("Phone number has no length");
@@ -30,6 +34,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
         expiresInSeconds: userToken.ExpiresInSeconds
       );
       await CreateUser(user);
+      await mediator.Send("SaveUserByGoogleCredential", user.PhoneNumber);
       return;
     }
     if (user.GoogleCredential == null) {
@@ -41,6 +46,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
       expiresInSeconds: userToken.ExpiresInSeconds
     );
     await SaveGoogleCredential(user.GoogleCredential);
+    await mediator.Send("SaveUserByGoogleCredential", user.PhoneNumber);
   }
 
   public async Task RefreshGoogleCredential(Guid userId) {

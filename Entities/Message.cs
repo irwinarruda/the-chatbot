@@ -8,7 +8,6 @@ public enum MessageUserType {
 
 public class Message {
   public Guid Id { get; set; }
-  public Guid? IdUser { get; set; }
   public Guid IdChat { get; set; }
   public MessageUserType UserType { get; set; }
   public string? Text { get; set; }
