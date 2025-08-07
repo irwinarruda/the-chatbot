@@ -19,17 +19,16 @@ public class AddEarningDTO : AddTransactionDTO { }
 
 public class SheetConfigDTO {
   public required string SheetId { get; set; }
-  public string SheetAccessToken { get; set; } = string.Empty;
 }
 
 
-public interface IFinantialPlanningSpreadsheet {
+public interface ICashFlowSpreadsheetGateway {
   void FromAccessToken(string accessToken);
   Task AddTransaction(AddTransactionDTO transaction);
   Task AddExpense(AddExpenseDTO expense);
   Task AddEarning(AddEarningDTO earning);
   Task DeleteLastTransaction(SheetConfigDTO sheetConfig);
-  string GetSpreadSheetIdByUrl(string url);
+  string GetSpreadsheetIdByUrl(string url);
   Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig);
   Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig);
   Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig);

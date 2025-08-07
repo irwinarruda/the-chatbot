@@ -18,10 +18,10 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
-builder.Services.AddSingleton<IMediator, Mediator>();
-builder.Services.AddSingleton<IFinantialPlanningSpreadsheet, GoogleFinantialPlanningSpreadsheet>();
+builder.Services.AddScoped<ICashFlowSpreadsheetGateway, GoogleCashFlowSpreadsheetGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
 builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
+builder.Services.AddSingleton<IMediator, Mediator>();
 builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<MessagingService>();

@@ -1,19 +1,20 @@
 using TheChatbot.Entities.Extensions;
+
 namespace TheChatbot.Entities;
 
-public enum MessageUserType {
-  User,
-  Bot
+public enum CashFlowSpreadsheetType {
+  Google,
 }
 
-public class Message {
+public class CashFlowSpreadsheet {
   public Guid Id { get; set; }
-  public required Guid IdChat { get; set; }
-  public required MessageUserType UserType { get; set; }
-  public string? Text { get; set; }
+  public required Guid IdUser { get; set; }
+  public required string IdSheet { get; set; } = string.Empty;
+  public CashFlowSpreadsheetType Type { get; set; } = CashFlowSpreadsheetType.Google;
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
-  public Message() {
+
+  public CashFlowSpreadsheet() {
     Id = Guid.NewGuid();
     CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();

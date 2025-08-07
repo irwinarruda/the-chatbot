@@ -125,8 +125,8 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     var users = await authService.GetUsers();
     users[0].GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9test_access_token_123456789");
     users[0].GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_test_abcdefghijklmnopqrstuvwxyz");
-    await authService.RefreshGoogleCredential(users[0].Id);
-    var refreshedUser = await authService.GetUserById(users[0].Id);
+    var refreshedUser = users[0];
+    await authService.RefreshGoogleCredential(refreshedUser);
     refreshedUser.ShouldNotBeNull();
     refreshedUser.GoogleCredential?.AccessToken.ShouldBe("ya29.a0ARrdaM9refreshed_access_token_123456789");
     refreshedUser.GoogleCredential?.RefreshToken.ShouldBe("1//0G_refresh_token_refreshed_abcdefghijklmnopqrstuvwxyz");

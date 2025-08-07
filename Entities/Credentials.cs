@@ -9,8 +9,8 @@ public enum CredentialType {
 public class Credential {
   public Guid Id { get; set; }
   public Guid IdUser { get; set; }
-  public string AccessToken { get; set; } = string.Empty;
-  public string RefreshToken { get; set; } = string.Empty;
+  public required string AccessToken { get; set; }
+  public required string RefreshToken { get; set; }
   public long? ExpiresInSeconds { get; set; }
   public DateTime? ExpirationDate { get; set; }
   public required CredentialType Type { get; set; }

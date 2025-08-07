@@ -32,7 +32,8 @@ public class GoogleController : ControllerBase {
 
   [HttpGet("refresh")]
   public async Task<ActionResult> GetRefresh([Required][FromQuery(Name = "id_user")] string idUser) {
-    await authService.RefreshGoogleCredential(Guid.Parse(idUser));
+    var user = await authService.GetUserById(Guid.Parse(idUser)) ?? throw new Exception();
+    await authService.RefreshGoogleCredential(user);
     return StatusCode(201);
   }
 }
