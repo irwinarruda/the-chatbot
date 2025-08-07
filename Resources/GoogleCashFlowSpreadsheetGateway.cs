@@ -8,11 +8,11 @@ using TheChatbot.Infra;
 
 namespace TheChatbot.Resources;
 
-public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
+public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   private GoogleCredential credential;
   private SheetsService sheetsService;
 
-  public GoogleFinantialPlanningSpreadsheet(GoogleConfig googleConfig) {
+  public GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig) {
     var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
       Scopes = [SheetsService.Scope.Spreadsheets],
     };
@@ -88,7 +88,7 @@ public class GoogleFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet 
     }
   }
 
-  public string GetSpreadSheetIdByUrl(string url) {
+  public string GetSpreadsheetIdByUrl(string url) {
     try {
       if (!url.Contains("docs.google.com/spreadsheets")) ThrowWrongUrlException();
       var split = url.Split("/");

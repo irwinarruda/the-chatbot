@@ -49,9 +49,8 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     await mediator.Send("SaveUserByGoogleCredential", user.PhoneNumber);
   }
 
-  public async Task RefreshGoogleCredential(Guid userId) {
-    var user = await GetUserById(userId);
-    if (user == null || user.GoogleCredential == null) {
+  public async Task RefreshGoogleCredential(User user) {
+    if (user.GoogleCredential == null) {
       throw new ValidationException("Something went wrong refreshing user credentials.");
     }
     var userToken = await googleAuthGateway.RefreshToken(user.GoogleCredential.AccessToken, user.GoogleCredential.RefreshToken);
@@ -74,7 +73,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
   public async Task<(bool IsRedirect, string Content)> HandleGoogleLogin(string phoneNumber) {
     var user = await GetUserByPhoneNumber(phoneNumber);
     if (user?.GoogleCredential != null) {
-      await RefreshGoogleCredential(user.Id);
+      await RefreshGoogleCredential(user);
       var template = await GetAlreadySignedInPageHtmlString();
       return (IsRedirect: false, Content: template);
     }
@@ -174,7 +173,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     return user;
   }
 
-  public async Task SaveGoogleCredential(Credential googleCredential) {
+  private async Task SaveGoogleCredential(Credential googleCredential) {
     await database.Execute($@"
       UPDATE google_credentials
       SET

@@ -17,7 +17,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public AuthService authService;
   readonly public MessagingService messagingService;
   readonly public StatusService statusService;
-  readonly public IFinantialPlanningSpreadsheet finantialPlanningSpreadsheet;
+  readonly public ICashFlowSpreadsheetGateway cashFlowSpreadsheetGateway;
   readonly public IWhatsAppMessagingGateway whatsAppMessagingGateway;
   readonly public IGoogleAuthGateway googleAuthGateway;
   readonly public IConfiguration configuration;
@@ -40,9 +40,9 @@ public class Orquestrator : WebApplicationFactory<Program> {
     services.AddSingleton(googleSheetsConfig);
 
     if (googleSheetsConfig.TestSheetId != "TestSheetId") {
-      services.AddSingleton<IFinantialPlanningSpreadsheet, GoogleFinantialPlanningSpreadsheet>();
+      services.AddSingleton<ICashFlowSpreadsheetGateway, GoogleCashFlowSpreadsheetGateway>();
     } else {
-      services.AddSingleton<IFinantialPlanningSpreadsheet, TestFinantialPlanningSpreadsheet>();
+      services.AddSingleton<ICashFlowSpreadsheetGateway, TestCashFlowSpreadsheetGateway>();
     }
 
     services.AddSingleton<IGoogleAuthGateway, TestGoogleAuthGateway>();
@@ -55,7 +55,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
 
     serviceProvider = services.BuildServiceProvider();
 
-    finantialPlanningSpreadsheet = serviceProvider.GetRequiredService<IFinantialPlanningSpreadsheet>();
+    cashFlowSpreadsheetGateway = serviceProvider.GetRequiredService<ICashFlowSpreadsheetGateway>();
     googleAuthGateway = serviceProvider.GetRequiredService<IGoogleAuthGateway>();
     whatsAppMessagingGateway = serviceProvider.GetRequiredService<IWhatsAppMessagingGateway>();
     authService = serviceProvider.GetRequiredService<AuthService>();

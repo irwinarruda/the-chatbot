@@ -98,10 +98,10 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
     };
   }
 
-  public async Task CreateChat(Chat chat) {
+  private async Task CreateChat(Chat chat) {
     await database.Execute($@"
       INSERT INTO chats (id, id_user, type, phone_number, created_at, updated_at)
-      VALUES ({chat.Id}, {chat.IdUser}, {Enum.GetName(chat.Type)}, {chat.PhoneNumber}, {chat.CreatedAt}, {chat.UpdatedAt})
+      VALUES ({chat.Id}, {chat.IdUser}, {chat.Type.ToString()}, {chat.PhoneNumber}, {chat.CreatedAt}, {chat.UpdatedAt})
     ");
     if (chat.Messages.Count == 0) return;
     foreach (var message in chat.Messages) {
@@ -109,14 +109,14 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
     }
   }
 
-  public async Task CreateMessage(Message message) {
+  private async Task CreateMessage(Message message) {
     await database.Execute($@"
       INSERT INTO messages (id, id_chat, user_type, text, created_at, updated_at)
-      VALUES ({message.Id}, {message.IdChat}, {Enum.GetName(message.UserType)}, {message.Text}, {message.CreatedAt}, {message.UpdatedAt})
+      VALUES ({message.Id}, {message.IdChat}, {message.UserType.ToString()}, {message.Text}, {message.CreatedAt}, {message.UpdatedAt})
     ");
   }
 
-  public async Task SaveChat(Chat chat) {
+  private async Task SaveChat(Chat chat) {
     await database.Execute($@"
       UPDATE chats SET
         id_user = {chat.IdUser},

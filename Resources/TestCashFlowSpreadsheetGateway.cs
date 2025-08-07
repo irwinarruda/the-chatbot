@@ -2,11 +2,11 @@ using TheChatbot.Infra;
 
 namespace TheChatbot.Resources;
 
-public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
+public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   static readonly List<Transaction> transactions = [];
   public string ValidSheetId;
 
-  public TestFinantialPlanningSpreadsheet(GoogleSheetsConfig googleSheetsConfig) {
+  public TestCashFlowSpreadsheetGateway(GoogleSheetsConfig googleSheetsConfig) {
     ValidSheetId = googleSheetsConfig.TestSheetId;
   }
 
@@ -100,7 +100,7 @@ public class TestFinantialPlanningSpreadsheet : IFinantialPlanningSpreadsheet {
     });
   }
 
-  public string GetSpreadSheetIdByUrl(string url) {
+  public string GetSpreadsheetIdByUrl(string url) {
     if (!url.Contains("docs.google.com/spreadsheets")) ThrowWrongUrlException();
     var split = url.Split("/");
     var id = split[5];

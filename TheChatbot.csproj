@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**\*</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Mcp\**\*</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +28,8 @@
   <ItemGroup>
     <Compile Remove="Tests\**\*.cs" />
     <None Remove="Tests\**\*" />
+    <Compile Remove="Mcp\**\*.cs" />
+    <None Remove="Mcp\**\*" />
   </ItemGroup>
 
   <ItemGroup>
