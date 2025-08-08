@@ -52,3 +52,5 @@ dotnet tool install -g dotnet-script
 ## For later
 
 - [ ] **Optimize Sheets** improve performance by using the database as a SOT.
+- [ ] Refactor database with IDbContextFactory<AppDbContext> for concurrent work.
+- [ ] Add tests forcing refresh token (refactor cashFlowGateway to work with token and credentials)

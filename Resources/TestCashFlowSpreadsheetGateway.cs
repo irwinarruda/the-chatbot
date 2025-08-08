@@ -11,7 +11,7 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   }
 
   public void FromAccessToken(string accessToken) {
-    throw new NotImplementedException();
+    if (accessToken != "ya29.a0ARrdaM9refreshed_access_token_123456789") throw new ValidationException("Invalid access token");
   }
 
   public Task AddTransaction(AddTransactionDTO transaction) {

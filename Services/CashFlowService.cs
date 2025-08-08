@@ -100,21 +100,21 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
     if (user.GoogleCredential == null) {
       throw new ValidationException("User is not connected to Google");
     }
-    if (user.GoogleCredential.ExpirationDate > new DateTime()) return;
+    if (user.GoogleCredential.ExpirationDate > DateTime.UtcNow) return;
     await authService.RefreshGoogleCredential(user);
     spreadsheetResource.FromAccessToken(user.GoogleCredential.AccessToken);
   }
 
   private async Task CreateCashFlowSpreadsheet(CashFlowSpreadsheet sheet) {
     await database.Execute($@"
-      INSERT INTO finantial_planning_spreadsheets (id, id_user, id_sheet, type, created_at, updated_at)
+      INSERT INTO cash_flow_spreadsheets (id, id_user, id_sheet, type, created_at, updated_at)
       VALUES ({sheet.Id}, {sheet.IdUser}, {sheet.IdSheet}, {sheet.Type.ToString()}, {sheet.CreatedAt}, {sheet.UpdatedAt})
     ");
   }
 
   private async Task<CashFlowSpreadsheet?> GetSpreadsheetByUserId(Guid userId) {
     var dbEntity = await database.Query<DbCashFlowSpreadsheet>($@"
-      SELECT * FROM finantial_planning_spreadsheets
+      SELECT * FROM cash_flow_spreadsheets
       WHERE id_user = {userId}
     ").FirstOrDefaultAsync();
     if (dbEntity == null) return null;
