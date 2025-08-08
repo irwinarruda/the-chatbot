@@ -17,6 +17,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public AuthService authService;
   readonly public MessagingService messagingService;
   readonly public StatusService statusService;
+  readonly public CashFlowService cashFlowService;
   readonly public ICashFlowSpreadsheetGateway cashFlowSpreadsheetGateway;
   readonly public IWhatsAppMessagingGateway whatsAppMessagingGateway;
   readonly public IGoogleAuthGateway googleAuthGateway;
@@ -52,6 +53,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     services.AddTransient<AuthService>();
     services.AddTransient<MessagingService>();
     services.AddTransient<StatusService>();
+    services.AddTransient<CashFlowService>();
 
     serviceProvider = services.BuildServiceProvider();
 
@@ -61,6 +63,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     authService = serviceProvider.GetRequiredService<AuthService>();
     messagingService = serviceProvider.GetRequiredService<MessagingService>();
     statusService = serviceProvider.GetRequiredService<StatusService>();
+    cashFlowService = serviceProvider.GetRequiredService<CashFlowService>();
   }
 
   public async Task ClearDatabase() {

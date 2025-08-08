@@ -1,7 +1,6 @@
 env-local = ASPNETCORE_ENVIRONMENT=Local
 env-dev = ASPNETCORE_ENVIRONMENT=Development
 env-prev = ASPNETCORE_ENVIRONMENT=Preview
-env-prod = ASPNETCORE_ENVIRONMENT=Production
 
 install-tools:
 	dotnet tool install -g dotnet-ef && dotnet tool install -g dotnet-script

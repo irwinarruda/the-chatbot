@@ -25,25 +25,21 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task<List<Transaction>> GetAllTransactions(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await EnsureSpreadsheetAccess(user);
     return await spreadsheetResource.GetAllTransactions(new SheetConfigDTO { SheetId = sheet.IdSheet });
   }
 
   public async Task<Transaction?> GetLastTransaction(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await EnsureSpreadsheetAccess(user);
     return await spreadsheetResource.GetLastTransaction(new SheetConfigDTO { SheetId = sheet.IdSheet });
   }
 
   public async Task DeleteLastTransaction(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await EnsureSpreadsheetAccess(user);
     await spreadsheetResource.DeleteLastTransaction(new SheetConfigDTO { SheetId = sheet.IdSheet });
   }
 
   public async Task AddExpense(AddExpenseInput expense) {
     var (user, sheet) = await GetUserAndSheet(expense.PhoneNumber);
-    await EnsureSpreadsheetAccess(user);
     var dto = new AddExpenseDTO {
       SheetId = sheet.IdSheet,
       Date = expense.Date,
@@ -57,7 +53,6 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task AddEarning(AddEarningInput earning) {
     var (user, sheet) = await GetUserAndSheet(earning.PhoneNumber);
-    await EnsureSpreadsheetAccess(user);
     var dto = new AddEarningDTO {
       SheetId = sheet.IdSheet,
       Date = earning.Date,
@@ -71,24 +66,22 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task<List<string>> GetExpenseCategories(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await EnsureSpreadsheetAccess(user);
     return await spreadsheetResource.GetExpenseCategories(new SheetConfigDTO { SheetId = sheet.IdSheet });
   }
 
   public async Task<List<string>> GetEarningCategories(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await EnsureSpreadsheetAccess(user);
     return await spreadsheetResource.GetEarningCategories(new SheetConfigDTO { SheetId = sheet.IdSheet });
   }
 
   public async Task<List<string>> GetBankAccount(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await EnsureSpreadsheetAccess(user);
     return await spreadsheetResource.GetBankAccount(new SheetConfigDTO { SheetId = sheet.IdSheet });
   }
 
   private async Task<(User user, CashFlowSpreadsheet sheet)> GetUserAndSheet(string phoneNumber) {
     var user = await authService.GetUserByPhoneNumber(phoneNumber) ?? throw new NotFoundException("User not found");
+    await EnsureSpreadsheetAccess(user);
     var sheet = await GetSpreadsheetByUserId(user.Id) ?? throw new ValidationException(
       "User does not have a financial planning spreadsheet configured",
       "Add a spreadsheet for this user first"
@@ -100,21 +93,20 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
     if (user.GoogleCredential == null) {
       throw new ValidationException("User is not connected to Google");
     }
-    if (user.GoogleCredential.ExpirationDate > new DateTime()) return;
-    await authService.RefreshGoogleCredential(user);
+    if (user.GoogleCredential.ExpirationDate <= DateTime.UtcNow) await authService.RefreshGoogleCredential(user);
     spreadsheetResource.FromAccessToken(user.GoogleCredential.AccessToken);
   }
 
   private async Task CreateCashFlowSpreadsheet(CashFlowSpreadsheet sheet) {
     await database.Execute($@"
-      INSERT INTO finantial_planning_spreadsheets (id, id_user, id_sheet, type, created_at, updated_at)
+      INSERT INTO cash_flow_spreadsheets (id, id_user, id_sheet, type, created_at, updated_at)
       VALUES ({sheet.Id}, {sheet.IdUser}, {sheet.IdSheet}, {sheet.Type.ToString()}, {sheet.CreatedAt}, {sheet.UpdatedAt})
     ");
   }
 
   private async Task<CashFlowSpreadsheet?> GetSpreadsheetByUserId(Guid userId) {
     var dbEntity = await database.Query<DbCashFlowSpreadsheet>($@"
-      SELECT * FROM finantial_planning_spreadsheets
+      SELECT * FROM cash_flow_spreadsheets
       WHERE id_user = {userId}
     ").FirstOrDefaultAsync();
     if (dbEntity == null) return null;
