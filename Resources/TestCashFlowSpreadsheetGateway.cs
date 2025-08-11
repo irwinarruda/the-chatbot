@@ -10,11 +10,12 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
     ValidSheetId = googleSheetsConfig.TestSheetId;
   }
 
-  public void FromAccessToken(string accessToken) {
+  private static void ValidateAccessToken(string? accessToken) {
     if (accessToken != "ya29.a0ARrdaM9test_access_token_123456789") throw new ValidationException("Invalid access token");
   }
 
   public Task AddTransaction(AddTransactionDTO transaction) {
+    ValidateAccessToken(transaction.SheetAccessToken);
     if (transaction.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }
@@ -31,16 +32,19 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   }
 
   public async Task AddExpense(AddExpenseDTO expense) {
+    ValidateAccessToken(expense.SheetAccessToken);
     expense.Value = Math.Abs(expense.Value) * -1;
     await AddTransaction(expense);
   }
 
   public async Task AddEarning(AddEarningDTO earning) {
+    ValidateAccessToken(earning.SheetAccessToken);
     earning.Value = Math.Abs(earning.Value);
     await AddTransaction(earning);
   }
 
   public Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
+    ValidateAccessToken(sheetConfig.SheetAccessToken);
     if (sheetConfig.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }
@@ -55,6 +59,7 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   }
 
   public Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig) {
+    ValidateAccessToken(sheetConfig.SheetAccessToken);
     if (sheetConfig.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }
@@ -62,6 +67,7 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   }
 
   public Task<Transaction?> GetLastTransaction(SheetConfigDTO sheetConfig) {
+    ValidateAccessToken(sheetConfig.SheetAccessToken);
     if (sheetConfig.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }
@@ -71,6 +77,7 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   }
 
   public Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig) {
+    ValidateAccessToken(sheetConfig.SheetAccessToken);
     if (sheetConfig.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }
@@ -81,6 +88,7 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   }
 
   public Task<List<string>> GetEarningCategories(SheetConfigDTO sheetConfig) {
+    ValidateAccessToken(sheetConfig.SheetAccessToken);
     if (sheetConfig.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }
@@ -91,6 +99,7 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
   }
 
   public Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig) {
+    ValidateAccessToken(sheetConfig.SheetAccessToken);
     if (sheetConfig.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }

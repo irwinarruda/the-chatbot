@@ -38,7 +38,7 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
     Should.Throw<Exception>(() => cashFlowService.AddSpreadsheetUrl(phoneNumber, "https://docs.google.com/spreadsheets/d"));
     Should.Throw<Exception>(() => cashFlowService.AddSpreadsheetUrl(phoneNumber, "https://docs.google.com/spreadsheets/d/"));
 
-    var okUrl = $"https://docs.google.com/spreadsheets/d/{orquestrator.googleSheetsConfig.TestSheetId}/edit?gid=12345#gid=12345";
+    var okUrl = $"https://docs.google.com/spreadsheets/d/{orquestrator.googleSheetsConfig.TestSheetId}/edit";
     await cashFlowService.AddSpreadsheetUrl(phoneNumber, okUrl);
   }
 
@@ -61,7 +61,7 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
   public async Task AddExpenseShouldWork() {
     var phoneNumber = "5511984444444"; // same user as previous to keep gateway state
 
-    var addExpense = new AddExpenseInput {
+    var addExpense = new CashFlowAddExpenseDTO {
       PhoneNumber = phoneNumber,
       Date = DateTime.Now,
       Value = 5.2,
@@ -95,7 +95,7 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
     var expenseCategories = await cashFlowService.GetExpenseCategories(phoneNumber);
     var bankAccount = await cashFlowService.GetBankAccount(phoneNumber);
 
-    var newTransactions = new List<AddExpenseInput> {
+    var newTransactions = new List<CashFlowAddExpenseDTO> {
       new() {
         PhoneNumber = phoneNumber,
         Date = DateTime.ParseExact("2025-01-01", "yyyy-MM-dd", null),
@@ -146,7 +146,7 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
 
     await Should.ThrowAsync<ServiceException>(() => cashFlowService.GetAllTransactions(phoneNumber));
     await Should.ThrowAsync<ServiceException>(() => cashFlowService.DeleteLastTransaction(phoneNumber));
-    await Should.ThrowAsync<ServiceException>(() => cashFlowService.AddExpense(new AddExpenseInput {
+    await Should.ThrowAsync<ServiceException>(() => cashFlowService.AddExpense(new CashFlowAddExpenseDTO {
       PhoneNumber = phoneNumber,
       Date = DateTime.Now,
       Value = 1,

@@ -5,35 +5,14 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 
 using TheChatbot.Infra;
+using TheChatbot.Utils;
 
 namespace TheChatbot.Resources;
 
-public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
-  private GoogleCredential credential;
-  private SheetsService sheetsService;
-
-  public GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig) {
-    var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
-      Scopes = [SheetsService.Scope.Spreadsheets],
-    };
-    initializer.FromPrivateKey(googleConfig.ServiceAccountPrivateKey);
-    credential = GoogleCredential.FromServiceAccountCredential(new ServiceAccountCredential(initializer));
-    sheetsService = new SheetsService(new BaseClientService.Initializer {
-      HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot",
-    });
-  }
-
-  public void FromAccessToken(string accessToken) {
-    credential = GoogleCredential.FromAccessToken(accessToken);
-    sheetsService = new SheetsService(new BaseClientService.Initializer {
-      HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot",
-    });
-  }
-
+public class GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig, GoogleSheetsConfig googleSheetsConfig) : ICashFlowSpreadsheetGateway {
   public async Task AddTransaction(AddTransactionDTO transaction) {
     try {
+      var sheetsService = GetSheetsService(transaction.SheetId, transaction.SheetAccessToken);
       var query = "Diário!A:G";
       var sheet = await sheetsService.Spreadsheets.Values.Get(transaction.SheetId, query).ExecuteAsync();
       ThrowWrongSpreadsheetException(sheet);
@@ -65,6 +44,7 @@ public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
 
   public async Task DeleteLastTransaction(SheetConfigDTO sheetConfig) {
     try {
+      var sheetsService = GetSheetsService(sheetConfig.SheetId, sheetConfig.SheetAccessToken);
       var query = "Diário!A:G";
       var sheet = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync();
       ThrowWrongSpreadsheetException(sheet);
@@ -105,6 +85,7 @@ public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
 
   public async Task<List<Transaction>> GetAllTransactions(SheetConfigDTO sheetConfig) {
     try {
+      var sheetsService = GetSheetsService(sheetConfig.SheetId, sheetConfig.SheetAccessToken);
       var query = "Diário!B:G";
       var sheet = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, query).ExecuteAsync();
       ThrowWrongSpreadsheetException(sheet);
@@ -134,6 +115,7 @@ public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
 
   public async Task<List<string>> GetExpenseCategories(SheetConfigDTO sheetConfig) {
     try {
+      var sheetsService = GetSheetsService(sheetConfig.SheetId, sheetConfig.SheetAccessToken);
       var sheet = sheetsService.Spreadsheets.Values.BatchGet(sheetConfig.SheetId);
       sheet.Ranges = new List<string> {
         "DADOS Gerais + Plano de Contas!D9:D12",
@@ -159,6 +141,7 @@ public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
 
   public async Task<List<string>> GetEarningCategories(SheetConfigDTO sheetConfig) {
     try {
+      var sheetsService = GetSheetsService(sheetConfig.SheetId, sheetConfig.SheetAccessToken);
       var sheet = sheetsService.Spreadsheets.Values.BatchGet(sheetConfig.SheetId);
       sheet.Ranges = new List<string> {
       "DADOS Gerais + Plano de Contas!B9:B14",
@@ -180,6 +163,7 @@ public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
 
   public async Task<List<string>> GetBankAccount(SheetConfigDTO sheetConfig) {
     try {
+      var sheetsService = GetSheetsService(sheetConfig.SheetId, sheetConfig.SheetAccessToken);
       var sheet = await sheetsService.Spreadsheets.Values.Get(sheetConfig.SheetId, "DADOS Gerais + Plano de Contas!F9:F24").ExecuteAsync();
       ThrowWrongSpreadsheetException(sheet);
       return [.. sheet.Values
@@ -190,6 +174,26 @@ public class GoogleCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
     } catch (Exception ex) {
       throw HandleError(ex);
     }
+  }
+
+  private SheetsService GetSheetsService(string sheetId, string accessToken) {
+    GoogleCredential credential;
+    if (sheetId == googleSheetsConfig.TestSheetId) {
+      var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
+        Scopes = [SheetsService.Scope.Spreadsheets],
+      };
+      initializer.FromPrivateKey(googleConfig.ServiceAccountPrivateKey);
+      credential = GoogleCredential.FromServiceAccountCredential(new ServiceAccountCredential(initializer));
+      return new SheetsService(new BaseClientService.Initializer {
+        HttpClientInitializer = credential,
+        ApplicationName = "TheChatbot",
+      });
+    }
+    credential = GoogleCredential.FromAccessToken(accessToken);
+    return new SheetsService(new BaseClientService.Initializer {
+      HttpClientInitializer = credential,
+      ApplicationName = "TheChatbot",
+    });
   }
 
   private static void ThrowWrongSpreadsheetException<T>(T? sheet) where T : class {

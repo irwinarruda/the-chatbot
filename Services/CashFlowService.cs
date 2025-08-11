@@ -7,7 +7,6 @@ using TheChatbot.Resources;
 namespace TheChatbot.Services;
 
 public class CashFlowService(AppDbContext database, AuthService authService, ICashFlowSpreadsheetGateway spreadsheetResource) {
-
   public async Task AddSpreadsheetUrl(string phoneNumber, string url) {
     var user = await authService.GetUserByPhoneNumber(phoneNumber) ?? throw new NotFoundException("User not found");
     var existing = await GetSpreadsheetByUserId(user.Id);
@@ -25,23 +24,33 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task<List<Transaction>> GetAllTransactions(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetAllTransactions(new SheetConfigDTO { SheetId = sheet.IdSheet });
+    return await spreadsheetResource.GetAllTransactions(new SheetConfigDTO {
+      SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
+    });
   }
 
   public async Task<Transaction?> GetLastTransaction(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetLastTransaction(new SheetConfigDTO { SheetId = sheet.IdSheet });
+    return await spreadsheetResource.GetLastTransaction(new SheetConfigDTO {
+      SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
+    });
   }
 
   public async Task DeleteLastTransaction(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await spreadsheetResource.DeleteLastTransaction(new SheetConfigDTO { SheetId = sheet.IdSheet });
+    await spreadsheetResource.DeleteLastTransaction(new SheetConfigDTO {
+      SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
+    });
   }
 
-  public async Task AddExpense(AddExpenseInput expense) {
+  public async Task AddExpense(CashFlowAddExpenseDTO expense) {
     var (user, sheet) = await GetUserAndSheet(expense.PhoneNumber);
     var dto = new AddExpenseDTO {
       SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
       Date = expense.Date,
       Value = expense.Value,
       Category = expense.Category,
@@ -51,10 +60,11 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
     await spreadsheetResource.AddExpense(dto);
   }
 
-  public async Task AddEarning(AddEarningInput earning) {
+  public async Task AddEarning(CashFlowAddEarningDTO earning) {
     var (user, sheet) = await GetUserAndSheet(earning.PhoneNumber);
     var dto = new AddEarningDTO {
       SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
       Date = earning.Date,
       Value = earning.Value,
       Category = earning.Category,
@@ -66,21 +76,30 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task<List<string>> GetExpenseCategories(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetExpenseCategories(new SheetConfigDTO { SheetId = sheet.IdSheet });
+    return await spreadsheetResource.GetExpenseCategories(new SheetConfigDTO {
+      SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
+    });
   }
 
   public async Task<List<string>> GetEarningCategories(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetEarningCategories(new SheetConfigDTO { SheetId = sheet.IdSheet });
+    return await spreadsheetResource.GetEarningCategories(new SheetConfigDTO {
+      SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
+    });
   }
 
   public async Task<List<string>> GetBankAccount(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetBankAccount(new SheetConfigDTO { SheetId = sheet.IdSheet });
+    return await spreadsheetResource.GetBankAccount(new SheetConfigDTO {
+      SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
+    });
   }
 
   private async Task<(User user, CashFlowSpreadsheet sheet)> GetUserAndSheet(string phoneNumber) {
-    var user = await authService.GetUserByPhoneNumber(phoneNumber) ?? throw new NotFoundException("User not found");
+    var user = await authService.GetUserByPhoneNumber(phoneNumber) ?? throw new NotFoundException("User was not found");
     await EnsureSpreadsheetAccess(user);
     var sheet = await GetSpreadsheetByUserId(user.Id) ?? throw new ValidationException(
       "User does not have a financial planning spreadsheet configured",
@@ -94,7 +113,6 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
       throw new ValidationException("User is not connected to Google");
     }
     if (user.GoogleCredential.ExpirationDate <= DateTime.UtcNow) await authService.RefreshGoogleCredential(user);
-    spreadsheetResource.FromAccessToken(user.GoogleCredential.AccessToken);
   }
 
   private async Task CreateCashFlowSpreadsheet(CashFlowSpreadsheet sheet) {
@@ -130,7 +148,7 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
   );
 }
 
-public class AddExpenseInput {
+public class CashFlowAddExpenseDTO {
   public required string PhoneNumber { get; set; }
   public DateTime Date { get; set; }
   public double Value { get; set; }
@@ -138,7 +156,7 @@ public class AddExpenseInput {
   public required string Description { get; set; }
   public required string BankAccount { get; set; }
 }
-public class AddEarningInput {
+public class CashFlowAddEarningDTO {
   public required string PhoneNumber { get; set; }
   public DateTime Date { get; set; }
   public double Value { get; set; }

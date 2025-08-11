@@ -10,7 +10,7 @@ public class Transaction {
 }
 
 public class AddTransactionDTO : Transaction {
-  public string SheetAccessToken { get; set; } = string.Empty;
+  public required string SheetAccessToken { get; set; }
 }
 
 public class AddExpenseDTO : AddTransactionDTO { }
@@ -19,11 +19,11 @@ public class AddEarningDTO : AddTransactionDTO { }
 
 public class SheetConfigDTO {
   public required string SheetId { get; set; }
+  public required string SheetAccessToken { get; set; }
 }
 
 
 public interface ICashFlowSpreadsheetGateway {
-  void FromAccessToken(string accessToken);
   Task AddTransaction(AddTransactionDTO transaction);
   Task AddExpense(AddExpenseDTO expense);
   Task AddEarning(AddEarningDTO earning);
