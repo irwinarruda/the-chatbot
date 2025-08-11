@@ -26,7 +26,7 @@ public partial class CreateChatAndMessage : Migration {
           column: x => x.id_user,
           principalTable: "users",
           principalColumn: "id",
-          onDelete: ReferentialAction.Cascade
+          onDelete: ReferentialAction.SetNull
         );
       }
     );
@@ -49,7 +49,7 @@ public partial class CreateChatAndMessage : Migration {
           column: x => x.id_chat,
           principalTable: "chats",
           principalColumn: "id",
-          onDelete: ReferentialAction.Cascade
+          onDelete: ReferentialAction.SetNull
         );
       }
     );
