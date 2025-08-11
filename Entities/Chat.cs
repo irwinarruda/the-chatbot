@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 using TheChatbot.Entities.Extensions;
 using TheChatbot.Infra;
 

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using Microsoft.Extensions.AI;
+
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 using TheChatbot.Services;
@@ -18,10 +20,11 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
-builder.Services.AddScoped<ICashFlowSpreadsheetGateway, GoogleCashFlowSpreadsheetGateway>();
+builder.Services.AddSingleton<ICashFlowSpreadsheetGateway, GoogleCashFlowSpreadsheetGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
 builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
 builder.Services.AddSingleton<IMediator, Mediator>();
+builder.Services.AddSingleton<CashFlowService>();
 builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<MessagingService>();
@@ -32,6 +35,10 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig
 var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<WhatsAppBusinessCloudApiConfig>()!;
 builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(whatsAppConfig);
+var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
+builder.Services.AddChatClient(_ =>
+  new OpenAI.Chat.ChatClient("gpt-4o-mini", openAIConfig.ApiKey).AsIChatClient()
+);
 
 var app = builder.Build();
 

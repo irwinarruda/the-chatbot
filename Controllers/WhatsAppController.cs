@@ -10,7 +10,6 @@ namespace TheChatbot.Controllers;
 [ApiController]
 [Route("/api/v1/[controller]")]
 public class WhatsAppController(MessagingService messagingService) : ControllerBase {
-
   [HttpGet("webhook")]
   public ActionResult<string> ConfigureWhatsAppMessageWebhook(
     [FromQuery(Name = "hub.mode")] string hubMode,

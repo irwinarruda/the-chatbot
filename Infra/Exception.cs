@@ -7,6 +7,25 @@ public record ResponseException(
   int StatusCode
 );
 
+public static class ExceptionResponse {
+  public static ResponseException Handle(Exception? ex) {
+    if (ex is ValidationException validationEx) {
+      return validationEx.ToResponseError();
+    }
+    if (ex is NotFoundException notFoundEx) {
+      return notFoundEx.ToResponseError();
+    }
+    int? statusCode = null;
+    if (ex is ServiceException serviceEx) {
+      statusCode = serviceEx.StatusCode;
+    } else if (ex is DeveloperException developerEx) {
+      statusCode = developerEx.StatusCode;
+    }
+    var internalServer = new InternalServerException(ex, statusCode);
+    return internalServer.ToResponseError();
+  }
+}
+
 public class ValidationException : Exception {
   public string Action { get; set; }
   public string Name { get; set; }

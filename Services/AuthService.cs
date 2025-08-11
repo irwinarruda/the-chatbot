@@ -173,6 +173,10 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     return user;
   }
 
+  public async Task DeleteUserByPhoneNumber(string phoneNumber) {
+    await database.Execute($"DELETE FROM users WHERE phone_number = {phoneNumber}");
+  }
+
   private async Task SaveGoogleCredential(Credential googleCredential) {
     await database.Execute($@"
       UPDATE google_credentials

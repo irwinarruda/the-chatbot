@@ -1,15 +1,21 @@
 using System.Text.Json;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
+
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 
 using TheChatbot.Entities;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 using TheChatbot.Templates;
+using TheChatbot.Utils;
 
+//
 namespace TheChatbot.Services;
 
-public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway whatsAppMessagingGateway, AuthService authService) {
+public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway whatsAppMessagingGateway, AuthService authService, IChatClient? chatClient) {
   public async Task SendSignedInMessage(string phoneNumber) {
     await SendTextMessage(phoneNumber, SignedInMessage.Get());
   }
@@ -34,6 +40,20 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
     });
   }
 
+  private async Task<IMcpClient> GetMcpClient() {
+    return await McpClientFactory.CreateAsync(new StdioClientTransport(new StdioClientTransportOptions {
+      Name = "PodcastMcpServer",
+      Command = "dotnet",
+      Arguments = ["run", "--project", "/Users/irwinarruda/Documents/PRO/the-chatbot/Mcp", "--no-build"],
+    }), new McpClientOptions {
+      Capabilities = new ClientCapabilities {
+        Sampling = new SamplingCapability {
+          SamplingHandler = chatClient!.CreateSamplingHandler(),
+        }
+      }
+    });
+  }
+
   public async Task ListenToTextMessage(ReceiveTextMessageDTO receiveTextMessage) {
     var chat = await GetChatByPhoneNumber(receiveTextMessage.From);
     if (chat == null) {
@@ -55,7 +75,19 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
       chat.AddUser(user.Id);
       await SaveChat(chat);
     }
-    await SendTextMessage(receiveTextMessage.From, "Response to: " + receiveTextMessage.Text, chat);
+    var mcp = await GetMcpClient();
+    var tools = await mcp.ListToolsAsync();
+    var system = $"You are a chatbot for the app TheChatbot. You are allowed to talk to the person. You are friendly and you are sure of yourself. Your main goal is to use the tools provided to help the user perform some tasks. The user phone number is {receiveTextMessage.From}. Always use the phone number as a param for a tool and use it in the exact formating it is passed {receiveTextMessage.From}.";
+    var messages = chat.Messages.Select(m => new ChatMessage {
+      Role = m.UserType == MessageUserType.Bot ? ChatRole.Assistant : ChatRole.User,
+      Contents = [new() { RawRepresentation = m.Text }],
+    });
+    var response = await chatClient!.GetResponseAsync([new () {
+      Role = ChatRole.System,
+      Contents = [new() { RawRepresentation = system }],
+    }, ..messages], new() { Tools = [.. tools], AllowMultipleToolCalls = true });
+    Console.WriteLine(Printable.Make(response));
+    await SendTextMessage(receiveTextMessage.From, response.Text, chat);
   }
 
   public async Task ReceiveMessage(JsonElement data) {
@@ -73,6 +105,7 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
     var dbChat = await database.Query<DbChat>($@"
       SELECT * FROM chats
       WHERE phone_number = {phoneNumber}
+      ORDER BY created_at DESC
     ").FirstOrDefaultAsync();
     if (dbChat == null) return null;
     var dbMessages = await database.Query<DbMessage>($@"
