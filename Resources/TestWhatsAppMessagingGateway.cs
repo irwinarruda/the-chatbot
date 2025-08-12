@@ -12,12 +12,17 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
     return Task.CompletedTask;
   }
 
-  public void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage) {
+  public Task SendInteractiveButtonMessage(SendInteractiveButtonMessageDTO buttonMessage) {
+    return Task.CompletedTask;
+  }
+
+  public void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage, out ReceiveInteractiveButtonMessageDTO? receiveButtonReply) {
     receiveTextMessage = new ReceiveTextMessageDTO {
       From = phoneNumber,
       Text = messageReceived.ToString(),
       CreatedAt = DateTime.UtcNow.TruncateToMicroseconds()
     };
+    receiveButtonReply = null;
   }
 
   public string GetVerifyToken() {

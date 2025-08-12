@@ -20,6 +20,7 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
+builder.Services.AddSingleton<LLMChatGateway>();
 builder.Services.AddSingleton<ICashFlowSpreadsheetGateway, GoogleCashFlowSpreadsheetGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
 builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
@@ -36,9 +37,11 @@ var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<What
 builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(whatsAppConfig);
 var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
-builder.Services.AddChatClient(_ =>
-  new OpenAI.Chat.ChatClient("gpt-4o-mini", openAIConfig.ApiKey).AsIChatClient()
-);
+builder.Services.AddChatClient(_ => {
+  var chatClient = new OpenAI.Chat.ChatClient("gpt-4o-mini", openAIConfig.ApiKey).AsIChatClient();
+  var builder = new ChatClientBuilder(chatClient).UseFunctionInvocation();
+  return builder.Build();
+});
 
 var app = builder.Build();
 

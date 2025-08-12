@@ -19,14 +19,38 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
     });
   }
 
-  public void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage) {
+  public async Task SendInteractiveButtonMessage(SendInteractiveButtonMessageDTO buttonMessage) {
+    await whatsAppBusinessClient.SendInteractiveReplyButtonMessageAsync(new InteractiveReplyButtonMessageRequest {
+      To = buttonMessage.To,
+      Interactive = new() {
+        Body = new() { Text = buttonMessage.Text },
+        Action = new() {
+          Buttons = [.. buttonMessage.Buttons.Select((b, i) => new ReplyButton { Type = "reply", Reply = new() { Id = $"ID {i}", Title = b } })]
+        }
+      },
+    });
+  }
+
+  public void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage, out ReceiveInteractiveButtonMessageDTO? receiveButtonReply) {
     receiveTextMessage = null;
+    receiveButtonReply = null;
     var jsonElement = messageReceived;
+    if (TryDeserializeMessage<ReplyButtonMessage>(jsonElement, out var buttonMessageData) && buttonMessageData.Entry[0].Changes[0].Value.Messages[0].Interactive != null) {
+      var message = buttonMessageData.Entry[0].Changes[0].Value.Messages[0];
+      var contact = buttonMessageData.Entry[0].Changes[0].Value.Contacts[0];
+      var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).DateTime;
+      receiveButtonReply = new() {
+        Text = message.Interactive.ButtonReply.Title,
+        From = PhoneNumberUtils.AddDigitNine(contact.WaId),
+        CreatedAt = createdAt
+      };
+      return;
+    }
     if (TryDeserializeMessage<TextMessage>(jsonElement, out var textMessageData)) {
       var message = textMessageData.Entry[0].Changes[0].Value.Messages[0];
       var contact = textMessageData.Entry[0].Changes[0].Value.Contacts[0];
       var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).DateTime;
-      receiveTextMessage = new ReceiveTextMessageDTO {
+      receiveTextMessage = new() {
         Text = message.Text.Body,
         From = PhoneNumberUtils.AddDigitNine(contact.WaId),
         CreatedAt = createdAt
