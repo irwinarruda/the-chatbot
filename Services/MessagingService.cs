@@ -3,19 +3,15 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
-
 using TheChatbot.Entities;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 using TheChatbot.Templates;
 using TheChatbot.Utils;
 
-//
 namespace TheChatbot.Services;
 
-public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway whatsAppMessagingGateway, AuthService authService, IChatClient? chatClient) {
+public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway whatsAppMessagingGateway, AuthService authService, LLMChatGateway? llmChatGateway) {
   public async Task SendSignedInMessage(string phoneNumber) {
     await SendTextMessage(phoneNumber, SignedInMessage.Get());
   }
@@ -40,20 +36,6 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
     });
   }
 
-  private async Task<IMcpClient> GetMcpClient() {
-    return await McpClientFactory.CreateAsync(new StdioClientTransport(new StdioClientTransportOptions {
-      Name = "PodcastMcpServer",
-      Command = "dotnet",
-      Arguments = ["run", "--project", "/Users/irwinarruda/Documents/PRO/the-chatbot/Mcp", "--no-build"],
-    }), new McpClientOptions {
-      Capabilities = new ClientCapabilities {
-        Sampling = new SamplingCapability {
-          SamplingHandler = chatClient!.CreateSamplingHandler(),
-        }
-      }
-    });
-  }
-
   public async Task ListenToTextMessage(ReceiveTextMessageDTO receiveTextMessage) {
     var chat = await GetChatByPhoneNumber(receiveTextMessage.From);
     if (chat == null) {
@@ -75,24 +57,26 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
       chat.AddUser(user.Id);
       await SaveChat(chat);
     }
-    var mcp = await GetMcpClient();
-    var tools = await mcp.ListToolsAsync();
-    var system = $"You are a chatbot for the app TheChatbot. You are allowed to talk to the person. You are friendly and you are sure of yourself. Your main goal is to use the tools provided to help the user perform some tasks. The user phone number is {receiveTextMessage.From}. Always use the phone number as a param for a tool and use it in the exact formating it is passed {receiveTextMessage.From}.";
-    var messages = chat.Messages.Select(m => new ChatMessage {
-      Role = m.UserType == MessageUserType.Bot ? ChatRole.Assistant : ChatRole.User,
-      Contents = [new() { RawRepresentation = m.Text }],
-    });
-    var response = await chatClient!.GetResponseAsync([new () {
-      Role = ChatRole.System,
-      Contents = [new() { RawRepresentation = system }],
-    }, ..messages], new() { Tools = [.. tools], AllowMultipleToolCalls = true });
-    Console.WriteLine(Printable.Make(response));
-    await SendTextMessage(receiveTextMessage.From, response.Text, chat);
+    var messages = chat.Messages.Select(m =>
+      new ChatMessage(m.UserType == MessageUserType.Bot ? ChatRole.Assistant : ChatRole.User, m.Text)
+    );
+    var response = await llmChatGateway!.GetResponse(receiveTextMessage.From, [.. messages]);
+    if (response.Type == ChatGetResponseType.Button) {
+      Console.WriteLine(Printable.Make(response));
+      var m = chat.AddBotTextMessage(response.Text);
+      await CreateMessage(m);
+      await whatsAppMessagingGateway.SendInteractiveButtonMessage(new SendInteractiveButtonMessageDTO {
+        To = receiveTextMessage.From,
+        Text = response.Text,
+        Buttons = response.Buttons!
+      });
+    } else await SendTextMessage(receiveTextMessage.From, response.Text, chat);
   }
 
   public async Task ReceiveMessage(JsonElement data) {
-    whatsAppMessagingGateway.ReceiveMessage(data, out var receiveTextMessage);
+    whatsAppMessagingGateway.ReceiveMessage(data, out var receiveTextMessage, out var receiveButtonReply);
     if (receiveTextMessage != null) await ListenToTextMessage(receiveTextMessage);
+    if (receiveButtonReply != null) await ListenToTextMessage(new() { Text = receiveButtonReply.Text, From = receiveButtonReply.From, CreatedAt = receiveButtonReply.CreatedAt });
   }
 
   public void ValidateWebhook(string hubMode, string hubVerifyToken) {

@@ -21,4 +21,15 @@ class AuthTool(AuthService authService) {
       return Printable.Make(response);
     }
   }
+
+  [McpServerTool(Name = "FormatNumber")]
+  [Description("Format the number of the user in a custom pretty way. Takes a required phone_number attribute")]
+  public async Task<string> FormatNumber(string phoneNumber) {
+    try {
+      return Printable.Make(new { PhoneNumber = "+-" + phoneNumber + "-+" });
+    } catch (Exception ex) {
+      var response = ExceptionResponse.Handle(ex);
+      return Printable.Make(response);
+    }
+  }
 }
