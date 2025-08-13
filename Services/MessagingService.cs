@@ -11,7 +11,7 @@ using TheChatbot.Utils;
 
 namespace TheChatbot.Services;
 
-public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway whatsAppMessagingGateway, AuthService authService, LLMChatGateway? llmChatGateway) {
+public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway whatsAppMessagingGateway, AuthService authService, IAiChatGateway aiChatGateway) {
   public async Task SendSignedInMessage(string phoneNumber) {
     await SendTextMessage(phoneNumber, SignedInMessage.Get());
   }
@@ -57,12 +57,12 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
       chat.AddUser(user.Id);
       await SaveChat(chat);
     }
-    var messages = chat.Messages.Select(m =>
-      new ChatMessage(m.UserType == MessageUserType.Bot ? ChatRole.Assistant : ChatRole.User, m.Text)
-    );
-    var response = await llmChatGateway!.GetResponse(receiveTextMessage.From, [.. messages]);
-    if (response.Type == ChatGetResponseType.Button) {
-      Console.WriteLine(Printable.Make(response));
+    var messages = chat.Messages.Select(m => new AiChatMessage {
+      Role = m.UserType == MessageUserType.Bot ? AiChatRole.Assistant : AiChatRole.User,
+      Text = m.Text ?? "No message from the user",
+    });
+    var response = await aiChatGateway.GetResponse(receiveTextMessage.From, [.. messages]);
+    if (response.Type == AiChatResponseType.Button) {
       var m = chat.AddBotTextMessage(response.Text);
       await CreateMessage(m);
       await whatsAppMessagingGateway.SendInteractiveButtonMessage(new SendInteractiveButtonMessageDTO {

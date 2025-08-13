@@ -15,7 +15,7 @@ class AuthTool(AuthService authService) {
   public async Task<string> DeleteUserByPhoneNumber(string phoneNumber) {
     try {
       await authService.DeleteUserByPhoneNumber(phoneNumber);
-      return Printable.Make("");
+      return Printable.Make("The account was deleted successfully");
     } catch (Exception ex) {
       var response = ExceptionResponse.Handle(ex);
       return Printable.Make(response);
