@@ -12,7 +12,7 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
     return Task.CompletedTask;
   }
 
-  public Task SendInteractiveButtonMessage(SendInteractiveButtonMessageDTO buttonMessage) {
+  public Task SendInteractiveReplyButtonMessage(SendInteractiveReplyButtonMessageDTO buttonMessage) {
     return Task.CompletedTask;
   }
 
@@ -27,9 +27,5 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
 
   public string GetVerifyToken() {
     return "ValidToken";
-  }
-
-  public string GetAllowedDomain() {
-    return "https://graph.facebook.com";
   }
 }

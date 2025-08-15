@@ -19,13 +19,13 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
     });
   }
 
-  public async Task SendInteractiveButtonMessage(SendInteractiveButtonMessageDTO buttonMessage) {
+  public async Task SendInteractiveReplyButtonMessage(SendInteractiveReplyButtonMessageDTO buttonMessage) {
     await whatsAppBusinessClient.SendInteractiveReplyButtonMessageAsync(new InteractiveReplyButtonMessageRequest {
       To = buttonMessage.To,
       Interactive = new() {
         Body = new() { Text = buttonMessage.Text },
         Action = new() {
-          Buttons = [.. buttonMessage.Buttons.Select((b, i) => new ReplyButton { Type = "reply", Reply = new() { Id = $"ID {i}", Title = b } })]
+          Buttons = [.. buttonMessage.Buttons.Select((b, i) => new ReplyButton { Type = "reply", Reply = new() { Id = $"btn_{i + 1}", Title = b } })]
         }
       },
     });
@@ -38,9 +38,9 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
     if (TryDeserializeMessage<ReplyButtonMessage>(jsonElement, out var buttonMessageData) && buttonMessageData.Entry[0].Changes[0].Value.Messages[0].Interactive != null) {
       var message = buttonMessageData.Entry[0].Changes[0].Value.Messages[0];
       var contact = buttonMessageData.Entry[0].Changes[0].Value.Contacts[0];
-      var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).DateTime;
+      var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).UtcDateTime;
       receiveButtonReply = new() {
-        Text = message.Interactive.ButtonReply.Title,
+        ButtonReply = message.Interactive.ButtonReply.Title,
         From = PhoneNumberUtils.AddDigitNine(contact.WaId),
         CreatedAt = createdAt
       };
@@ -49,7 +49,7 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
     if (TryDeserializeMessage<TextMessage>(jsonElement, out var textMessageData)) {
       var message = textMessageData.Entry[0].Changes[0].Value.Messages[0];
       var contact = textMessageData.Entry[0].Changes[0].Value.Contacts[0];
-      var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).DateTime;
+      var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).UtcDateTime;
       receiveTextMessage = new() {
         Text = message.Text.Body,
         From = PhoneNumberUtils.AddDigitNine(contact.WaId),
@@ -61,10 +61,6 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
 
   public string GetVerifyToken() {
     return whatsAppBusinessCloudApiConfig.WebhookVerifyToken;
-  }
-
-  public string GetAllowedDomain() {
-    return "https://graph.facebook.com";
   }
 
   private static bool TryDeserializeMessage<T>(JsonElement jsonElement, out MessageReceived<T> messageData) where T : IGenericMessage {

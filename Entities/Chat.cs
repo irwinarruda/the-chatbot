@@ -34,6 +34,7 @@ public class Chat {
   public Message AddUserTextMessage(string text) {
     var message = new Message {
       IdChat = Id,
+      Type = MessageType.Text,
       UserType = MessageUserType.User,
       Text = text,
     };
@@ -44,8 +45,32 @@ public class Chat {
   public Message AddBotTextMessage(string text) {
     var message = new Message {
       IdChat = Id,
+      Type = MessageType.Text,
       UserType = MessageUserType.Bot,
       Text = text,
+    };
+    Messages.Add(message);
+    return message;
+  }
+
+  public Message AddUserButtonReply(string reply) {
+    var message = new Message {
+      IdChat = Id,
+      Type = MessageType.ButtonReply,
+      UserType = MessageUserType.User,
+      ButtonReply = reply,
+    };
+    Messages.Add(message);
+    return message;
+  }
+
+  public Message AddBotButtonReply(string replyText, List<string> buttons) {
+    var message = new Message {
+      IdChat = Id,
+      Type = MessageType.ButtonReply,
+      UserType = MessageUserType.Bot,
+      Text = replyText,
+      ButtonReplyOptions = buttons,
     };
     Messages.Add(message);
     return message;

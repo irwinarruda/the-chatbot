@@ -8,7 +8,7 @@ public enum AiChatResponseType {
 public class AiChatResponse {
   public required string Text;
   public required AiChatResponseType Type;
-  public List<string>? Buttons;
+  public required IEnumerable<string> Buttons;
 }
 
 public enum AiChatRole {

@@ -61,20 +61,18 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
     );
     await SaveGoogleCredential(user.GoogleCredential);
   }
-  public async Task<string> GetThankYouPageHtmlString() {
-    var template = await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "Templates", "ThankYouPage.html"));
-    return template;
+  public string GetThankYouPageHtmlString() {
+    return PageLoader.GetPage(PageTemplate.ThankYou);
   }
-  public async Task<string> GetAlreadySignedInPageHtmlString() {
-    var template = await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "Templates", "AlreadySignedIn.html"));
-    return template;
+  public string GetAlreadySignedInPageHtmlString() {
+    return PageLoader.GetPage(PageTemplate.AlreadySignedIn);
   }
 
   public async Task<(bool IsRedirect, string Content)> HandleGoogleLogin(string phoneNumber) {
     var user = await GetUserByPhoneNumber(phoneNumber);
     if (user?.GoogleCredential != null) {
       await RefreshGoogleCredential(user);
-      var template = await GetAlreadySignedInPageHtmlString();
+      var template = GetAlreadySignedInPageHtmlString();
       return (IsRedirect: false, Content: template);
     }
     var url = GetGoogleLoginUrl(phoneNumber);
@@ -83,7 +81,7 @@ public class AuthService(AppDbContext database, EncryptionConfig encryptionConfi
 
   public async Task<string> HandleGoogleRedirect(string state, string code) {
     await SaveUserByGoogleCredential(state, code);
-    var template = await GetThankYouPageHtmlString();
+    var template = GetThankYouPageHtmlString();
     return template;
   }
 
