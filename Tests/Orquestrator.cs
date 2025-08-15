@@ -21,6 +21,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public ICashFlowSpreadsheetGateway cashFlowSpreadsheetGateway;
   readonly public IWhatsAppMessagingGateway whatsAppMessagingGateway;
   readonly public IGoogleAuthGateway googleAuthGateway;
+  readonly public IAiChatGateway aiChatGateway;
   readonly public IConfiguration configuration;
   readonly public IServiceProvider serviceProvider;
   readonly public EncryptionConfig encryptionConfig;
@@ -48,6 +49,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
 
     services.AddSingleton<IGoogleAuthGateway, TestGoogleAuthGateway>();
     services.AddSingleton<IWhatsAppMessagingGateway, TestWhatsAppMessagingGateway>();
+    services.AddSingleton<IAiChatGateway, TestAiChatGateway>();
     services.AddSingleton<IMediator, Mediator>();
     services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
     services.AddTransient<AuthService>();
@@ -60,6 +62,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     cashFlowSpreadsheetGateway = serviceProvider.GetRequiredService<ICashFlowSpreadsheetGateway>();
     googleAuthGateway = serviceProvider.GetRequiredService<IGoogleAuthGateway>();
     whatsAppMessagingGateway = serviceProvider.GetRequiredService<IWhatsAppMessagingGateway>();
+    aiChatGateway = serviceProvider.GetRequiredService<IAiChatGateway>();
     authService = serviceProvider.GetRequiredService<AuthService>();
     messagingService = serviceProvider.GetRequiredService<MessagingService>();
     statusService = serviceProvider.GetRequiredService<StatusService>();

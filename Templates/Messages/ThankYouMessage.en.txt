@@ -1,0 +1,10 @@
+👋 *Welcome to The Chatbot!*
+
+Please log in with Google to get started:
+
+{{LoginUrl}}
+
+After logging in, you'll have access to:
+• AI assistance
+• Data management
+• And more!

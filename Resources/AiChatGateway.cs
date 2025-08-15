@@ -47,7 +47,7 @@ public class AiChatGateway(IChatClient chatClient) : IAiChatGateway {
     var llmResponse = new AiChatResponse {
       Type = AiChatResponseType.Text,
       Text = raw,
-      Buttons = null
+      Buttons = []
     };
     if (string.IsNullOrEmpty(raw)) return llmResponse;
     var buttonMatch = Regex.Match(raw, @"^\s*\[(Button)\]\s*\[(?<btns>[^\]]+)\](?<rest>.*)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);

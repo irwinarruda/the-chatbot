@@ -7,28 +7,28 @@ public class SendTextMessageDTO {
   public required string To { get; set; }
 }
 
-public class SendInteractiveButtonMessageDTO {
+public class SendInteractiveReplyButtonMessageDTO {
   public required string Text { get; set; }
   public required string To { get; set; }
   public required IEnumerable<string> Buttons { get; set; }
 }
 
-public class ReceiveTextMessageDTO {
-  public required string Text { get; set; }
-  public required string From { get; set; }
+public abstract class ReceiveMessageDTO {
+  public required string From;
   public required DateTime CreatedAt { get; set; }
 }
 
-public class ReceiveInteractiveButtonMessageDTO {
+public class ReceiveTextMessageDTO : ReceiveMessageDTO {
   public required string Text { get; set; }
-  public required string From { get; set; }
-  public required DateTime CreatedAt { get; set; }
+}
+
+public class ReceiveInteractiveButtonMessageDTO : ReceiveMessageDTO {
+  public required string ButtonReply { get; set; }
 }
 
 public interface IWhatsAppMessagingGateway {
   Task SendTextMessage(SendTextMessageDTO textMessage);
-  Task SendInteractiveButtonMessage(SendInteractiveButtonMessageDTO buttonMessage);
+  Task SendInteractiveReplyButtonMessage(SendInteractiveReplyButtonMessageDTO buttonMessage);
   void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage, out ReceiveInteractiveButtonMessageDTO? receiveButtonReply);
   string GetVerifyToken();
-  string GetAllowedDomain();
 }

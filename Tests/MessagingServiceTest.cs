@@ -4,18 +4,24 @@ using Shouldly;
 
 using TheChatbot.Entities;
 using TheChatbot.Services;
+using TheChatbot.Utils;
+
+using Xunit.v3.Priority;
 
 namespace Tests;
 
+[TestCaseOrderer(typeof(PriorityOrderer))]
 public class MessagingServiceTest : IClassFixture<Orquestrator> {
   public Orquestrator orquestrator;
   public MessagingService messagingService;
-  public MessagingServiceTest(Orquestrator _orquestrator) {
+  public ITestOutputHelper h;
+  public MessagingServiceTest(Orquestrator _orquestrator, ITestOutputHelper _h) {
+    h = _h;
     orquestrator = _orquestrator;
     messagingService = _orquestrator.messagingService;
   }
 
-  [Fact]
+  [Priority(1), Fact]
   public async Task SendMessage() {
     await orquestrator.ClearDatabase();
     var user = await orquestrator.CreateUser(phoneNumber: "5511984444444");
@@ -26,6 +32,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBe(user.Id);
+    h.WriteLine(Printable.Make(chat.Messages));
     chat.Messages.Count.ShouldBe(2);
     var userMessage = chat.Messages[0];
     userMessage.Text.ShouldBe("User 1");
@@ -39,7 +46,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     chat.Messages.Count.ShouldBe(3);
   }
 
-  [Fact]
+  [Priority(2), Fact]
   public async Task ReceiveMessage() {
     await orquestrator.ClearDatabase();
     var phoneNumber = "5511984444444";
@@ -59,7 +66,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     userMessage.UserType.ShouldBe(MessageUserType.User);
     var botMessage = chat.Messages[1];
     botMessage.ShouldNotBeNull();
-    botMessage.Text?.ShouldContain("✅ Thank you for using *The Chatbot*");
+    botMessage.Text?.ShouldContain("👋");
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
     await messagingService.ReceiveMessage(
       JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second message"))

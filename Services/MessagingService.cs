@@ -1,24 +1,60 @@
 using System.Text.Json;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.AI;
 
 using TheChatbot.Entities;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
-using TheChatbot.Templates;
 using TheChatbot.Utils;
 
 namespace TheChatbot.Services;
 
-public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway whatsAppMessagingGateway, AuthService authService, IAiChatGateway aiChatGateway) {
+public class MessagingService(AppDbContext database, AuthService authService, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway) {
   public async Task SendSignedInMessage(string phoneNumber) {
-    await SendTextMessage(phoneNumber, SignedInMessage.Get());
+    await SendTextMessage(phoneNumber, MessageLoader.GetMessage(MessageTemplate.SignedIn));
   }
 
-  public string GetAllowedDomain() {
-    return whatsAppMessagingGateway.GetAllowedDomain();
+  public async Task ReceiveMessage(JsonElement data) {
+    whatsAppMessagingGateway.ReceiveMessage(data, out var receiveTextMessage, out var receiveButtonReply);
+    if (receiveTextMessage != null) await ListenToMessage(receiveTextMessage);
+    if (receiveButtonReply != null) await ListenToMessage(receiveButtonReply);
   }
+
+  public async Task ListenToMessage<T>(T receiveMessage) where T : ReceiveMessageDTO {
+    var chat = await GetChatByPhoneNumber(receiveMessage.From);
+    if (chat == null) {
+      chat = new Chat { PhoneNumber = receiveMessage.From };
+      await CreateChat(chat);
+    }
+    var message = receiveMessage switch {
+      ReceiveTextMessageDTO m => chat.AddUserTextMessage(m.Text),
+      ReceiveInteractiveButtonMessageDTO m => chat.AddUserButtonReply(m.ButtonReply),
+      _ => chat.AddUserTextMessage("")
+    };
+    await CreateMessage(message);
+    if (chat.IdUser == null) {
+      var user = await authService.GetUserByPhoneNumber(chat.PhoneNumber);
+      if (user == null) {
+        await SendTextMessage(chat.PhoneNumber, MessageLoader.GetMessage(MessageTemplate.ThankYou, new() {
+          LoginUrl = authService.GetAppLoginUrl(chat.PhoneNumber),
+        }));
+        return;
+      }
+      chat.AddUser(user.Id);
+      await SaveChat(chat);
+    }
+    var messages = chat.Messages.Select(m => new AiChatMessage {
+      Role = m.UserType == MessageUserType.Bot ? AiChatRole.Assistant : AiChatRole.User,
+      Text = m.ButtonReply ?? m.Text + $"\n{string.Join(", ", m.ButtonReplyOptions ?? [])}",
+    });
+    var response = await aiChatGateway.GetResponse(chat.PhoneNumber, [.. messages]);
+    await (response.Type switch {
+      AiChatResponseType.Text => SendTextMessage(chat.PhoneNumber, response.Text, chat),
+      AiChatResponseType.Button => SendButtonReplyMessage(chat.PhoneNumber, response.Text ?? "Something went wrong", [.. response.Buttons], chat),
+      _ => Task.CompletedTask
+    });
+  }
+
 
   public async Task SendTextMessage(string phoneNumber, string text, Chat? chat = null) {
     chat ??= await GetChatByPhoneNumber(phoneNumber);
@@ -36,47 +72,21 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
     });
   }
 
-  public async Task ListenToTextMessage(ReceiveTextMessageDTO receiveTextMessage) {
-    var chat = await GetChatByPhoneNumber(receiveTextMessage.From);
+  public async Task SendButtonReplyMessage(string phoneNumber, string text, List<string> options, Chat? chat = null) {
+    chat ??= await GetChatByPhoneNumber(phoneNumber);
     if (chat == null) {
-      chat = new Chat { PhoneNumber = receiveTextMessage.From };
-      await CreateChat(chat);
+      throw new ValidationException(
+        "The user does not have an open chat",
+        "Please create a chat first before continuing"
+      );
     }
-    var message = chat.AddUserTextMessage(receiveTextMessage.Text);
+    var message = chat.AddBotButtonReply(text, options);
     await CreateMessage(message);
-    if (chat.IdUser == null) {
-      var user = await authService.GetUserByPhoneNumber(receiveTextMessage.From);
-      if (user == null) {
-        await SendTextMessage(
-          receiveTextMessage.From,
-          ThankYouMessage.Get(authService.GetAppLoginUrl(receiveTextMessage.From)),
-          chat
-        );
-        return;
-      }
-      chat.AddUser(user.Id);
-      await SaveChat(chat);
-    }
-    var messages = chat.Messages.Select(m => new AiChatMessage {
-      Role = m.UserType == MessageUserType.Bot ? AiChatRole.Assistant : AiChatRole.User,
-      Text = m.Text ?? "No message from the user",
+    await whatsAppMessagingGateway.SendInteractiveReplyButtonMessage(new SendInteractiveReplyButtonMessageDTO {
+      To = chat.PhoneNumber,
+      Text = text,
+      Buttons = options
     });
-    var response = await aiChatGateway.GetResponse(receiveTextMessage.From, [.. messages]);
-    if (response.Type == AiChatResponseType.Button) {
-      var m = chat.AddBotTextMessage(response.Text);
-      await CreateMessage(m);
-      await whatsAppMessagingGateway.SendInteractiveButtonMessage(new SendInteractiveButtonMessageDTO {
-        To = receiveTextMessage.From,
-        Text = response.Text,
-        Buttons = response.Buttons!
-      });
-    } else await SendTextMessage(receiveTextMessage.From, response.Text, chat);
-  }
-
-  public async Task ReceiveMessage(JsonElement data) {
-    whatsAppMessagingGateway.ReceiveMessage(data, out var receiveTextMessage, out var receiveButtonReply);
-    if (receiveTextMessage != null) await ListenToTextMessage(receiveTextMessage);
-    if (receiveButtonReply != null) await ListenToTextMessage(new() { Text = receiveButtonReply.Text, From = receiveButtonReply.From, CreatedAt = receiveButtonReply.CreatedAt });
   }
 
   public void ValidateWebhook(string hubMode, string hubVerifyToken) {
@@ -106,6 +116,9 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
         Id = m.Id,
         IdChat = m.IdChat,
         Text = m.Text,
+        Type = Enum.Parse<MessageType>(m.Type),
+        ButtonReply = m.ButtonReply,
+        ButtonReplyOptions = m.ButtonReplyOptions != null ?[..m.ButtonReplyOptions.Split(",")] : null,
         UserType = Enum.Parse<MessageUserType>(m.UserType),
         CreatedAt = m.CreatedAt,
         UpdatedAt = m.UpdatedAt,
@@ -127,9 +140,10 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
   }
 
   private async Task CreateMessage(Message message) {
+    var buttonOptions = message.ButtonReplyOptions != null ? string.Join(",", message.ButtonReplyOptions) : null;
     await database.Execute($@"
-      INSERT INTO messages (id, id_chat, user_type, text, created_at, updated_at)
-      VALUES ({message.Id}, {message.IdChat}, {message.UserType.ToString()}, {message.Text}, {message.CreatedAt}, {message.UpdatedAt})
+      INSERT INTO messages (id, id_chat, type, user_type, text, button_reply, button_reply_options, created_at, updated_at)
+      VALUES ({message.Id}, {message.IdChat}, {message.Type.ToString()}, {message.UserType.ToString()}, {message.Text}, {message.ButtonReply}, {buttonOptions}, {message.CreatedAt}, {message.UpdatedAt})
     ");
   }
 
@@ -158,7 +172,10 @@ public class MessagingService(AppDbContext database, IWhatsAppMessagingGateway w
     Guid? IdUser,
     Guid IdChat,
     string UserType,
+    string Type,
     string? Text,
+    string? ButtonReply,
+    string? ButtonReplyOptions,
     DateTime CreatedAt,
     DateTime UpdatedAt
   );
