@@ -6,11 +6,8 @@ using TheChatbot.Entities;
 using TheChatbot.Services;
 using TheChatbot.Utils;
 
-using Xunit.v3.Priority;
-
 namespace Tests;
 
-[TestCaseOrderer(typeof(PriorityOrderer))]
 public class MessagingServiceTest : IClassFixture<Orquestrator> {
   public Orquestrator orquestrator;
   public MessagingService messagingService;
@@ -21,7 +18,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     messagingService = _orquestrator.messagingService;
   }
 
-  [Priority(1), Fact]
+  [Fact]
   public async Task SendMessage() {
     await orquestrator.ClearDatabase();
     var user = await orquestrator.CreateUser(phoneNumber: "5511984444444");
@@ -32,7 +29,6 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBe(user.Id);
-    h.WriteLine(Printable.Make(chat.Messages));
     chat.Messages.Count.ShouldBe(2);
     var userMessage = chat.Messages[0];
     userMessage.Text.ShouldBe("User 1");
@@ -46,15 +42,13 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     chat.Messages.Count.ShouldBe(3);
   }
 
-  [Priority(2), Fact]
+  [Fact]
   public async Task ReceiveMessage() {
     await orquestrator.ClearDatabase();
     var phoneNumber = "5511984444444";
     var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldBeNull();
-    await messagingService.ReceiveMessage(
-      JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("First message"))
-    );
+    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("First message")));
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBeNull();
@@ -68,15 +62,19 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     botMessage.ShouldNotBeNull();
     botMessage.Text?.ShouldContain("👋");
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
-    await messagingService.ReceiveMessage(
-      JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second message"))
-    );
+    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second duplicate message")));
+    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second duplicate message")));
+    var idProvider = userMessage.IdProvider;
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
-    chat.Messages.Count.ShouldBe(4);
     chat.IdUser.ShouldBe(user.Id);
     chat.PhoneNumber.ShouldBe(phoneNumber);
-    chat.Messages[2].Text.ShouldBe("Second message");
-    chat.Messages[3].Text.ShouldBe("Response to: Second message");
+    chat.Messages.Count.ShouldBe(4);
+    h.WriteLine(Printable.Make(chat.Messages));
+    userMessage = chat.Messages[2];
+    userMessage.Text?.ShouldBe("Second duplicate message");
+    userMessage.IdProvider.ShouldNotBe(idProvider);
+    botMessage = chat.Messages[3];
+    botMessage.Text?.ShouldBe("Response to: Second duplicate message");
   }
 }

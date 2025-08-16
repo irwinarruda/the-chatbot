@@ -9,7 +9,7 @@ public enum PromptLocale { En, PtBr }
 public record AiChatGatewayParams(string PhoneNumber);
 
 public static class PromptLoader {
-  private static readonly string PromptsRoot = Path.Combine(AppContext.BaseDirectory, "Prompts");
+  private static readonly string PromptsRoot = Path.Combine(AppContext.BaseDirectory, "Templates", "Prompts");
   private static readonly object CacheLock = new();
   private static readonly Dictionary<string, string> Cache = [];
 

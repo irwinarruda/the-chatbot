@@ -10,10 +10,6 @@ using TheChatbot.Utils;
 namespace TheChatbot.Services;
 
 public class MessagingService(AppDbContext database, AuthService authService, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway) {
-  public async Task SendSignedInMessage(string phoneNumber) {
-    await SendTextMessage(phoneNumber, MessageLoader.GetMessage(MessageTemplate.SignedIn));
-  }
-
   public async Task ReceiveMessage(JsonElement data) {
     whatsAppMessagingGateway.ReceiveMessage(data, out var receiveTextMessage, out var receiveButtonReply);
     if (receiveTextMessage != null) await ListenToMessage(receiveTextMessage);
@@ -21,15 +17,16 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
   }
 
   public async Task ListenToMessage<T>(T receiveMessage) where T : ReceiveMessageDTO {
+    if (await IsMessageDuplicate(receiveMessage.IdProvider)) return;
     var chat = await GetChatByPhoneNumber(receiveMessage.From);
     if (chat == null) {
       chat = new Chat { PhoneNumber = receiveMessage.From };
       await CreateChat(chat);
     }
     var message = receiveMessage switch {
-      ReceiveTextMessageDTO m => chat.AddUserTextMessage(m.Text),
-      ReceiveInteractiveButtonMessageDTO m => chat.AddUserButtonReply(m.ButtonReply),
-      _ => chat.AddUserTextMessage("")
+      ReceiveTextMessageDTO m => chat.AddUserTextMessage(m.Text, m.IdProvider),
+      ReceiveInteractiveButtonMessageDTO m => chat.AddUserButtonReply(m.ButtonReply, m.IdProvider),
+      _ => chat.AddUserTextMessage("", "")
     };
     await CreateMessage(message);
     if (chat.IdUser == null) {
@@ -50,11 +47,10 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     var response = await aiChatGateway.GetResponse(chat.PhoneNumber, [.. messages]);
     await (response.Type switch {
       AiChatResponseType.Text => SendTextMessage(chat.PhoneNumber, response.Text, chat),
-      AiChatResponseType.Button => SendButtonReplyMessage(chat.PhoneNumber, response.Text ?? "Something went wrong", [.. response.Buttons], chat),
+      AiChatResponseType.Button => SendButtonReplyMessage(chat.PhoneNumber, response.Text, [.. response.Buttons], chat),
       _ => Task.CompletedTask
     });
   }
-
 
   public async Task SendTextMessage(string phoneNumber, string text, Chat? chat = null) {
     chat ??= await GetChatByPhoneNumber(phoneNumber);
@@ -89,6 +85,10 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     });
   }
 
+  public async Task SendSignedInMessage(string phoneNumber) {
+    await SendTextMessage(phoneNumber, MessageLoader.GetMessage(MessageTemplate.SignedIn));
+  }
+
   public void ValidateWebhook(string hubMode, string hubVerifyToken) {
     if (hubMode != "subscribe" || hubVerifyToken != whatsAppMessagingGateway.GetVerifyToken()) {
       throw new ValidationException("The provided token did not match");
@@ -120,6 +120,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
         ButtonReply = m.ButtonReply,
         ButtonReplyOptions = m.ButtonReplyOptions != null ?[..m.ButtonReplyOptions.Split(",")] : null,
         UserType = Enum.Parse<MessageUserType>(m.UserType),
+        IdProvider = m.IdProvider,
         CreatedAt = m.CreatedAt,
         UpdatedAt = m.UpdatedAt,
       })],
@@ -142,8 +143,8 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
   private async Task CreateMessage(Message message) {
     var buttonOptions = message.ButtonReplyOptions != null ? string.Join(",", message.ButtonReplyOptions) : null;
     await database.Execute($@"
-      INSERT INTO messages (id, id_chat, type, user_type, text, button_reply, button_reply_options, created_at, updated_at)
-      VALUES ({message.Id}, {message.IdChat}, {message.Type.ToString()}, {message.UserType.ToString()}, {message.Text}, {message.ButtonReply}, {buttonOptions}, {message.CreatedAt}, {message.UpdatedAt})
+      INSERT INTO messages (id, id_chat, type, user_type, text, button_reply, button_reply_options, id_provider, created_at, updated_at)
+      VALUES ({message.Id}, {message.IdChat}, {message.Type.ToString()}, {message.UserType.ToString()}, {message.Text}, {message.ButtonReply}, {buttonOptions}, {message.IdProvider}, {message.CreatedAt}, {message.UpdatedAt})
     ");
   }
 
@@ -156,6 +157,15 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
         updated_at = {chat.UpdatedAt}
       WHERE id = {chat.Id}
     ");
+  }
+
+  private async Task<bool> IsMessageDuplicate(string idProvider) {
+    var existingMessage = await database.Query<DbMessage>($@"
+      SELECT * FROM messages
+      WHERE id_provider = {idProvider}
+      LIMIT 1
+    ").FirstOrDefaultAsync();
+    return existingMessage != null;
   }
 
   public record DbChat(
@@ -176,6 +186,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     string? Text,
     string? ButtonReply,
     string? ButtonReplyOptions,
+    string? IdProvider,
     DateTime CreatedAt,
     DateTime UpdatedAt
   );

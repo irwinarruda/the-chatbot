@@ -22,3 +22,5 @@
 - Return types must be explicitly declared
 - Use dependency injection via constructor parameters
 - Follow Resource/Service/Controller architecture pattern
+- Do not add code comments to the files
+- Always use short namespace declaration instead of the full with curly braces

@@ -16,6 +16,7 @@ public class SendInteractiveReplyButtonMessageDTO {
 public abstract class ReceiveMessageDTO {
   public required string From;
   public required DateTime CreatedAt { get; set; }
+  public required string IdProvider { get; set; }
 }
 
 public class ReceiveTextMessageDTO : ReceiveMessageDTO {
