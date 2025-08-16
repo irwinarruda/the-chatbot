@@ -1,8 +1,13 @@
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
+
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 
 using TheChatbot.Infra;
+using TheChatbot.Resources;
 using TheChatbot.Services;
 
 namespace TheChatbot.Controllers;
@@ -10,7 +15,6 @@ namespace TheChatbot.Controllers;
 [ApiController]
 [Route("/api/v1/[controller]")]
 public class WhatsAppController(MessagingService messagingService) : ControllerBase {
-
   [HttpGet("webhook")]
   public ActionResult<string> ConfigureWhatsAppMessageWebhook(
     [FromQuery(Name = "hub.mode")] string hubMode,
@@ -33,10 +37,10 @@ public class WhatsAppController(MessagingService messagingService) : ControllerB
   }
   private bool IsValidMetaDomain() {
     var userAgent = Request.Headers.UserAgent.ToString();
-    var allowedDomain = messagingService.GetAllowedDomain();
+    const string AllowedDomain = "https://graph.facebook.com"; // inlined former gateway constant
     return userAgent.Contains("facebookplatform") ||
       userAgent.Contains("facebookexternalua") ||
-      userAgent.Contains(allowedDomain);
+      userAgent.Contains(AllowedDomain);
   }
 }
 

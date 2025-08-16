@@ -26,7 +26,7 @@ public partial class CreateChatAndMessage : Migration {
           column: x => x.id_user,
           principalTable: "users",
           principalColumn: "id",
-          onDelete: ReferentialAction.Cascade
+          onDelete: ReferentialAction.SetNull
         );
       }
     );
@@ -35,7 +35,6 @@ public partial class CreateChatAndMessage : Migration {
       schema: "public",
       columns: (table) => new {
         id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-        id_user = table.Column<Guid>(type: "uuid", nullable: true),
         id_chat = table.Column<Guid>(type: "uuid", nullable: false),
         user_type = table.Column<string>(type: "varchar(4)", nullable: false),
         text = table.Column<string>(type: "varchar(10000)", nullable: true),
@@ -49,7 +48,7 @@ public partial class CreateChatAndMessage : Migration {
           column: x => x.id_chat,
           principalTable: "chats",
           principalColumn: "id",
-          onDelete: ReferentialAction.Cascade
+          onDelete: ReferentialAction.SetNull
         );
       }
     );

@@ -4,13 +4,16 @@ using Shouldly;
 
 using TheChatbot.Entities;
 using TheChatbot.Services;
+using TheChatbot.Utils;
 
 namespace Tests;
 
 public class MessagingServiceTest : IClassFixture<Orquestrator> {
   public Orquestrator orquestrator;
   public MessagingService messagingService;
-  public MessagingServiceTest(Orquestrator _orquestrator) {
+  public ITestOutputHelper h;
+  public MessagingServiceTest(Orquestrator _orquestrator, ITestOutputHelper _h) {
+    h = _h;
     orquestrator = _orquestrator;
     messagingService = _orquestrator.messagingService;
   }
@@ -45,9 +48,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     var phoneNumber = "5511984444444";
     var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldBeNull();
-    await messagingService.ReceiveMessage(
-      JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("First message"))
-    );
+    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("First message")));
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBeNull();
@@ -59,17 +60,21 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     userMessage.UserType.ShouldBe(MessageUserType.User);
     var botMessage = chat.Messages[1];
     botMessage.ShouldNotBeNull();
-    botMessage.Text?.ShouldContain("✅ Thank you for using *The Chatbot*");
+    botMessage.Text?.ShouldContain("👋");
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
-    await messagingService.ReceiveMessage(
-      JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second message"))
-    );
+    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second duplicate message")));
+    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second duplicate message")));
+    var idProvider = userMessage.IdProvider;
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
-    chat.Messages.Count.ShouldBe(4);
     chat.IdUser.ShouldBe(user.Id);
     chat.PhoneNumber.ShouldBe(phoneNumber);
-    chat.Messages[2].Text.ShouldBe("Second message");
-    chat.Messages[3].Text.ShouldBe("Response to: Second message");
+    chat.Messages.Count.ShouldBe(4);
+    h.WriteLine(Printable.Make(chat.Messages));
+    userMessage = chat.Messages[2];
+    userMessage.Text?.ShouldBe("Second duplicate message");
+    userMessage.IdProvider.ShouldNotBe(idProvider);
+    botMessage = chat.Messages[3];
+    botMessage.Text?.ShouldBe("Response to: Second duplicate message");
   }
 }

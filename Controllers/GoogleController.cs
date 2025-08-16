@@ -8,13 +8,7 @@ namespace TheChatbot.Controllers;
 
 [ApiController]
 [Route("/api/v1/[controller]")]
-public class GoogleController : ControllerBase {
-  private readonly AuthService authService;
-
-  public GoogleController(AuthService _authService) {
-    authService = _authService;
-  }
-
+public class GoogleController(AuthService authService) : ControllerBase {
   [HttpGet("redirect")]
   public async Task<ContentResult> GetLogin([FromQuery] string state, [FromQuery] string code) {
     var template = await authService.HandleGoogleRedirect(state, code);

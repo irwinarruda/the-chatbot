@@ -28,23 +28,8 @@ public class Controller {
     var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
     var ex = exceptionFeature?.Error;
 
-    if (ex is ValidationException validationEx) {
-      context.Response.StatusCode = validationEx.StatusCode;
-      response = validationEx.ToResponseError();
-    } else if (ex is NotFoundException notFoundEx) {
-      context.Response.StatusCode = notFoundEx.StatusCode;
-      response = notFoundEx.ToResponseError();
-    } else {
-      int? statusCode = null;
-      if (ex is ServiceException serviceEx) {
-        statusCode = serviceEx.StatusCode;
-      } else if (ex is DeveloperException developerEx) {
-        statusCode = developerEx.StatusCode;
-      }
-      var internalServer = new InternalServerException(ex, statusCode);
-      context.Response.StatusCode = internalServer.StatusCode;
-      response = internalServer.ToResponseError();
-    }
+    response = ExceptionResponse.Handle(ex);
+    context.Response.StatusCode = response.StatusCode;
     context.Response.ContentType = "application/json";
     await context.Response.WriteAsync(Printable.Make(response));
   }

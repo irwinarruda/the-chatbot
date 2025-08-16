@@ -46,18 +46,17 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
   }
 
   [Fact]
-  public async Task GetThankYouPageHtmlString() {
-    var template = await authService.GetThankYouPageHtmlString();
+  public void GetThankYouPageHtmlString() {
+    var template = authService.GetThankYouPageHtmlString();
     template.ShouldContain("<html ");
     template.ShouldContain("</html>");
   }
 
   [Fact]
-  public async Task GetAlreadySignedInPageHtmlString() {
-    var template = await authService.GetAlreadySignedInPageHtmlString();
+  public void GetAlreadySignedInPageHtmlString() {
+    var template = authService.GetAlreadySignedInPageHtmlString();
     template.ShouldContain("<html");
     template.ShouldContain("</html>");
-    template.ShouldContain("Already Signed In");
   }
 
   [Fact]
@@ -159,7 +158,6 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     result.IsRedirect.ShouldBeFalse();
     result.Content.ShouldContain("<html");
     result.Content.ShouldContain("</html>");
-    result.Content.ShouldContain("Already Signed In");
   }
 
   [Fact]
@@ -173,7 +171,8 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     var phoneNumber1 = "5511984444444";
     var state = encryption.Encrypt(phoneNumber1);
     var result = await authService.HandleGoogleRedirect(state, "rightCode");
-    result.ShouldContain("Thank You");
+    result.ShouldContain("<html");
+    result.ShouldContain("</html>");
     var users = await authService.GetUsers();
     users.Count.ShouldBe(1);
     users[0].GoogleCredential.ShouldNotBeNull();
@@ -183,7 +182,8 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     await Should.ThrowAsync<Exception>(() => authService.HandleGoogleRedirect(state2, "wrongCode"));
 
     result = await authService.HandleGoogleRedirect(state, "rightCode");
-    result.ShouldContain("Thank You");
+    result.ShouldContain("<html");
+    result.ShouldContain("</html>");
     users = await authService.GetUsers();
     users.Count.ShouldBe(1);
     users[0].GoogleCredential.ShouldNotBeNull();

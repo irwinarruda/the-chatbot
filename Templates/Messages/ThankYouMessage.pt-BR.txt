@@ -1,0 +1,10 @@
+👋 *Bem-vindo ao The Chatbot!*
+
+Faça login com o Google para começar:
+
+{{LoginUrl}}
+
+Depois de entrar você terá acesso a:
+• Assistência de IA
+• Gerenciamento de dados
+• E muito mais!

@@ -15,7 +15,7 @@ test-prev:
 run-api:
 	$(env-local) dotnet watch
 run-ngrok:
-	ngrok http --url=parrot-fun-nicely.ngrok-free.app 8080
+	ngrok http --url=parrot-fun-nicely.ngrok-free.app --region us 8080
 run-local: services-ready
 	concurrently -n dotnet,ngrok -c red,blue -k "make run-api" "make run-ngrok"
 services-up:

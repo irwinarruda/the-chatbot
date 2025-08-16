@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Já Está Conectado - TheChatbot</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#3b82f6 0%, #1d4ed8 100%); min-height:100vh; display:flex; justify-content:center; align-items:center; color:#333; }
+        .container { background:#fff; border-radius:8px; padding:3rem 2rem; box-shadow:0 20px 40px rgba(0,0,0,.1); text-align:center; max-width:500px; width:90%; animation:fadeInUp .8s ease-out; }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px);} to { opacity:1; transform:translateY(0);} }
+        .info-icon { width:80px; height:80px; margin:0 auto 1.5rem; background:linear-gradient(135deg,#3b82f6,#1d4ed8); border-radius:50%; display:flex; align-items:center; justify-content:center; animation:pulse 2s infinite; }
+        @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
+        .info-icon::before { content:"ℹ"; color:#fff; font-size:2.5rem; font-weight:bold; }
+        h1 { font-size:2.5rem; margin-bottom:1rem; color:#2c3e50; font-weight:600; }
+        .subtitle { font-size:1.2rem; color:#7f8c8d; margin-bottom:2rem; line-height:1.6; }
+        .message { font-size:1.1rem; color:#34495e; margin-bottom:2rem; line-height:1.8; }
+        .app-name { font-weight:bold; color:#3b82f6; }
+        .footer { margin-top:2rem; padding-top:2rem; border-top:1px solid #ecf0f1; color:#95a5a6; font-size:.9rem; }
+        .google-logo { display:inline-block; margin-right:.5rem; font-size:1.2rem; }
+        .highlight { color:#3b82f6; font-weight:600; }
+        @media (max-width:480px) { .container { padding:2rem 1.5rem; } h1 { font-size:2rem; } .subtitle { font-size:1.1rem; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-icon"></div>
+        <h1>Já está Conectado! 👋</h1>
+        <p class="subtitle">Você já está conectado à sua conta Google</p>
+        <div class="message">
+            <p>Bem-vindo de volta ao <span class="app-name">TheChatbot</span>!</p>
+            <p>Detectamos que você já está autenticado com sua conta Google. Suas credenciais foram renovadas automaticamente, então está tudo pronto para continuar usando nossos serviços.</p>
+        </div>
+        <div class="message">
+            <p>🔄 <span class="highlight">Sua sessão está atualizada</span> e pronta para uso!</p>
+        </div>
+        <div class="footer">
+            <p><span class="google-logo">🔑</span>Já autenticado com o Google</p>
+            <p>Você pode fechar esta janela e continuar usando o TheChatbot</p>
+        </div>
+    </div>
+</body>
+</html>
