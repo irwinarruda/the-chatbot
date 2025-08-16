@@ -26,10 +26,31 @@ public partial class UpdateMessage : Migration {
       type: "varchar(11)",
       nullable: false
     );
+    migrationBuilder.AddColumn<string>(
+      name: "id_provider",
+      table: "messages",
+      type: "varchar(1000)",
+      nullable: true
+    );
+    migrationBuilder.CreateIndex(
+      name: "IX_messages_id_provider",
+      table: "messages",
+      column: "id_provider",
+      unique: true,
+      filter: "id_provider IS NOT NULL"
+    );
   }
 
   /// <inheritdoc />
   protected override void Down(MigrationBuilder migrationBuilder) {
+    migrationBuilder.DropIndex(
+      name: "IX_messages_id_provider",
+      table: "messages"
+    );
+    migrationBuilder.DropColumn(
+      name: "id_provider",
+      table: "messages"
+    );
     migrationBuilder.DropColumn(
       table: "messages",
       name: "type"

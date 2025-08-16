@@ -15,6 +15,12 @@ public static class ExceptionResponse {
     if (ex is NotFoundException notFoundEx) {
       return notFoundEx.ToResponseError();
     }
+    if (ex is UnauthorizedException unauthorizedEx) {
+      return unauthorizedEx.ToResponseError();
+    }
+    if (ex is ForbiddenException forbiddenEx) {
+      return forbiddenEx.ToResponseError();
+    }
     int? statusCode = null;
     if (ex is ServiceException serviceEx) {
       statusCode = serviceEx.StatusCode;

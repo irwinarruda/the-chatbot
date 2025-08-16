@@ -40,9 +40,10 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
       var contact = buttonMessageData.Entry[0].Changes[0].Value.Contacts[0];
       var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).UtcDateTime;
       receiveButtonReply = new() {
+        IdProvider = message.Id,
         ButtonReply = message.Interactive.ButtonReply.Title,
         From = PhoneNumberUtils.AddDigitNine(contact.WaId),
-        CreatedAt = createdAt
+        CreatedAt = createdAt,
       };
       return;
     }
@@ -51,9 +52,10 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
       var contact = textMessageData.Entry[0].Changes[0].Value.Contacts[0];
       var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).UtcDateTime;
       receiveTextMessage = new() {
+        IdProvider = message.Id,
         Text = message.Text.Body,
         From = PhoneNumberUtils.AddDigitNine(contact.WaId),
-        CreatedAt = createdAt
+        CreatedAt = createdAt,
       };
       return;
     }

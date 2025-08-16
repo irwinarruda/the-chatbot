@@ -31,9 +31,10 @@ public class Chat {
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 
-  public Message AddUserTextMessage(string text) {
+  public Message AddUserTextMessage(string text, string? idProvider = null) {
     var message = new Message {
       IdChat = Id,
+      IdProvider = idProvider,
       Type = MessageType.Text,
       UserType = MessageUserType.User,
       Text = text,
@@ -42,9 +43,10 @@ public class Chat {
     return message;
   }
 
-  public Message AddBotTextMessage(string text) {
+  public Message AddBotTextMessage(string text, string? idProvider = null) {
     var message = new Message {
       IdChat = Id,
+      IdProvider = idProvider,
       Type = MessageType.Text,
       UserType = MessageUserType.Bot,
       Text = text,
@@ -53,9 +55,10 @@ public class Chat {
     return message;
   }
 
-  public Message AddUserButtonReply(string reply) {
+  public Message AddUserButtonReply(string reply, string? idProvider = null) {
     var message = new Message {
       IdChat = Id,
+      IdProvider = idProvider,
       Type = MessageType.ButtonReply,
       UserType = MessageUserType.User,
       ButtonReply = reply,
@@ -64,9 +67,10 @@ public class Chat {
     return message;
   }
 
-  public Message AddBotButtonReply(string replyText, List<string> buttons) {
+  public Message AddBotButtonReply(string replyText, List<string> buttons, string? idProvider = null) {
     var message = new Message {
       IdChat = Id,
+      IdProvider = idProvider,
       Type = MessageType.ButtonReply,
       UserType = MessageUserType.Bot,
       Text = replyText,
