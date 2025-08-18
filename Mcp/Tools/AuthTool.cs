@@ -10,23 +10,13 @@ namespace Mcp.Tools;
 
 [McpServerToolType]
 class AuthTool(AuthService authService) {
-  [McpServerTool(Name = "DeleteUserByPhoneNumber")]
-  [Description("Delete user from the entire app. Takes a required phone number.")]
-  public async Task<string> DeleteUserByPhoneNumber(string phoneNumber) {
-    try {
-      await authService.DeleteUserByPhoneNumber(phoneNumber);
-      return Printable.Make("The account was deleted successfully");
-    } catch (Exception ex) {
-      var response = ExceptionResponse.Handle(ex);
-      return Printable.Make(response);
-    }
-  }
 
-  [McpServerTool(Name = "FormatNumber")]
-  [Description("Format the number of the user in a custom pretty way. Takes a required phone_number attribute")]
-  public async Task<string> FormatNumber(string phoneNumber) {
+  [McpServerTool(Name = "delete_user_by_phone_number")]
+  [Description("Delete a user and all related data. Input: phone_number (E.164). Success: { message }. " + ToolDocs.GenericError)]
+  public async Task<string> DeleteUserByPhoneNumber(string phone_number) {
     try {
-      return Printable.Make(new { PhoneNumber = "+-" + phoneNumber + "-+" });
+      await authService.DeleteUserByPhoneNumber(phone_number);
+      return Printable.Make(new { message = "The account was deleted successfully", phone_number });
     } catch (Exception ex) {
       var response = ExceptionResponse.Handle(ex);
       return Printable.Make(response);

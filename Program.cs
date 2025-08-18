@@ -33,6 +33,7 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleConfig").G
 builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!);
+builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
 var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<WhatsAppBusinessCloudApiConfig>()!;
 builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(whatsAppConfig);

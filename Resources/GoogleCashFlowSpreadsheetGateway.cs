@@ -5,7 +5,6 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 
 using TheChatbot.Infra;
-using TheChatbot.Utils;
 
 namespace TheChatbot.Resources;
 
