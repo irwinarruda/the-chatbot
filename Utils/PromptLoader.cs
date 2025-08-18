@@ -48,4 +48,9 @@ public static class PromptLoader {
     };
     return ApplyTemplate(text, dict);
   }
+
+  public static string GetTransactionClassification(PromptLocale locale) {
+    var fileBase = "TransactionClassification" + LocaleToFileSuffix(locale);
+    return ReadFile(fileBase);
+  }
 }

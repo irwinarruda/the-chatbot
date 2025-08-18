@@ -98,6 +98,19 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
     });
   }
 
+  public async Task<(List<string> expenseCategories, List<string> earningCategories, List<string> bankAccounts)> GetCategoriesAndBankAccounts(string phoneNumber) {
+    var (user, sheet) = await GetUserAndSheet(phoneNumber);
+    var cfg = new SheetConfigDTO {
+      SheetId = sheet.IdSheet,
+      SheetAccessToken = user.GoogleCredential!.AccessToken,
+    };
+    var expenseTask = spreadsheetResource.GetExpenseCategories(cfg);
+    var earningTask = spreadsheetResource.GetEarningCategories(cfg);
+    var bankTask = spreadsheetResource.GetBankAccount(cfg);
+    await Task.WhenAll(expenseTask, earningTask, bankTask);
+    return (expenseTask.Result, earningTask.Result, bankTask.Result);
+  }
+
   private async Task<(User user, CashFlowSpreadsheet sheet)> GetUserAndSheet(string phoneNumber) {
     var user = await authService.GetUserByPhoneNumber(phoneNumber) ?? throw new NotFoundException("User was not found");
     await EnsureSpreadsheetAccess(user);

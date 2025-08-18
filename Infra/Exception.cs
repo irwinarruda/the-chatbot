@@ -175,7 +175,7 @@ public class InternalServerException : Exception {
   public InternalServerException(
     Exception? cause = null,
     int? statusCode = null
-  ) : base("An unexpected error occurred.", cause) {
+  ) : base("An unexpected error occurred. \n" + cause?.Message + "\n" + cause?.StackTrace ?? "Random Error", cause) {
     Name = "InternalServerException";
     Action = "Please contact our support team for assistance.";
     StatusCode = statusCode ?? 500;

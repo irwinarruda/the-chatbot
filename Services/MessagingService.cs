@@ -42,12 +42,14 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     }
     var messages = chat.Messages.Select(m => new AiChatMessage {
       Role = m.UserType == MessageUserType.Bot ? AiChatRole.Assistant : AiChatRole.User,
-      Text = m.ButtonReply ?? m.Text + $"\n{string.Join(", ", m.ButtonReplyOptions ?? [])}",
+      Type = m.Type == MessageType.ButtonReply ? AiChatMessageType.Button : AiChatMessageType.Text,
+      Text = m.ButtonReply ?? m.Text ?? string.Empty,
+      Buttons = m.ButtonReplyOptions ?? []
     });
     var response = await aiChatGateway.GetResponse(chat.PhoneNumber, [.. messages]);
     await (response.Type switch {
-      AiChatResponseType.Text => SendTextMessage(chat.PhoneNumber, response.Text, chat),
-      AiChatResponseType.Button => SendButtonReplyMessage(chat.PhoneNumber, response.Text, [.. response.Buttons], chat),
+      AiChatMessageType.Text => SendTextMessage(chat.PhoneNumber, response.Text, chat),
+      AiChatMessageType.Button => SendButtonReplyMessage(chat.PhoneNumber, response.Text, [.. response.Buttons], chat),
       _ => Task.CompletedTask
     });
   }
@@ -179,7 +181,6 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
 
   public record DbMessage(
     Guid Id,
-    Guid? IdUser,
     Guid IdChat,
     string UserType,
     string Type,

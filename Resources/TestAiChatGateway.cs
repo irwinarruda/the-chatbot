@@ -1,13 +1,13 @@
 namespace TheChatbot.Resources;
 
 public class TestAiChatGateway : IAiChatGateway {
-  public Task<AiChatResponse> GetResponse(string phoneNumber, List<AiChatMessage> messages) {
+  public Task<AiChatResponse> GetResponse(string phoneNumber, List<AiChatMessage> messages, bool allowMcp = false) {
     var lastMessage = messages.LastOrDefault(m => m.Role == AiChatRole.User)?.Text ?? "";
 
     return Task.FromResult(new AiChatResponse {
       Text = "Response to: " + lastMessage.Trim(),
-      Type = AiChatResponseType.Text,
-      Buttons = Array.Empty<string>()
+      Type = AiChatMessageType.Text,
+      Buttons = [],
     });
   }
 }

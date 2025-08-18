@@ -5,11 +5,12 @@ using ModelContextProtocol.Protocol;
 
 using System.Text.RegularExpressions;
 
+using TheChatbot.Infra;
 using TheChatbot.Utils;
 
 namespace TheChatbot.Resources;
 
-public class AiChatGateway(IChatClient chatClient) : IAiChatGateway {
+public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiChatGateway {
   private static ChatMessage GetSystemPrompt(string phoneNumber) {
     var full = PromptLoader.GetAiChatGateway(PromptLocale.PtBr, new AiChatGatewayParams(phoneNumber));
     return new ChatMessage(ChatRole.System, full);
@@ -19,7 +20,10 @@ public class AiChatGateway(IChatClient chatClient) : IAiChatGateway {
     return await McpClientFactory.CreateAsync(new StdioClientTransport(new StdioClientTransportOptions {
       Name = "TheChatbot",
       Command = "dotnet",
-      Arguments = ["run", "--project", "/Users/irwinarruda/Documents/PRO/the-chatbot/Mcp", "--no-build"],
+      EnvironmentVariables = new Dictionary<string, string?>() {
+        ["ASPNETCORE_ENVIRONMENT"] = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+      },
+      Arguments = ["run", "--project", mcpConfig.Path, "--no-build"],
     }), new McpClientOptions {
       Capabilities = new ClientCapabilities {
         Sampling = new SamplingCapability {
@@ -38,21 +42,31 @@ public class AiChatGateway(IChatClient chatClient) : IAiChatGateway {
     };
   }
 
-  public async Task<AiChatResponse> GetResponse(string phoneNumber, List<AiChatMessage> messages) {
-    var mcp = await GetMcpClient();
-    var tools = await mcp.ListToolsAsync();
-    var chatMessages = messages.Select((m) => new ChatMessage(ConvertAiChatRole(m.Role), m.Text));
-    var response = await chatClient!.GetResponseAsync([GetSystemPrompt(phoneNumber), .. chatMessages], new() { Tools = [.. tools], AllowMultipleToolCalls = true });
+  public async Task<AiChatResponse> GetResponse(string phoneNumber, List<AiChatMessage> messages, bool allowMcp = true) {
+    IList<McpClientTool> tools = [];
+    if (allowMcp) {
+      var mcp = await GetMcpClient();
+      tools = await mcp.ListToolsAsync();
+    }
+    var chatMessages = messages.Select(m => {
+      if (m.Role == AiChatRole.Assistant) m.Text = m.Type switch {
+        AiChatMessageType.Text => $"[Text]{m.Text}".Trim(),
+        AiChatMessageType.Button => $"[Button][{string.Join(';', m.Buttons)}]{m.Text}".Trim(),
+        _ => m.Text,
+      };
+      return new ChatMessage(ConvertAiChatRole(m.Role), m.Text);
+    });
+    var response = await chatClient!.GetResponseAsync([GetSystemPrompt(phoneNumber), .. chatMessages], new() { Tools = [.. tools] });
     var raw = response.Text?.Trim() ?? string.Empty;
     var llmResponse = new AiChatResponse {
-      Type = AiChatResponseType.Text,
+      Type = AiChatMessageType.Text,
       Text = raw,
       Buttons = []
     };
     if (string.IsNullOrEmpty(raw)) return llmResponse;
     var buttonMatch = Regex.Match(raw, @"^\s*\[(Button)\]\s*\[(?<btns>[^\]]+)\](?<rest>.*)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
     if (buttonMatch.Success) {
-      llmResponse.Type = AiChatResponseType.Button;
+      llmResponse.Type = AiChatMessageType.Button;
       var restText = buttonMatch.Groups["rest"].Value.Trim();
       var btns = buttonMatch.Groups["btns"].Value.Split(';')
         .Select(b => b.Trim())
