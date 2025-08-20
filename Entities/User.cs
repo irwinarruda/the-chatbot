@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 using TheChatbot.Entities.Extensions;
 using TheChatbot.Infra;
 
@@ -7,8 +5,8 @@ namespace TheChatbot.Entities;
 
 public class User {
   public Guid Id { get; set; }
-  public string Name { get; set; } = string.Empty;
-  public string PhoneNumber { get; set; } = string.Empty;
+  public string Name { get; set; }
+  public string PhoneNumber { get; set; }
   public bool IsInactive { get; set; }
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
@@ -16,6 +14,8 @@ public class User {
   public User() {
     Id = Guid.NewGuid();
     IsInactive = false;
+    Name = string.Empty;
+    PhoneNumber = string.Empty;
     CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }

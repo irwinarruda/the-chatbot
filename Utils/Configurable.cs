@@ -2,7 +2,7 @@ namespace TheChatbot.Utils;
 
 public class Configurable {
   public static IConfigurationRoot Make() {
-    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    var env = Env.Value();
     var configuration = new ConfigurationBuilder()
       .SetBasePath(AppContext.BaseDirectory)
       .AddJsonFile("appsettings.json", optional: false)
@@ -12,7 +12,7 @@ public class Configurable {
   }
 
   public static void Enhance(ConfigurationManager configuration) {
-    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    var env = Env.Value();
     configuration.SetBasePath(AppContext.BaseDirectory)
       .AddJsonFile("appsettings.json", optional: false)
       .AddJsonFile($"appsettings.{env}.json", optional: true)

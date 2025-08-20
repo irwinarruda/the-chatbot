@@ -4,16 +4,13 @@ using Shouldly;
 
 using TheChatbot.Entities;
 using TheChatbot.Services;
-using TheChatbot.Utils;
 
 namespace Tests;
 
 public class MessagingServiceTest : IClassFixture<Orquestrator> {
   public Orquestrator orquestrator;
   public MessagingService messagingService;
-  public ITestOutputHelper h;
-  public MessagingServiceTest(Orquestrator _orquestrator, ITestOutputHelper _h) {
-    h = _h;
+  public MessagingServiceTest(Orquestrator _orquestrator) {
     orquestrator = _orquestrator;
     messagingService = _orquestrator.messagingService;
   }
@@ -70,7 +67,6 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     chat.IdUser.ShouldBe(user.Id);
     chat.PhoneNumber.ShouldBe(phoneNumber);
     chat.Messages.Count.ShouldBe(4);
-    h.WriteLine(Printable.Make(chat.Messages));
     userMessage = chat.Messages[2];
     userMessage.Text?.ShouldBe("Second duplicate message");
     userMessage.IdProvider.ShouldNotBe(idProvider);

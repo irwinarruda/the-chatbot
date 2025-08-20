@@ -17,14 +17,17 @@ public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiCha
   }
 
   private async Task<IMcpClient> GetMcpClient() {
-    return await McpClientFactory.CreateAsync(new StdioClientTransport(new StdioClientTransportOptions {
+    var options = new StdioClientTransportOptions {
       Name = "TheChatbot",
       Command = "dotnet",
-      EnvironmentVariables = new Dictionary<string, string?>() {
-        ["ASPNETCORE_ENVIRONMENT"] = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
-      },
-      Arguments = ["run", "--project", mcpConfig.Path, "--no-build"],
-    }), new McpClientOptions {
+      EnvironmentVariables = new Dictionary<string, string?> { [Env.Key()] = Env.Value() }
+    };
+    if (mcpConfig.UseDll) {
+      options.Arguments = [mcpConfig.Path];
+    } else {
+      options.Arguments = ["run", "--project", mcpConfig.Path, "--no-build"];
+    }
+    return await McpClientFactory.CreateAsync(new StdioClientTransport(options), new McpClientOptions {
       Capabilities = new ClientCapabilities {
         Sampling = new SamplingCapability {
           SamplingHandler = chatClient.CreateSamplingHandler(),

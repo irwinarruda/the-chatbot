@@ -21,16 +21,13 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 builder.Services.AddSingleton<IAiChatGateway, AiChatGateway>();
-builder.Services.AddSingleton<ICashFlowSpreadsheetGateway, GoogleCashFlowSpreadsheetGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
 builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
 builder.Services.AddSingleton<IMediator, Mediator>();
-builder.Services.AddSingleton<CashFlowService>();
 builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<MessagingService>();
 builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!);
-builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
@@ -39,7 +36,7 @@ builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(whatsAppConfig);
 var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
 builder.Services.AddChatClient(_ => {
-  var chatClient = new OpenAI.Chat.ChatClient("gpt-4o-mini", openAIConfig.ApiKey).AsIChatClient();
+  var chatClient = new OpenAI.Chat.ChatClient(openAIConfig.Model, openAIConfig.ApiKey).AsIChatClient();
   var builder = new ChatClientBuilder(chatClient).UseFunctionInvocation();
   return builder.Build();
 });

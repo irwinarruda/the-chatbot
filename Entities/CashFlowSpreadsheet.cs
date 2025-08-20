@@ -9,13 +9,14 @@ public enum CashFlowSpreadsheetType {
 public class CashFlowSpreadsheet {
   public Guid Id { get; set; }
   public required Guid IdUser { get; set; }
-  public required string IdSheet { get; set; } = string.Empty;
-  public CashFlowSpreadsheetType Type { get; set; } = CashFlowSpreadsheetType.Google;
+  public required string IdSheet { get; set; }
+  public CashFlowSpreadsheetType Type { get; set; }
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
 
   public CashFlowSpreadsheet() {
     Id = Guid.NewGuid();
+    Type = CashFlowSpreadsheetType.Google;
     CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
