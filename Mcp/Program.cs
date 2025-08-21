@@ -25,7 +25,7 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
 var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
 builder.Services.AddChatClient(_ => {
-  var chatClient = new OpenAI.Chat.ChatClient("gpt-4o-mini", openAIConfig.ApiKey).AsIChatClient();
+  var chatClient = new OpenAI.Chat.ChatClient(openAIConfig.Model, openAIConfig.ApiKey).AsIChatClient();
   var builder = new ChatClientBuilder(chatClient).UseFunctionInvocation();
   return builder.Build();
 });

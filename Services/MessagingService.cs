@@ -120,7 +120,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
         Text = m.Text,
         Type = Enum.Parse<MessageType>(m.Type),
         ButtonReply = m.ButtonReply,
-        ButtonReplyOptions = m.ButtonReplyOptions != null ?[..m.ButtonReplyOptions.Split(",")] : null,
+        ButtonReplyOptions = m.ButtonReplyOptions != null ? [..m.ButtonReplyOptions.Split(",")] : null,
         UserType = Enum.Parse<MessageUserType>(m.UserType),
         IdProvider = m.IdProvider,
         CreatedAt = m.CreatedAt,
@@ -162,12 +162,12 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
   }
 
   private async Task<bool> IsMessageDuplicate(string idProvider) {
-    var existingMessage = await database.Query<DbMessage>($@"
-      SELECT * FROM messages
-      WHERE id_provider = {idProvider}
-      LIMIT 1
-    ").FirstOrDefaultAsync();
-    return existingMessage != null;
+    return await database.Query<bool>($@"
+      SELECT EXISTS(
+        SELECT 1 FROM messages
+        WHERE id_provider = {idProvider}
+      ) AS ""Value""
+    ").SingleOrDefaultAsync();
   }
 
   public record DbChat(

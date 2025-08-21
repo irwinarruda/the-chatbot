@@ -35,6 +35,7 @@ var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<What
 builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(whatsAppConfig);
 var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
+builder.Services.AddSingleton(openAIConfig);
 builder.Services.AddChatClient(_ => {
   var chatClient = new OpenAI.Chat.ChatClient(openAIConfig.Model, openAIConfig.ApiKey).AsIChatClient();
   var builder = new ChatClientBuilder(chatClient).UseFunctionInvocation();

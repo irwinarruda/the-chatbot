@@ -33,7 +33,7 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
   ) {
     try {
       var transactions = await cashFlowService.GetAllTransactions(phone_number);
-      return Printable.Make(new { transactions.Count, Transactions = transactions });
+      return Printable.Make(new { transactions.Count, transactions });
     } catch (Exception ex) {
       var response = ExceptionResponse.Handle(ex);
       return Printable.Make(response);
@@ -47,7 +47,7 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
   ) {
     try {
       var transaction = await cashFlowService.GetLastTransaction(phone_number);
-      return Printable.Make(new { Transaction = transaction });
+      return Printable.Make(new { transaction });
     } catch (Exception ex) {
       var response = ExceptionResponse.Handle(ex);
       return Printable.Make(response);
@@ -120,7 +120,7 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
   ) {
     try {
       var categories = await cashFlowService.GetExpenseCategories(phone_number);
-      return Printable.Make(new { categories.Count, Categories = categories });
+      return Printable.Make(new { categories.Count, categories });
     } catch (Exception ex) {
       var response = ExceptionResponse.Handle(ex);
       return Printable.Make(response);
@@ -134,7 +134,7 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
   ) {
     try {
       var categories = await cashFlowService.GetEarningCategories(phone_number);
-      return Printable.Make(new { categories.Count, Categories = categories });
+      return Printable.Make(new { categories.Count, categories });
     } catch (Exception ex) {
       var response = ExceptionResponse.Handle(ex);
       return Printable.Make(response);
@@ -148,7 +148,7 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
   ) {
     try {
       var banks = await cashFlowService.GetBankAccount(phone_number);
-      return Printable.Make(new { banks.Count, BankAccounts = banks });
+      return Printable.Make(new { banks.Count, banks });
     } catch (Exception ex) {
       var response = ExceptionResponse.Handle(ex);
       return Printable.Make(response);

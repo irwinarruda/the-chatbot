@@ -1,13 +1,8 @@
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.AI;
-
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
 
 using TheChatbot.Infra;
-using TheChatbot.Resources;
 using TheChatbot.Services;
 
 namespace TheChatbot.Controllers;
@@ -36,8 +31,8 @@ public class WhatsAppController(MessagingService messagingService) : ControllerB
     return Ok();
   }
   private bool IsValidMetaDomain() {
+    const string AllowedDomain = "https://graph.facebook.com";
     var userAgent = Request.Headers.UserAgent.ToString();
-    const string AllowedDomain = "https://graph.facebook.com"; // inlined former gateway constant
     return userAgent.Contains("facebookplatform") ||
       userAgent.Contains("facebookexternalua") ||
       userAgent.Contains(AllowedDomain);
