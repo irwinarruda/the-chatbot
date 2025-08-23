@@ -14,7 +14,7 @@ Instructions (STRICT):
 1. Pick exactly one category from categories that best matches the description semantic meaning. If none match strongly, choose the closest generic bucket (e.g., "other" or the first reasonable match).
 2. Pick exactly one bank account from bank_accounts. If the description hints at an account name, prefer that; otherwise choose a default like the first in the list.
    IMPORTANT CASE RULE: RETURN THE CATEGORY AND BANK ACCOUNT EXACTLY AS THEY APPEAR IN THE INPUT ARRAYS. DO NOT change capitalization, spacing, accents, punctuation, or pluralization. NO normalization (no lowercasing, uppercasing, trimming beyond removing leading/trailing whitespace if accidental). If you choose an item, copy it verbatim.
-3. Derive a description (4-8 concise lower-case words, no ending period) summarizing the transaction action and subject without repeating the raw category or bank account labels verbatim unless unavoidable. Remove brand noise unless it clarifies purpose. Keep numerals if essential. No quotes.
+3. Derive a description (4-8 concise words, no ending period) summarizing the transaction action and subject without repeating the raw category or bank account labels verbatim unless unavoidable. The description MUST start with an uppercase letter (first character A-Z); keep remaining words lower-case unless proper nouns, acronyms, or numerals require otherwise. Remove brand noise unless it clarifies purpose. Keep numerals if essential. No quotes.
 4. OUTPUT MUST BE EXACT, PURE JSON with snake_case fields ONLY:
    {
    "category": "...",
