@@ -13,8 +13,7 @@ public class Printable {
   }
   public static string Make(object? obj) {
     if (obj == null) return string.Empty;
-    var env = Env.Value();
-    return JsonSerializer.Serialize(obj, Options(env != "Production"));
+    return JsonSerializer.Serialize(obj, Options(Env.Value != "Production"));
   }
   public static T? Convert<T>(string json) where T : class {
     if (string.IsNullOrWhiteSpace(json)) return default;

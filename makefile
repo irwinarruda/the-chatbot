@@ -8,8 +8,7 @@ install-tools:
 	dotnet tool install -g dotnet-script
 install-app:
 	npm add -g concurrently
-test-local:
-	make services-ready
+test-local: services-ready
 	$(env-local) dotnet test
 test-dev: services-ready
 	$(env-dev) dotnet test
@@ -39,10 +38,11 @@ name ?=
 migrations-create:
 	@[ -n "$(name)" ] || (echo "Usage: make migrations-create name=<Name>" && exit 1)
 	dotnet ef migrations add $(name) --output-dir Infra/Migrations
+env ?= Local
 migrations-up:
-	dotnet ef database update
+	ASPNETCORE_ENVIRONMENT=$(env) dotnet ef database update
 migrations-down:
-	dotnet ef database update 0
+	ASPNETCORE_ENVIRONMENT=$(env) dotnet ef database update 0
 docker-up:
 	docker build -f Infra/Dockerfile -t the-chatbot .
 	docker run -d --name the-chatbot -p 8080:8080 the-chatbot

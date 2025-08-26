@@ -4,6 +4,10 @@ WORKDIR /App
 RUN apt-get update && apt-get install -y make && rm -rf /var/lib/apt/lists/*
 # Copy everything
 COPY . ./
+# Install dependencies
+RUN make install-tools
+# Run migrations in prod
+RUN make migrations-up env=Production
 # Restore, build and publish a release
 RUN make build
 
@@ -15,4 +19,5 @@ RUN apt-get update && apt-get install -y make && rm -rf /var/lib/apt/lists/*
 COPY --from=build /App/out .
 COPY --from=build /App/Mcp/out /Mcp
 COPY --from=build /App/makefile .
+EXPOSE 8080
 ENTRYPOINT ["make", "run-prod"]
