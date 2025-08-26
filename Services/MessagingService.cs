@@ -64,7 +64,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     }
     var message = chat.AddBotTextMessage(text);
     await CreateMessage(message);
-    await whatsAppMessagingGateway.SendTextMessage(new SendTextMessageDTO {
+    await whatsAppMessagingGateway.SendTextMessage(new() {
       To = phoneNumber,
       Text = text
     });
@@ -80,7 +80,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     }
     var message = chat.AddBotButtonReply(text, options);
     await CreateMessage(message);
-    await whatsAppMessagingGateway.SendInteractiveReplyButtonMessage(new SendInteractiveReplyButtonMessageDTO {
+    await whatsAppMessagingGateway.SendInteractiveReplyButtonMessage(new() {
       To = chat.PhoneNumber,
       Text = text,
       Buttons = options

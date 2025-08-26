@@ -14,17 +14,16 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
       throw new ValidationException("User already has a financial planning spreadsheet configured");
     }
     var sheetId = spreadsheetResource.GetSpreadsheetIdByUrl(url);
-    var sheet = new CashFlowSpreadsheet {
+    await CreateCashFlowSpreadsheet(new() {
       IdUser = user.Id,
       IdSheet = sheetId,
       Type = CashFlowSpreadsheetType.Google,
-    };
-    await CreateCashFlowSpreadsheet(sheet);
+    });
   }
 
   public async Task<List<Transaction>> GetAllTransactions(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetAllTransactions(new SheetConfigDTO {
+    return await spreadsheetResource.GetAllTransactions(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
     });
@@ -32,7 +31,7 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task<Transaction?> GetLastTransaction(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetLastTransaction(new SheetConfigDTO {
+    return await spreadsheetResource.GetLastTransaction(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
     });
@@ -40,7 +39,7 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task DeleteLastTransaction(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    await spreadsheetResource.DeleteLastTransaction(new SheetConfigDTO {
+    await spreadsheetResource.DeleteLastTransaction(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
     });
@@ -48,7 +47,7 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task AddExpense(CashFlowAddExpenseDTO expense) {
     var (user, sheet) = await GetUserAndSheet(expense.PhoneNumber);
-    var dto = new AddExpenseDTO {
+    await spreadsheetResource.AddExpense(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
       Date = expense.Date,
@@ -56,13 +55,12 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
       Category = expense.Category,
       Description = expense.Description,
       BankAccount = expense.BankAccount,
-    };
-    await spreadsheetResource.AddExpense(dto);
+    });
   }
 
   public async Task AddEarning(CashFlowAddEarningDTO earning) {
     var (user, sheet) = await GetUserAndSheet(earning.PhoneNumber);
-    var dto = new AddEarningDTO {
+    await spreadsheetResource.AddEarning(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
       Date = earning.Date,
@@ -70,13 +68,12 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
       Category = earning.Category,
       Description = earning.Description,
       BankAccount = earning.BankAccount,
-    };
-    await spreadsheetResource.AddEarning(dto);
+    });
   }
 
   public async Task<List<string>> GetExpenseCategories(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetExpenseCategories(new SheetConfigDTO {
+    return await spreadsheetResource.GetExpenseCategories(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
     });
@@ -84,7 +81,7 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task<List<string>> GetEarningCategories(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetEarningCategories(new SheetConfigDTO {
+    return await spreadsheetResource.GetEarningCategories(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
     });
@@ -92,7 +89,7 @@ public class CashFlowService(AppDbContext database, AuthService authService, ICa
 
   public async Task<List<string>> GetBankAccount(string phoneNumber) {
     var (user, sheet) = await GetUserAndSheet(phoneNumber);
-    return await spreadsheetResource.GetBankAccount(new SheetConfigDTO {
+    return await spreadsheetResource.GetBankAccount(new() {
       SheetId = sheet.IdSheet,
       SheetAccessToken = user.GoogleCredential!.AccessToken,
     });
@@ -170,6 +167,7 @@ public class CashFlowAddExpenseDTO {
   public required string Description { get; set; }
   public required string BankAccount { get; set; }
 }
+
 public class CashFlowAddEarningDTO {
   public required string PhoneNumber { get; set; }
   public DateTime Date { get; set; }

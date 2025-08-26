@@ -20,8 +20,8 @@ public class GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig, GoogleS
       var transactionValue = transaction.Value.ToString().Replace(".", ",");
       var batch = new BatchUpdateValuesRequest {
         Data = [
-          new ValueRange { Values = [[transactionDate]], Range = $"Diário!B{nextLine}" },
-          new ValueRange { Values = [[transactionValue, transaction.Category, transaction.Description, transaction.BankAccount]], Range = $"Diário!D{nextLine}:G{nextLine}"  },
+          new() { Values = [[transactionDate]], Range = $"Diário!B{nextLine}" },
+          new() { Values = [[transactionValue, transaction.Category, transaction.Description, transaction.BankAccount]], Range = $"Diário!D{nextLine}:G{nextLine}"  },
         ],
         ValueInputOption = "USER_ENTERED",
       };
@@ -56,8 +56,8 @@ public class GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig, GoogleS
       }
       var batch = new BatchUpdateValuesRequest {
         Data = [
-          new ValueRange { Values = [[""]], Range = $"Diário!B{lastItemLine}" },
-          new ValueRange { Values = [["", "", "", ""]], Range = $"Diário!D{lastItemLine}:G{lastItemLine}"  },
+          new() { Values = [[""]], Range = $"Diário!B{lastItemLine}" },
+          new() { Values = [["", "", "", ""]], Range = $"Diário!D{lastItemLine}:G{lastItemLine}"  },
         ],
         ValueInputOption = "USER_ENTERED",
       };
@@ -183,13 +183,13 @@ public class GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig, GoogleS
       };
       initializer.FromPrivateKey(googleConfig.ServiceAccountPrivateKey);
       credential = GoogleCredential.FromServiceAccountCredential(new ServiceAccountCredential(initializer));
-      return new SheetsService(new BaseClientService.Initializer {
+      return new SheetsService(new() {
         HttpClientInitializer = credential,
         ApplicationName = "TheChatbot",
       });
     }
     credential = GoogleCredential.FromAccessToken(accessToken);
-    return new SheetsService(new BaseClientService.Initializer {
+    return new SheetsService(new() {
       HttpClientInitializer = credential,
       ApplicationName = "TheChatbot",
     });

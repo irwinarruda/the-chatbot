@@ -44,7 +44,7 @@ migrations-up:
 migrations-down:
 	dotnet ef database update 0
 docker-up:
-	docker build -f Infra/DockerfileProd -t the-chatbot .
+	docker build -f Infra/Dockerfile -t the-chatbot .
 	docker run -d --name the-chatbot -p 8080:8080 the-chatbot
 docker-down:
 	docker stop the-chatbot || true

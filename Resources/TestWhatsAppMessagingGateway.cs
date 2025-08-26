@@ -19,7 +19,7 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
 
 
   public void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage, out ReceiveInteractiveButtonMessageDTO? receiveButtonReply) {
-    receiveTextMessage = new ReceiveTextMessageDTO {
+    receiveTextMessage = new() {
       From = phoneNumber,
       Text = messageReceived.ToString(),
       CreatedAt = DateTime.UtcNow.TruncateToMicroseconds(),

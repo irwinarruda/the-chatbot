@@ -13,7 +13,7 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
   public async Task SendTextMessage(SendTextMessageDTO textMessage) {
     await whatsAppBusinessClient.SendTextMessageAsync(new TextMessageRequest {
       To = textMessage.To,
-      Text = new WhatsAppText {
+      Text = new() {
         Body = textMessage.Text
       }
     });

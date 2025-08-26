@@ -28,9 +28,9 @@ public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiCha
       options.Arguments = ["run", "--project", mcpConfig.Path, "--no-build"];
     }
     return await McpClientFactory.CreateAsync(new StdioClientTransport(options), new McpClientOptions {
-      Capabilities = new ClientCapabilities {
-        Sampling = new SamplingCapability {
-          SamplingHandler = chatClient.CreateSamplingHandler(),
+      Capabilities = new() {
+        Sampling = new() {
+          SamplingHandler = chatClient.CreateSamplingHandler()
         }
       }
     });

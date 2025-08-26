@@ -29,7 +29,7 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
       ClientId = googleConfig.ClientId,
       ClientSecret = googleConfig.SecretClientKey,
     };
-    flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+    flow = new GoogleAuthorizationCodeFlow(new() {
       ClientSecrets = clientSecrets,
       Scopes = scopes,
     });

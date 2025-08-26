@@ -18,7 +18,6 @@ builder.Services.AddControllers().AddJsonOptions(options => {
   options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.SnakeCaseLower;
   options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
-builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 builder.Services.AddSingleton<IAiChatGateway, AiChatGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
@@ -50,7 +49,7 @@ mediator.Register("SaveUserByGoogleCredential", async (string phoneNumber) => {
   await messagingService.SendSignedInMessage(phoneNumber);
 });
 
-app.UseExceptionHandler(errorApp => errorApp.Run(Controller.HandleException));
+app.UseExceptionHandler(exception => exception.Run(Controller.HandleException));
 app.UseStatusCodePages(Controller.HandleInternal);
 app.UseHttpsRedirection();
 app.UseAuthorization();

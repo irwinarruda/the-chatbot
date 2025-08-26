@@ -19,15 +19,14 @@ public class TestCashFlowSpreadsheetGateway : ICashFlowSpreadsheetGateway {
     if (transaction.SheetId != ValidSheetId) {
       throw new ServiceException(cause: null, "The provided sheet ID is not valid");
     }
-    var newTransaction = new Transaction {
+    transactions.Add(new() {
       SheetId = transaction.SheetId,
       Date = transaction.Date.Date,
       Value = transaction.Value,
       Category = transaction.Category,
       Description = transaction.Description,
       BankAccount = transaction.BankAccount
-    };
-    transactions.Add(newTransaction);
+    });
     return Task.CompletedTask;
   }
 
