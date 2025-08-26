@@ -44,10 +44,10 @@ dotnet tool install -g dotnet-script
 
 ## Messaging
 
-- [ ] **Start Message** Send an initial greeting or menu.
-- [ ] **Standard Message** Send plain text responses.
-- [ ] **Option Message** Send choices or quick-reply buttons.
-- [ ] **Receive & Process** Handle incoming user messages and dispatch to appropriate services.
+- [x] **Start Message** Send an initial greeting or menu.
+- [x] **Standard Message** Send plain text responses.
+- [x] **Option Message** Send choices or quick-reply buttons.
+- [x] **Receive & Process** Handle incoming user messages and dispatch to appropriate services.
 
 ## For later
 
