@@ -13,7 +13,7 @@ test-local: services-ready
 test-dev: services-ready
 	$(env-dev) dotnet test
 test-prev:
-	$(env-prev) make migrations-up && $(env-prev) dotnet test
+	make migrations-up env=Preview && $(env-prev) dotnet test
 build:
 	dotnet restore .
 	dotnet publish TheChatbot.csproj -c Release -o out
