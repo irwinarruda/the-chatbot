@@ -35,6 +35,10 @@ public class WhatsAppMessagingGateway(WhatsAppBusinessCloudApiConfig whatsAppBus
     receiveTextMessage = null;
     receiveButtonReply = null;
     var jsonElement = messageReceived;
+    if (TryDeserializeMessage<GenericMessage>(jsonElement, out var genericMessageData)) {
+      var phoneNumberId = genericMessageData.Entry[0].Changes[0].Value.Metadata?.PhoneNumberId;
+      if (phoneNumberId != whatsAppBusinessCloudApiConfig.WhatsAppBusinessPhoneNumberId) return;
+    }
     if (TryDeserializeMessage<ReplyButtonMessage>(jsonElement, out var buttonMessageData) && buttonMessageData.Entry[0].Changes[0].Value.Messages[0].Interactive != null) {
       var message = buttonMessageData.Entry[0].Changes[0].Value.Messages[0];
       var contact = buttonMessageData.Entry[0].Changes[0].Value.Contacts[0];
