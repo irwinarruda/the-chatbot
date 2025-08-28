@@ -154,7 +154,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     await database.Execute($@"
       UPDATE chats SET
         id_user = {chat.IdUser},
-        type = {chat.Type},
+        type = {chat.Type.ToString()},
         phone_number = {chat.PhoneNumber},
         updated_at = {chat.UpdatedAt}
       WHERE id = {chat.Id}
