@@ -48,6 +48,10 @@ mediator.Register("SaveUserByGoogleCredential", async (string phoneNumber) => {
   var messagingService = app.Services.GetRequiredService<MessagingService>();
   await messagingService.SendSignedInMessage(phoneNumber);
 });
+mediator.Register("DeleteUserByPhoneNumber", async (string phoneNumber) => {
+  var messagingService = app.Services.GetRequiredService<MessagingService>();
+  await messagingService.DeleteChat(phoneNumber);
+});
 
 app.UseExceptionHandler(exception => exception.Run(Controller.HandleException));
 app.UseStatusCodePages(Controller.HandleInternal);

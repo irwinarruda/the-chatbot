@@ -33,7 +33,6 @@ public class WhatsAppController(MessagingService messagingService) : ControllerB
   private bool IsValidMetaDomain() {
     const string AllowedDomain = "https://graph.facebook.com";
     var userAgent = Request.Headers.UserAgent.ToString();
-    Console.WriteLine("userAgent", userAgent);
     return userAgent.Contains("facebookplatform") ||
       userAgent.Contains("facebookexternalua") ||
       userAgent.Contains(AllowedDomain);

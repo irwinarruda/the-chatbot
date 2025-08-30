@@ -73,6 +73,6 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
     var query = HttpUtility.ParseQueryString(builder.Query);
     query["phone_number"] = HttpUtility.UrlEncode(phoneNumber);
     builder.Query = query.ToString();
-    return builder.ToString();
+    return builder.Uri.ToString();
   }
 }

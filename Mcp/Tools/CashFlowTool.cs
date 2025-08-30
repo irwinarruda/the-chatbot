@@ -104,8 +104,7 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
         new() { Role = AiChatRole.User, Type = AiChatMessageType.Text, Text = payload }
       };
       var response = await aiChatGateway.GetResponse(phoneNumber, messages, allowMcp: false);
-      var result = Printable.Convert<ClassificationResult>(response.Text);
-      if (result == null) return await ClassifyWithRetry(phoneNumber, type, userMessage, value, categories, bankAccounts, attempt + 1);
+      var result = Printable.Convert<ClassificationResult>(response.Text) ?? throw new ValidationException("Converted LLM response returned null");
       return result;
     } catch (Exception err) {
       if (attempt > 5) throw new ValidationException("Could not determine classification or bank account." + err.Message + err.StackTrace);
@@ -154,11 +153,11 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
       return Printable.Make(response);
     }
   }
+
+  record ClassificationResult(
+    string Category,
+    string BankAccount,
+    string Description
+  );
 }
 
-class ClassificationResult {
-  public required string Type { get; set; }
-  public required string Category { get; set; }
-  public required string BankAccount { get; set; }
-  public required string Description { get; set; }
-}

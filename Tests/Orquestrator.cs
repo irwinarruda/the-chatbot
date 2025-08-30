@@ -61,7 +61,6 @@ public class Orquestrator : WebApplicationFactory<Program> {
     services.AddTransient<CashFlowService>();
 
     serviceProvider = services.BuildServiceProvider();
-
     cashFlowSpreadsheetGateway = serviceProvider.GetRequiredService<ICashFlowSpreadsheetGateway>();
     googleAuthGateway = serviceProvider.GetRequiredService<IGoogleAuthGateway>();
     whatsAppMessagingGateway = serviceProvider.GetRequiredService<IWhatsAppMessagingGateway>();
@@ -70,6 +69,12 @@ public class Orquestrator : WebApplicationFactory<Program> {
     messagingService = serviceProvider.GetRequiredService<MessagingService>();
     statusService = serviceProvider.GetRequiredService<StatusService>();
     cashFlowService = serviceProvider.GetRequiredService<CashFlowService>();
+
+    var mediator = serviceProvider.GetRequiredService<IMediator>();
+    mediator.Register("DeleteUserByPhoneNumber", async (string phoneNumber) => {
+      var messagingService = serviceProvider.GetRequiredService<MessagingService>();
+      await messagingService.DeleteChat(phoneNumber);
+    });
   }
 
   public async Task ClearDatabase() {
@@ -91,5 +96,9 @@ public class Orquestrator : WebApplicationFactory<Program> {
     };
     await authService.CreateUser(user);
     return user;
+  }
+
+  public async Task DeleteUser(string phoneNumber) {
+    await authService.DeleteUserByPhoneNumber(phoneNumber);
   }
 }
