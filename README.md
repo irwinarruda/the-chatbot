@@ -35,13 +35,6 @@ dotnet tool install -g dotnet-script
 - [x] **Add Expense Entry** Append cost data to the daily log.
 - [x] **Retrieve Data** Get the most recent entry. Calculate total spend for the current month.
 
-## Task Management
-
-- [ ] **Create Task** Add a new task with timestamp under a given task list.
-- [ ] **Complete Task** Complete the task by it's name.
-- [ ] **List Task Lists** Retrieve all available task lists.
-- [ ] **List Tasks** Fetch all tasks from a specific task list.
-
 ## Messaging
 
 - [x] **Start Message** Send an initial greeting or menu.
@@ -49,8 +42,26 @@ dotnet tool install -g dotnet-script
 - [x] **Option Message** Send choices or quick-reply buttons.
 - [x] **Receive & Process** Handle incoming user messages and dispatch to appropriate services.
 
+## Last tasks before v1
+
+- [x] Fix URI ToString showing the port
+- [ ] Create a welcome page
+- [ ] Create a terms of use page
+- [ ] Create a privacy policy page
+- [ ] Create structure for allowed phone numbers
+- [x] Create a way to reset chat keeping history
+- [ ] Add the logo for this readme
+- [ ] Add a readme for this project
+
 ## For later
 
 - [ ] **Optimize Sheets** improve performance by using the database as a SOT.
 - [ ] Refactor database with IDbContextFactory<AppDbContext> for concurrent work.
 - [ ] Add tests forcing refresh token (refactor cashFlowGateway to work with token and credentials)
+
+### Task Management
+
+- [ ] **Create Task** Add a new task with timestamp under a given task list.
+- [ ] **Complete Task** Complete the task by it's name.
+- [ ] **List Task Lists** Retrieve all available task lists.
+- [ ] **List Tasks** Fetch all tasks from a specific task list.

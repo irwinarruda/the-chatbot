@@ -30,7 +30,6 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
   public async Task AddSpreadsheetUrl_ShouldValidateUrlParsing() {
     await orquestrator.ClearDatabase();
     var phoneNumber = "5511980000000";
-    // Ensure the user exists so we test URL parsing behavior, not user-not-found
     await orquestrator.CreateUser(phoneNumber: phoneNumber);
 
     Should.Throw<Exception>(() => cashFlowService.AddSpreadsheetUrl(phoneNumber, "WrongURL"));
@@ -59,7 +58,7 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
 
   [Fact, Priority(2)]
   public async Task AddExpenseShouldWork() {
-    var phoneNumber = "5511984444444"; // same user as previous to keep gateway state
+    var phoneNumber = "5511984444444";
 
     var addExpense = new CashFlowAddExpenseDTO {
       PhoneNumber = phoneNumber,
@@ -82,7 +81,7 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
 
   [Fact, Priority(3)]
   public async Task DeleteLastTransactionShouldWork() {
-    var phoneNumber = "5511984444444"; // same user
+    var phoneNumber = "5511984444444";
     await cashFlowService.DeleteLastTransaction(phoneNumber);
     var lastTransaction = await cashFlowService.GetLastTransaction(phoneNumber);
     lastTransaction.ShouldBeNull();
@@ -90,7 +89,7 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
 
   [Fact, Priority(4)]
   public async Task GetTransactionsShouldWork() {
-    var phoneNumber = "5511984444444"; // same user
+    var phoneNumber = "5511984444444";
 
     var expenseCategories = await cashFlowService.GetExpenseCategories(phoneNumber);
     var bankAccount = await cashFlowService.GetBankAccount(phoneNumber);
@@ -137,10 +136,8 @@ public class CashFlowServiceTest : IClassFixture<Orquestrator> {
   public async Task GetWrongSheetIdShouldNotWork() {
     await orquestrator.ClearDatabase();
     var phoneNumber = "5511977777777";
-    // user with credentials
     var encryption = new Encryption(orquestrator.encryptionConfig.Text32Bytes, orquestrator.encryptionConfig.Text16Bytes);
     await authService.SaveUserByGoogleCredential(encryption.Encrypt(phoneNumber), "rightCode");
-    // add spreadsheet with wrong id
     var wrongUrl = "https://docs.google.com/spreadsheets/d/WrongSheet/edit?gid=0#gid=0";
     await cashFlowService.AddSpreadsheetUrl(phoneNumber, wrongUrl);
 

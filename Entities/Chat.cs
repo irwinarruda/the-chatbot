@@ -15,10 +15,12 @@ public class Chat {
   public List<Message> Messages { get; set; }
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
+  public bool IsDeleted { get; set; }
   public Chat() {
     Id = Guid.NewGuid();
     Type = ChatType.WhatsApp;
     Messages = [];
+    IsDeleted = false;
     CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
@@ -28,6 +30,14 @@ public class Chat {
       throw new ValidationException("There already is a user ID for this chat");
     }
     IdUser = idUser;
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+  }
+
+  public void DeleteChat() {
+    if (IsDeleted) {
+      throw new ValidationException("The user is already deleted");
+    }
+    IsDeleted = true;
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 

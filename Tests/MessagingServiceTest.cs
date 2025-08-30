@@ -18,11 +18,11 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task SendMessage() {
     await orquestrator.ClearDatabase();
-    var user = await orquestrator.CreateUser(phoneNumber: "5511984444444");
+    var phoneNumber = "5511984444444";
+    var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
     var chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldBeNull();
-    var jsonString = JsonSerializer.Serialize("User 1");
-    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(jsonString));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("User 1"));
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBe(user.Id);
@@ -45,7 +45,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     var phoneNumber = "5511984444444";
     var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldBeNull();
-    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("First message")));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("First message"));
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBeNull();
@@ -59,8 +59,8 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     botMessage.ShouldNotBeNull();
     botMessage.Text?.ShouldContain("👋");
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
-    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second duplicate message")));
-    await messagingService.ReceiveMessage(JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize("Second duplicate message")));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"));
     var idProvider = userMessage.IdProvider;
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
@@ -72,5 +72,30 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     userMessage.IdProvider.ShouldNotBe(idProvider);
     botMessage = chat.Messages[3];
     botMessage.Text?.ShouldBe("Response to: Second duplicate message");
+  }
+
+
+  [Fact]
+  public async Task AnotherChatShouldBeCreatedWhenUserIsDeleted() {
+    await orquestrator.ClearDatabase();
+    var phoneNumber = "5511984444444";
+    var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Message 1"));
+    var chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
+    chat.ShouldNotBeNull();
+    chat.Messages.Count.ShouldBe(2);
+    await orquestrator.DeleteUser(phoneNumber);
+    chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
+    chat.ShouldBeNull();
+    await messagingService.ReceiveMessage(CreateReceiveMessage("New message 2"));
+    chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
+    chat.ShouldNotBeNull();
+    chat.Messages[0].ShouldNotBeNull();
+    chat.Messages[0].Text.ShouldBe("New message 2");
+  }
+
+  public static JsonElement CreateReceiveMessage(string message) {
+    var jsonString = JsonSerializer.Serialize(message);
+    return JsonSerializer.Deserialize<JsonElement>(jsonString);
   }
 }

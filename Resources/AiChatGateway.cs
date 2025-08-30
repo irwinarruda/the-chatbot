@@ -1,7 +1,6 @@
 using Microsoft.Extensions.AI;
 
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
 
 using System.Text.RegularExpressions;
 
@@ -25,7 +24,7 @@ public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiCha
     if (mcpConfig.UseDll) {
       options.Arguments = [mcpConfig.Path];
     } else {
-      options.Arguments = ["run", "--project", mcpConfig.Path, "--no-build"];
+      options.Arguments = ["run", "--project", mcpConfig.Path];
     }
     return await McpClientFactory.CreateAsync(new StdioClientTransport(options), new() {
       Capabilities = new() {
@@ -54,7 +53,7 @@ public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiCha
     var chatMessages = messages.Select(m => {
       if (m.Role == AiChatRole.Assistant) m.Text = m.Type switch {
         AiChatMessageType.Text => $"[Text]{m.Text}".Trim(),
-        AiChatMessageType.Button => $"[Button][{string.Join(';', m.Buttons)}]{m.Text}".Trim(),
+        AiChatMessageType.Button => $"[Button][{string.Join(";", m.Buttons)}]{m.Text}".Trim(),
         _ => m.Text,
       };
       return new ChatMessage(ConvertAiChatRole(m.Role), m.Text);

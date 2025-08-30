@@ -25,9 +25,12 @@ run-local: services-ready
 run-prod:
 	$(env-prod) dotnet TheChatbot.dll
 services-up:
+	docker network create chatbot-network || true
 	docker compose -f Infra/compose.yaml up -d
+	docker network connect chatbot-network the-chatbot-pg || true
 services-down:
 	docker compose -f Infra/compose.yaml down
+	docker network rm chatbot-network || true
 services-ready:
 	make services-up
 	dotnet script ./Infra/Scripts/WaitForPostgres.csx
@@ -43,8 +46,10 @@ migrations-down:
 	ASPNETCORE_ENVIRONMENT=$(env) dotnet ef database update 0
 docker-up:
 	docker build -f Infra/Dockerfile -t the-chatbot .
-	docker run -d --name the-chatbot -p 8080:8080 the-chatbot
+	docker network create chatbot-network || true
+	docker run -d --name the-chatbot --network chatbot-network -p 8080:8080 the-chatbot
 docker-down:
 	docker stop the-chatbot || true
 	docker rm -v the-chatbot || true
 	docker image rm the-chatbot || true
+	docker network rm chatbot-network || true

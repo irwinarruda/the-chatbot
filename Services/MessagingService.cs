@@ -91,6 +91,18 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     await SendTextMessage(phoneNumber, MessageLoader.GetMessage(MessageTemplate.SignedIn));
   }
 
+  public async Task DeleteChat(string phoneNumber) {
+    var chat = await GetChatByPhoneNumber(phoneNumber);
+    if (chat == null) {
+      throw new ValidationException(
+        "The user does not have an open chat",
+        "Please create a chat first before continuing"
+      );
+    }
+    chat.DeleteChat();
+    await SaveChat(chat);
+  }
+
   public void ValidateWebhook(string hubMode, string hubVerifyToken) {
     if (hubMode != "subscribe" || hubVerifyToken != whatsAppMessagingGateway.GetVerifyToken()) {
       throw new ValidationException("The provided token did not match");
@@ -101,6 +113,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     var dbChat = await database.Query<DbChat>($@"
       SELECT * FROM chats
       WHERE phone_number = {phoneNumber}
+      AND is_deleted = false
       ORDER BY created_at DESC
     ").FirstOrDefaultAsync();
     if (dbChat == null) return null;
@@ -128,13 +141,14 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
       })],
       CreatedAt = dbChat.CreatedAt,
       UpdatedAt = dbChat.UpdatedAt,
+      IsDeleted = dbChat.IsDeleted,
     };
   }
 
   private async Task CreateChat(Chat chat) {
     await database.Execute($@"
-      INSERT INTO chats (id, id_user, type, phone_number, created_at, updated_at)
-      VALUES ({chat.Id}, {chat.IdUser}, {chat.Type.ToString()}, {chat.PhoneNumber}, {chat.CreatedAt}, {chat.UpdatedAt})
+      INSERT INTO chats (id, id_user, type, phone_number, created_at, updated_at, is_deleted)
+      VALUES ({chat.Id}, {chat.IdUser}, {chat.Type.ToString()}, {chat.PhoneNumber}, {chat.CreatedAt}, {chat.UpdatedAt}, {chat.IsDeleted})
     ");
     if (chat.Messages.Count == 0) return;
     foreach (var message in chat.Messages) {
@@ -156,7 +170,8 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
         id_user = {chat.IdUser},
         type = {chat.Type.ToString()},
         phone_number = {chat.PhoneNumber},
-        updated_at = {chat.UpdatedAt}
+        updated_at = {chat.UpdatedAt},
+        is_deleted = {chat.IsDeleted}
       WHERE id = {chat.Id}
     ");
   }
@@ -176,7 +191,8 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     string Type,
     string PhoneNumber,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    bool IsDeleted
   );
 
   public record DbMessage(
