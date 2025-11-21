@@ -3,12 +3,13 @@ using System.Text.Json.Serialization;
 
 using Microsoft.Extensions.AI;
 
+using System.Threading.RateLimiting;
+
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 using TheChatbot.Services;
 using TheChatbot.Utils;
 
-using WhatsappBusiness.CloudApi.Configurations;
 using WhatsappBusiness.CloudApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,22 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig")
 builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("AuthConfig").Get<AuthConfig>()!);
+
+builder.Services.AddRateLimiter(options => {
+  options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+  options.AddPolicy("MigrationPolicy", context =>
+    RateLimitPartition.GetFixedWindowLimiter(
+      partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "Unknown",
+      factory: _ => new() {
+        PermitLimit = 5,
+        Window = TimeSpan.FromMinutes(1),
+        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+        QueueLimit = 0
+      }
+    )
+  );
+});
+
 var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<WhatsAppConfig>()!;
 builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(new() {
@@ -66,6 +83,8 @@ mediator.Register("DeleteUserByPhoneNumber", async (string phoneNumber) => {
 app.UseExceptionHandler(exception => exception.Run(Controller.HandleException));
 app.UseStatusCodePages(Controller.HandleInternal);
 app.UseHttpsRedirection();
+app.UseRateLimiter();
+
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

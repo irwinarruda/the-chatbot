@@ -10,8 +10,8 @@ using TheChatbot.Utils;
 namespace TheChatbot.Services;
 
 public class MessagingService(AppDbContext database, AuthService authService, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway) {
-  public async Task ReceiveMessage(string rawBody, string signature) {
-    if (!whatsAppMessagingGateway.ValidateSignature(signature, rawBody)) {
+  public async Task ReceiveMessage(string rawBody, string? signature) {
+    if (signature == null || !whatsAppMessagingGateway.ValidateSignature(signature, rawBody)) {
       throw new UnauthorizedException("Invalid Signature", "Please check your request signature.");
     }
     using var doc = JsonDocument.Parse(rawBody);

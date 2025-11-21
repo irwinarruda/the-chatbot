@@ -22,7 +22,7 @@ alwaysApply: true
 - Imports: System directives first, separated groups
 - Naming: PascalCase for types/methods, camelCase for parameters/variables
 - Use dependency injection and interfaces for services
-- Handle exceptions using custom Infra.Exception clasks
+- Handle exceptions using custom Infra.Exception class
 - Return types must be explicitly declared
 - Use dependency injection via constructor parameters
 - Follow Resource/Service/Controller architecture pattern

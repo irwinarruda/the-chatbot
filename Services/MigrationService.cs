@@ -10,14 +10,14 @@ public class MigrationService(AppDbContext database, AuthConfig authConfig) {
     return [.. migrations];
   }
 
-  public async Task RunPendingMigrations(string hashPassword) {
+  public async Task RunPendingMigrations(string? hashPassword) {
     if (authConfig.HashPassword != hashPassword) {
       throw new UnauthorizedException("Invalid password");
     }
     await database.Database.MigrateAsync();
   }
 
-  public async Task ResetMigrations(string hashPassword) {
+  public async Task ResetMigrations(string? hashPassword) {
     if (authConfig.HashPassword != hashPassword) {
       throw new UnauthorizedException("Invalid password");
     }
