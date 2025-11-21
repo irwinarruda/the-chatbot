@@ -167,13 +167,18 @@ make docker-down  # Stop and remove
 - [x] **Option Message** Send choices/buttons.
 - [x] **Receive & Process** Handle incoming messages.
 
+### Migration
+
+- [x] **List Pending Migrations** List pending migrations.
+- [x] **Run Pending Migrations** Run pending migrations.
+- [x] **Reset Migrations** Reset migrations.
+
 ### Last tasks before v1
 
 - [x] Fix URI ToString showing the port
 - [x] Make it safer
-- [ ] Create a welcome page
-- [ ] Create a terms of use page
-- [ ] Create a privacy policy page
+- [x] Create a welcome page
+- [x] Create a privacy policy page
 - [x] Create structure for allowed phone numbers
 - [x] Create a way to reset chat keeping history
 - [x] Add the logo for this readme
@@ -182,6 +187,7 @@ make docker-down  # Stop and remove
 
 ### For later
 
+- [ ] Use logging services.
 - [ ] **Optimize Sheets** improve performance by using the database as a SOT.
 - [ ] Refactor database with `IDbContextFactory<AppDbContext>`.
 - [ ] Add tests forcing refresh token.

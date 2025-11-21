@@ -4,7 +4,7 @@ using TheChatbot.Infra;
 
 namespace TheChatbot.Utils;
 
-public enum PageTemplate { ThankYou, AlreadySignedIn }
+public enum PageTemplate { ThankYou, AlreadySignedIn, Welcome, PrivacyPolicy }
 public enum PageLocale { En, PtBr }
 
 public record PageParams(string? UserName = null);
@@ -38,6 +38,8 @@ public static class PageLoader {
   private static string TemplateToBaseName(PageTemplate template) => template switch {
     PageTemplate.ThankYou => "ThankYouPage",
     PageTemplate.AlreadySignedIn => "AlreadySignedIn",
+    PageTemplate.Welcome => "Welcome",
+    PageTemplate.PrivacyPolicy => "PrivacyPolicy",
     _ => throw new ArgumentException($"Unknown page template: {template}")
   };
 
