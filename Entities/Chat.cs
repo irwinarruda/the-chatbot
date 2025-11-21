@@ -35,7 +35,7 @@ public class Chat {
 
   public void DeleteChat() {
     if (IsDeleted) {
-      throw new ValidationException("The user is already deleted");
+      throw new ValidationException("The chat is already deleted");
     }
     IsDeleted = true;
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();

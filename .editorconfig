@@ -4,7 +4,6 @@
 root = true
 
 [*]
-indent_style = space
 indent_size = 2
 indent_style = space
 tab_width = 2
@@ -24,3 +23,6 @@ csharp_new_line_before_open_brace = none
 csharp_new_line_between_query_expression_clauses = false
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = true
+
+[makefile]
+indent_style = tab

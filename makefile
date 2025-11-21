@@ -4,7 +4,7 @@ env-prev = ASPNETCORE_ENVIRONMENT=Preview
 env-prod = ASPNETCORE_ENVIRONMENT=Production
 
 install-tools:
-	dotnet tool install -g dotnet-ef
+	dotnet tool install -g dotnet-ef --version 9.0.8
 	dotnet tool install -g dotnet-script
 install-app:
 	npm add -g concurrently
@@ -39,11 +39,12 @@ name ?=
 migrations-create:
 	@[ -n "$(name)" ] || (echo "Usage: make migrations-create name=<Name>" && exit 1)
 	dotnet ef migrations add $(name) --output-dir Infra/Migrations
-env ?= Local
+env ?=
+env-var = $(if $(env),ASPNETCORE_ENVIRONMENT=$(env) ,)
 migrations-up:
-	ASPNETCORE_ENVIRONMENT=$(env) dotnet ef database update
+	$(env-var)dotnet ef database update
 migrations-down:
-	ASPNETCORE_ENVIRONMENT=$(env) dotnet ef database update 0
+	$(env-var)dotnet ef database update 0
 docker-up:
 	docker build -f Infra/Dockerfile -t the-chatbot .
 	docker network create chatbot-network || true

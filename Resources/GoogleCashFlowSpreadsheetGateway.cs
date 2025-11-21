@@ -4,6 +4,8 @@ using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 
+using System.Globalization;
+
 using TheChatbot.Infra;
 
 namespace TheChatbot.Resources;
@@ -94,7 +96,7 @@ public class GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig, GoogleS
         new Transaction {
           SheetId = sheetConfig.SheetId,
           Date = DateTime.ParseExact(row[0]?.ToString() ?? "", "dd/MM/yyyy", null),
-          Value = double.Parse(row[2]?.ToString()?.Replace("R$ ", "")?.Replace(".", "")?.Replace(",", ".") ?? ""),
+          Value = ParseDouble(row[2]?.ToString()),
           Category = row[3]?.ToString() ?? "",
           Description = row[4]?.ToString() ?? "",
           BankAccount = row[5]?.ToString() ?? ""
@@ -213,5 +215,22 @@ public class GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig, GoogleS
       return new ServiceException(ex, "Spreadsheet service is not working at the moment.");
     }
     return ex;
+  }
+
+  private static double ParseDouble(string? value) {
+    if (string.IsNullOrWhiteSpace(value)) return 0;
+    value = value.Replace("R$ ", "").Trim();
+    if (string.IsNullOrWhiteSpace(value)) return 0;
+
+    if (value.Contains(',') && value.Contains('.')) {
+      if (value.LastIndexOf(',') > value.LastIndexOf('.')) {
+        value = value.Replace(".", "").Replace(",", ".");
+      } else {
+        value = value.Replace(",", "");
+      }
+    } else if (value.Contains(',')) {
+      value = value.Replace(",", ".");
+    }
+    return double.Parse(value, CultureInfo.InvariantCulture);
   }
 }

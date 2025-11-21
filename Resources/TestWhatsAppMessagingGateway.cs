@@ -6,7 +6,7 @@ namespace TheChatbot.Resources;
 
 public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
   public List<Func<ReceiveTextMessageDTO, Task>> subscribers = [];
-  public string phoneNumber = "5511984444444";
+  public static string PhoneNumber = "5511984444444";
   public static string FixedIdProvider = Guid.NewGuid().ToString();
 
   public Task SendTextMessage(SendTextMessageDTO textMessage) {
@@ -17,18 +17,21 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
     return Task.CompletedTask;
   }
 
-
-  public void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage, out ReceiveInteractiveButtonMessageDTO? receiveButtonReply) {
-    receiveTextMessage = new() {
-      From = phoneNumber,
+  public ReceiveMessageDTO ReceiveMessage(JsonElement messageReceived) {
+    var receiveTextMessage = new ReceiveTextMessageDTO {
+      From = PhoneNumber,
       Text = messageReceived.ToString(),
       CreatedAt = DateTime.UtcNow.TruncateToMicroseconds(),
       IdProvider = messageReceived.ToString().Contains("Second duplicate") ? FixedIdProvider : Guid.NewGuid().ToString(),
     };
-    receiveButtonReply = null;
+    return receiveTextMessage;
   }
 
-  public string GetVerifyToken() {
-    return "ValidToken";
+  public bool ValidateWebhook(string _, string __) {
+    return true;
+  }
+
+  public bool ValidateSignature(string signature, string body) {
+    return true;
   }
 }

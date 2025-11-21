@@ -3,6 +3,7 @@ using System.Text.Json;
 using Shouldly;
 
 using TheChatbot.Entities;
+using TheChatbot.Resources;
 using TheChatbot.Services;
 
 namespace Tests;
@@ -18,11 +19,12 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task SendMessage() {
     await orquestrator.ClearDatabase();
-    var phoneNumber = "5511984444444";
+    var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
+    await messagingService.AddAllowedNumber(phoneNumber);
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
     var chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldBeNull();
-    await messagingService.ReceiveMessage(CreateReceiveMessage("User 1"));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("User 1"), "sig");
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBe(user.Id);
@@ -42,10 +44,11 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task ReceiveMessage() {
     await orquestrator.ClearDatabase();
-    var phoneNumber = "5511984444444";
+    var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
+    await messagingService.AddAllowedNumber(phoneNumber);
     var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldBeNull();
-    await messagingService.ReceiveMessage(CreateReceiveMessage("First message"));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("First message"), "sig");
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBeNull();
@@ -59,8 +62,8 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     botMessage.ShouldNotBeNull();
     botMessage.Text?.ShouldContain("👋");
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
-    await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"));
-    await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"), "sig");
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"), "sig");
     var idProvider = userMessage.IdProvider;
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
@@ -78,24 +81,38 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task AnotherChatShouldBeCreatedWhenUserIsDeleted() {
     await orquestrator.ClearDatabase();
-    var phoneNumber = "5511984444444";
+    var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
+    await messagingService.AddAllowedNumber(phoneNumber);
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
-    await messagingService.ReceiveMessage(CreateReceiveMessage("Message 1"));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Message 1"), "sig");
     var chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.Messages.Count.ShouldBe(2);
     await orquestrator.DeleteUser(phoneNumber);
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldBeNull();
-    await messagingService.ReceiveMessage(CreateReceiveMessage("New message 2"));
+    await messagingService.ReceiveMessage(CreateReceiveMessage("New message 2"), "sig");
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.Messages[0].ShouldNotBeNull();
     chat.Messages[0].Text.ShouldBe("New message 2");
   }
 
-  public static JsonElement CreateReceiveMessage(string message) {
-    var jsonString = JsonSerializer.Serialize(message);
-    return JsonSerializer.Deserialize<JsonElement>(jsonString);
+
+  [Fact]
+  public async Task ShouldNotReceiveMessageIfNumberIsNotAllowed() {
+    await orquestrator.ClearDatabase();
+    var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Message never reaches"), "sig");
+    var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
+    chat.ShouldBeNull();
+    await messagingService.AddAllowedNumber(phoneNumber);
+    await messagingService.ReceiveMessage(CreateReceiveMessage("Message never reaches"), "sig");
+    chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
+    chat.ShouldNotBeNull();
+  }
+
+  public static string CreateReceiveMessage(string message) {
+    return JsonSerializer.Serialize(message);
   }
 }
