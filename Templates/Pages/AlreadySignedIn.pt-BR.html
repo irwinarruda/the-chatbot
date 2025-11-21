@@ -1,43 +1,209 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Já Está Conectado - TheChatbot</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conectado - TheChatbot</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#3b82f6 0%, #1d4ed8 100%); min-height:100vh; display:flex; justify-content:center; align-items:center; color:#333; padding:1rem; }
-        .container { background:#fff; border-radius:8px; padding:3rem 2rem; box-shadow:0 20px 40px rgba(0,0,0,.1); text-align:center; max-width:500px; width:90%; animation:fadeInUp .8s ease-out; }
-        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px);} to { opacity:1; transform:translateY(0);} }
-        .info-icon { width:80px; height:80px; margin:0 auto 1.5rem; background:linear-gradient(135deg,#3b82f6,#1d4ed8); border-radius:50%; display:flex; align-items:center; justify-content:center; animation:pulse 2s infinite; }
-        @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
-        .info-icon::before { content:"ℹ"; color:#fff; font-size:2.5rem; font-weight:bold; }
-        h1 { font-size:2.5rem; margin-bottom:1rem; color:#2c3e50; font-weight:600; }
-        .subtitle { font-size:1.2rem; color:#7f8c8d; margin-bottom:2rem; line-height:1.6; }
-        .message { font-size:1.1rem; color:#34495e; margin-bottom:2rem; line-height:1.8; }
-        .app-name { font-weight:bold; color:#3b82f6; }
-        .footer { margin-top:2rem; padding-top:2rem; border-top:1px solid #ecf0f1; color:#95a5a6; font-size:.9rem; }
-        .google-logo { display:inline-block; margin-right:.5rem; font-size:1.2rem; }
-        .highlight { color:#3b82f6; font-weight:600; }
-        @media (max-width:480px) { .container { padding:2rem 1.5rem; } h1 { font-size:2rem; } .subtitle { font-size:1.1rem; } }
+      :root {
+        --primary-color: #33b264;
+        --text-main: #111827;
+        --text-secondary: #4b5563;
+        --bg-color: #f4f7f5;
+        --card-bg: #ffffff;
+        --accent-bg: #eefbf3;
+        --accent-border: #d1fae5;
+        --badge-bg: #dcfce7;
+        --badge-text: #166534;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+        background-size: 24px 24px;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--text-main);
+        padding: 1rem;
+        line-height: 1.5;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 2.5rem 2rem;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        text-align: center;
+        max-width: 480px;
+        width: 100%;
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .logo-container {
+        margin-bottom: 1.25rem;
+        color: var(--primary-color);
+        display: flex;
+        justify-content: center;
+      }
+
+      .logo-container svg {
+        width: 76px;
+        height: 76px;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+      }
+
+      .subtitle {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+      }
+
+      .content {
+        background: var(--accent-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--accent-border);
+        text-align: left;
+      }
+
+      .content p {
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
+      .content p:last-child {
+        margin-bottom: 0;
+      }
+
+      .highlight {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--badge-bg);
+        color: var(--badge-text);
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+      }
+
+      .footer {
+        padding-top: 1.5rem;
+        border-top: 1px solid #f3f4f6;
+        color: #9ca3af;
+        font-size: 0.875rem;
+      }
+
+      @media (max-width: 480px) {
+        body {
+          align-items: flex-start;
+          padding: 1.5rem 1rem;
+        }
+
+        .card {
+          padding: 2rem 1.5rem;
+          border-radius: 12px;
+          margin-top: 1rem;
+        }
+
+        h1 {
+          font-size: 1.5rem;
+        }
+
+        .logo-container {
+          margin-bottom: 1rem;
+        }
+
+        .logo-container svg {
+          width: 56px;
+          height: 56px;
+        }
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="info-icon"></div>
-        <h1>Já está Conectado! 👋</h1>
-        <p class="subtitle">Você já está conectado à sua conta Google</p>
-        <div class="message">
-            <p>Bem-vindo de volta ao <span class="app-name">TheChatbot</span>!</p>
-            <p>Detectamos que você já está autenticado com sua conta Google. Suas credenciais foram renovadas automaticamente, então está tudo pronto para continuar usando nossos serviços.</p>
-        </div>
-        <div class="message">
-            <p>🔄 <span class="highlight">Sua sessão está atualizada</span> e pronta para uso!</p>
-        </div>
-        <div class="footer">
-            <p><span class="google-logo">🔑</span>Já autenticado com o Google</p>
-            <p>Você pode fechar esta janela e continuar usando o TheChatbot</p>
-        </div>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo-container">
+        <svg
+          width="35"
+          height="35"
+          viewBox="0 0 35 35"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M33.5293 24.6592C33.5293 25.171 33.4028 25.6463 33.1499 26.0851C32.8981 26.5239 32.5493 26.871 32.1034 27.1263L19.9552 34.171C19.5081 34.4274 19.0328 34.5557 18.5293 34.5557C18.0258 34.5557 17.5505 34.428 17.1034 34.1727L4.95518 27.1245C4.50812 26.8692 4.15871 26.5221 3.90694 26.0833C3.65518 25.6445 3.5293 25.1692 3.5293 24.6574L3.5293 10.6351C3.5293 10.1233 3.65518 9.64802 3.90694 9.20919C4.15988 8.77037 4.5093 8.42331 4.95518 8.16802L17.1034 1.12155C17.5505 0.866253 18.0258 0.738604 18.5293 0.738604C19.0328 0.738604 19.5081 0.866253 19.9552 1.12155L32.1034 8.16802C32.5505 8.42331 32.8999 8.77037 33.1516 9.20919C33.4034 9.64802 33.5293 10.1233 33.5293 10.6351L33.5293 24.6592ZM31.7646 24.6945L31.7646 10.6368C31.7646 10.4557 31.7193 10.2804 31.6287 10.111C31.5381 9.94037 31.4028 9.79919 31.2228 9.68743L19.0728 2.68508C18.8916 2.57213 18.7105 2.51566 18.5293 2.51566C18.3481 2.51566 18.1669 2.57213 17.9858 2.68508L5.83753 9.68566C5.65635 9.79861 5.52047 9.93978 5.42988 10.1092C5.3393 10.2798 5.294 10.4557 5.294 10.6368L5.294 24.6927C5.294 24.8739 5.3393 25.0439 5.42988 25.2027C5.52047 25.3615 5.65577 25.4968 5.83577 25.6086L17.9858 32.6551C18.1669 32.768 18.3481 32.8245 18.5293 32.8245C18.7105 32.8245 18.8916 32.768 19.0728 32.6551L31.2211 25.6086C31.4022 25.4957 31.5381 25.3604 31.6287 25.2027C31.7193 25.0439 31.7646 24.8739 31.7646 24.6927"
+            fill="#33B264"
+          />
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M27.1834 13.1247C27.174 12.4307 26.8941 11.7677 26.4033 11.277C25.9126 10.7862 25.2496 10.5063 24.5556 10.4969L10.6774 10.3615C10.4462 10.3582 10.2254 10.2649 10.0619 10.1014C9.89835 9.9379 9.80504 9.71708 9.80176 9.48586C9.80018 9.37263 9.82132 9.26023 9.86392 9.1553C9.90653 9.05038 9.96974 8.95507 10.0498 8.87499C10.1299 8.79491 10.2252 8.73171 10.3301 8.6891C10.4351 8.64649 10.5475 8.62535 10.6607 8.62693L24.5389 8.76232C25.6954 8.77805 26.8001 9.24447 27.618 10.0623C28.4358 10.8802 28.9022 11.9849 28.918 13.1414C28.9273 13.8104 28.7781 14.472 28.4825 15.0722C28.187 15.6724 27.7535 16.1941 27.2176 16.5946C27.7595 17.0015 28.2007 17.5274 28.5072 18.1318C28.8138 18.7362 28.9775 19.4029 28.9857 20.0805L28.9857 20.1533C28.9936 20.7195 28.8879 21.2815 28.6748 21.8061C28.4618 22.3307 28.1458 22.8073 27.7454 23.2076C27.345 23.608 26.8684 23.9241 26.3438 24.1371C25.8192 24.3501 25.2572 24.4558 24.691 24.4479L12.1398 24.3249C12.1021 24.3244 12.0646 24.3314 12.0297 24.3456C11.9947 24.3598 11.963 24.3808 11.9363 24.4075C11.9096 24.4342 11.8886 24.4659 11.8744 24.5009C11.8602 24.5358 11.8532 24.5733 11.8537 24.611L11.8785 27.1892C11.88 27.3024 11.8589 27.4148 11.8163 27.5198C11.7737 27.6247 11.7105 27.72 11.6304 27.8001C11.5503 27.8802 11.455 27.9434 11.3501 27.986C11.2452 28.0286 11.1328 28.0497 11.0195 28.0481C10.7883 28.0449 10.5675 27.9515 10.404 27.788C10.2405 27.6245 10.1472 27.4037 10.1439 27.1725L10.1184 24.595C10.1146 24.3307 10.1639 24.0683 10.2633 23.8233C10.3627 23.5784 10.5102 23.3559 10.6971 23.169C10.884 22.9821 11.1065 22.8346 11.3514 22.7352C11.5964 22.6358 11.8587 22.5865 12.123 22.5903L24.675 22.7126C25.0147 22.7172 25.3518 22.6537 25.6665 22.5258C25.9812 22.3979 26.2671 22.2083 26.5073 21.9681C26.7475 21.7279 26.9371 21.442 27.065 21.1273C27.1929 20.8126 27.2564 20.4755 27.2518 20.1358L27.2511 20.0638C27.2417 19.3705 26.9624 18.7082 26.4726 18.2176C25.9827 17.7269 25.3209 17.4466 24.6277 17.436L14.2871 17.3356L14.2842 17.3356L14.1422 17.3348C13.9108 17.3317 13.6897 17.2384 13.526 17.0747C13.3623 16.911 13.269 16.6899 13.2659 16.4585C13.2643 16.3452 13.2854 16.2328 13.328 16.1279C13.3706 16.023 13.4338 15.9277 13.5139 15.8476C13.594 15.7675 13.6893 15.7043 13.7942 15.6617C13.8991 15.6191 14.0115 15.5979 14.1248 15.5995L24.611 15.7014C24.9503 15.7054 25.2869 15.6415 25.6011 15.5134C25.9153 15.3852 26.2007 15.1955 26.4404 14.9554C26.6801 14.7152 26.8694 14.4295 26.997 14.1151C27.1246 13.8007 27.188 13.4639 27.1834 13.1247Z"
+            fill="#33B264"
+          />
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M24.5895 13.9662C24.7027 13.9678 24.8151 13.9467 24.9201 13.9041C25.025 13.8615 25.1203 13.7983 25.2004 13.7182C25.2804 13.6381 25.3437 13.5428 25.3863 13.4379C25.4289 13.3329 25.45 13.2205 25.4484 13.1073C25.4453 12.8758 25.352 12.6547 25.1883 12.491C25.0246 12.3273 24.8035 12.234 24.572 12.2309L14.3079 12.1312C13.7417 12.1233 13.1797 12.229 12.6551 12.442C12.1305 12.6551 11.6539 12.9711 11.2535 13.3715C10.8531 13.7719 10.5371 14.2484 10.3241 14.7731C10.111 15.2977 10.0053 15.8597 10.0132 16.4258C10.0292 17.5823 10.4957 18.6868 11.3135 19.5046C12.1313 20.3224 13.2359 20.7889 14.3923 20.8049L24.6572 20.9054C24.7704 20.9069 24.8828 20.8858 24.9877 20.8432C25.0927 20.8006 25.188 20.7374 25.2681 20.6573C25.3481 20.5772 25.4113 20.4819 25.454 20.377C25.4966 20.2721 25.5177 20.1597 25.5161 20.0464C25.513 19.815 25.4197 19.5938 25.256 19.4301C25.0923 19.2665 24.8712 19.1731 24.6397 19.17L14.3755 19.0703C13.6816 19.0609 13.0186 18.781 12.5279 18.2902C12.0371 17.7995 11.7572 17.1366 11.7478 16.4426C11.7432 16.1029 11.8067 15.7658 11.9346 15.4511C12.0625 15.1364 12.2521 14.8505 12.4923 14.6103C12.7325 14.3701 13.0184 14.1805 13.3331 14.0526C13.6478 13.9247 13.9849 13.8612 14.3246 13.8658L24.5895 13.9662Z"
+            fill="#33B264"
+          />
+        </svg>
+      </div>
+
+      <h1>Já está conectado!</h1>
+      <p class="subtitle">Sua sessão do Google está ativa</p>
+
+      <div class="status-badge"><span>●</span> Conectado</div>
+
+      <div class="content">
+        <p>Bem-vindo de volta ao <strong>TheChatbot</strong>!</p>
+        <p>
+          Detectamos uma autenticação existente para sua conta Google. Sua
+          sessão foi atualizada automaticamente e você está pronto para
+          continuar.
+        </p>
+      </div>
+
+      <div class="footer">
+        <p>Você já pode fechar esta janela com segurança.</p>
+      </div>
     </div>
-</body>
+  </body>
 </html>

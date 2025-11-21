@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Obrigado - TheChatbot</title>
+    <title>Welcome - TheChatbot</title>
     <style>
       :root {
         --primary-color: #33b264;
@@ -13,6 +13,8 @@
         --card-bg: #ffffff;
         --accent-bg: #eefbf3;
         --accent-border: #d1fae5;
+        --badge-bg: #dcfce7;
+        --badge-text: #166534;
       }
 
       * {
@@ -82,7 +84,7 @@
       .subtitle {
         font-size: 1.125rem;
         color: var(--text-secondary);
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
       }
 
       .content {
@@ -104,9 +106,47 @@
         margin-bottom: 0;
       }
 
+      .content ul {
+        list-style: none;
+        margin-top: 1rem;
+      }
+
+      .content li {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .content li .icon {
+        color: var(--primary-color);
+        font-weight: bold;
+        flex-shrink: 0;
+        line-height: 1.5;
+      }
+
+      .content li .text {
+        line-height: 1.5;
+      }
+
       .highlight {
         color: var(--primary-color);
         font-weight: 600;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--badge-bg);
+        color: var(--badge-text);
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
       }
 
       .footer {
@@ -172,19 +212,31 @@
         </svg>
       </div>
 
-      <h1>Obrigado!</h1>
-      <p class="subtitle">Conta conectada com sucesso</p>
+      <h1>The Chatbot</h1>
+      <p class="subtitle">Your intelligent personal assistant</p>
 
       <div class="content">
-        <p>Bem-vindo ao <strong>TheChatbot</strong>!</p>
         <p>
-          Obrigado pela confiança. Sua conta Google foi autenticada com sucesso
-          e você já está pronto para explorar todos os recursos.
+          <strong>The Chatbot</strong> is a versatile conversational agent designed to help you organize your life directly from WhatsApp.
         </p>
+        <ul>
+          <li>
+            <span class="icon">✓</span>
+            <span class="text"><strong>Financial Control</strong>: Track expenses and cash flow automatically in Google Sheets.</span>
+          </li>
+          <li>
+            <span class="icon">✓</span>
+            <span class="text"><strong>Secure Integration</strong>: Your data is protected with Google Authentication.</span>
+          </li>
+          <li>
+            <span class="icon">✓</span>
+            <span class="text"><strong>Always Available</strong>: Interact naturally anytime, anywhere.</span>
+          </li>
+        </ul>
       </div>
 
       <div class="footer">
-        <p>Você já pode fechar esta janela com segurança.</p>
+        <p>Send a message to start.</p>
       </div>
     </div>
   </body>
