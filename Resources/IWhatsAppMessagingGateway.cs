@@ -30,6 +30,7 @@ public class ReceiveInteractiveButtonMessageDTO : ReceiveMessageDTO {
 public interface IWhatsAppMessagingGateway {
   Task SendTextMessage(SendTextMessageDTO textMessage);
   Task SendInteractiveReplyButtonMessage(SendInteractiveReplyButtonMessageDTO buttonMessage);
-  void ReceiveMessage(JsonElement messageReceived, out ReceiveTextMessageDTO? receiveTextMessage, out ReceiveInteractiveButtonMessageDTO? receiveButtonReply);
-  string GetVerifyToken();
+  ReceiveMessageDTO? ReceiveMessage(JsonElement messageReceived);
+  bool ValidateSignature(string signature, string body);
+  bool ValidateWebhook(string hubMode, string hubVerifyToken);
 }

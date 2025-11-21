@@ -10,14 +10,21 @@ using TheChatbot.Utils;
 namespace TheChatbot.Services;
 
 public class MessagingService(AppDbContext database, AuthService authService, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway) {
-  public async Task ReceiveMessage(JsonElement data) {
-    whatsAppMessagingGateway.ReceiveMessage(data, out var receiveTextMessage, out var receiveButtonReply);
-    if (receiveTextMessage != null) await ListenToMessage(receiveTextMessage);
-    if (receiveButtonReply != null) await ListenToMessage(receiveButtonReply);
+  public async Task ReceiveMessage(string rawBody, string signature) {
+    if (!whatsAppMessagingGateway.ValidateSignature(signature, rawBody)) {
+      throw new UnauthorizedException("Invalid Signature", "Please check your request signature.");
+    }
+    using var doc = JsonDocument.Parse(rawBody);
+    var data = doc.RootElement.Clone();
+    var receiveMessage = whatsAppMessagingGateway.ReceiveMessage(data);
+    if (receiveMessage is not null) {
+      await ListenToMessage(receiveMessage);
+    }
   }
 
   public async Task ListenToMessage<T>(T receiveMessage) where T : ReceiveMessageDTO {
     if (await IsMessageDuplicate(receiveMessage.IdProvider)) return;
+    if (!await IsAllowedNumber(receiveMessage.From)) return;
     var chat = await GetChatByPhoneNumber(receiveMessage.From);
     if (chat == null) {
       chat = new Chat { PhoneNumber = receiveMessage.From };
@@ -103,8 +110,16 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     await SaveChat(chat);
   }
 
+  public async Task AddAllowedNumber(string phoneNumber) {
+    var allowedNumber = new AllowedNumber(phoneNumber);
+    await database.Execute($@"
+      INSERT INTO allowed_numbers (id, phone_number, created_at)
+      VALUES ({allowedNumber.Id}, {allowedNumber.PhoneNumber}, {allowedNumber.CreatedAt})
+    ");
+  }
+
   public void ValidateWebhook(string hubMode, string hubVerifyToken) {
-    if (hubMode != "subscribe" || hubVerifyToken != whatsAppMessagingGateway.GetVerifyToken()) {
+    if (!whatsAppMessagingGateway.ValidateWebhook(hubMode, hubVerifyToken)) {
       throw new ValidationException("The provided token did not match");
     }
   }
@@ -182,6 +197,15 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
         SELECT 1 FROM messages
         WHERE id_provider = {idProvider}
       ) AS ""Value""
+    ").SingleOrDefaultAsync();
+  }
+
+  private async Task<bool> IsAllowedNumber(string phoneNumber) {
+    return await database.Query<bool>($@"
+      SELECT EXISTS(
+        SELECT 1 from allowed_numbers
+        WHERE phone_number = {phoneNumber}
+      ) as ""Value""
     ").SingleOrDefaultAsync();
   }
 

@@ -30,9 +30,17 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleConfig").G
 builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
-var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<WhatsAppBusinessCloudApiConfig>()!;
+var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<WhatsAppConfig>()!;
 builder.Services.AddSingleton(whatsAppConfig);
-builder.Services.AddWhatsAppBusinessCloudApiService(whatsAppConfig);
+builder.Services.AddWhatsAppBusinessCloudApiService(new() {
+  AppName = whatsAppConfig.AppName,
+  Version = whatsAppConfig.Version,
+  WebhookVerifyToken = whatsAppConfig.WebhookVerifyToken,
+  WhatsAppBusinessAccountId = whatsAppConfig.WhatsAppBusinessAccountId,
+  WhatsAppBusinessId = whatsAppConfig.WhatsAppBusinessId,
+  WhatsAppBusinessPhoneNumberId = whatsAppConfig.WhatsAppBusinessPhoneNumberId,
+  AccessToken = whatsAppConfig.AccessToken
+});
 var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
 builder.Services.AddSingleton(openAIConfig);
 builder.Services.AddChatClient(_ => {
