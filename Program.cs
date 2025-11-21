@@ -26,10 +26,12 @@ builder.Services.AddSingleton<IMediator, Mediator>();
 builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<MessagingService>();
+builder.Services.AddTransient<MigrationService>();
 builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
+builder.Services.AddSingleton(builder.Configuration.GetSection("AuthConfig").Get<AuthConfig>()!);
 var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<WhatsAppConfig>()!;
 builder.Services.AddSingleton(whatsAppConfig);
 builder.Services.AddWhatsAppBusinessCloudApiService(new() {
