@@ -9,7 +9,7 @@ using TheChatbot.Utils;
 
 namespace TheChatbot.Services;
 
-public class MessagingService(AppDbContext database, AuthService authService, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway) {
+public class MessagingService(AppDbContext database, AuthService authService, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway, IStorageGateway storageGateway, ISpeechToTextGateway speechToTextGateway) {
   public async Task ReceiveMessage(string rawBody, string? signature) {
     if (signature == null || !whatsAppMessagingGateway.ValidateSignature(signature, rawBody)) {
       throw new UnauthorizedException("Invalid Signature", "Please check your request signature.");
@@ -33,6 +33,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     var message = receiveMessage switch {
       ReceiveTextMessageDTO m => chat.AddUserTextMessage(m.Text, m.IdProvider),
       ReceiveInteractiveButtonMessageDTO m => chat.AddUserButtonReply(m.ButtonReply, m.IdProvider),
+      ReceiveAudioMessageDTO m => await HandleAudioMessage(chat, m),
       _ => chat.AddUserTextMessage("", "")
     };
     await CreateMessage(message);
@@ -50,7 +51,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     var messages = chat.Messages.Select(m => new AiChatMessage {
       Role = m.UserType == MessageUserType.Bot ? AiChatRole.Assistant : AiChatRole.User,
       Type = m.Type == MessageType.ButtonReply ? AiChatMessageType.Button : AiChatMessageType.Text,
-      Text = m.ButtonReply ?? m.Text ?? string.Empty,
+      Text = m.ButtonReply ?? m.Transcript ?? m.Text ?? string.Empty,
       Buttons = m.ButtonReplyOptions ?? []
     });
     var response = await aiChatGateway.GetResponse(chat.PhoneNumber, [.. messages]);
@@ -149,6 +150,9 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
         Type = Enum.Parse<MessageType>(m.Type),
         ButtonReply = m.ButtonReply,
         ButtonReplyOptions = m.ButtonReplyOptions != null ? [..m.ButtonReplyOptions.Split(",")] : null,
+        MediaUrl = m.MediaUrl,
+        MimeType = m.MimeType,
+        Transcript = m.Transcript,
         UserType = Enum.Parse<MessageUserType>(m.UserType),
         IdProvider = m.IdProvider,
         CreatedAt = m.CreatedAt,
@@ -174,8 +178,8 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
   private async Task CreateMessage(Message message) {
     var buttonOptions = message.ButtonReplyOptions != null ? string.Join(",", message.ButtonReplyOptions) : null;
     await database.Execute($@"
-      INSERT INTO messages (id, id_chat, type, user_type, text, button_reply, button_reply_options, id_provider, created_at, updated_at)
-      VALUES ({message.Id}, {message.IdChat}, {message.Type.ToString()}, {message.UserType.ToString()}, {message.Text}, {message.ButtonReply}, {buttonOptions}, {message.IdProvider}, {message.CreatedAt}, {message.UpdatedAt})
+      INSERT INTO messages (id, id_chat, type, user_type, text, button_reply, button_reply_options, media_url, mime_type, transcript, id_provider, created_at, updated_at)
+      VALUES ({message.Id}, {message.IdChat}, {message.Type.ToString()}, {message.UserType.ToString()}, {message.Text}, {message.ButtonReply}, {buttonOptions}, {message.MediaUrl}, {message.MimeType}, {message.Transcript}, {message.IdProvider}, {message.CreatedAt}, {message.UpdatedAt})
     ");
   }
 
@@ -209,6 +213,37 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     ").SingleOrDefaultAsync();
   }
 
+  private async Task<Message> HandleAudioMessage(Chat chat, ReceiveAudioMessageDTO audioMessage) {
+    await SendTextMessage(chat.PhoneNumber, MessageLoader.GetMessage(MessageTemplate.ProcessingAudio), chat);
+    var mediaContent = await whatsAppMessagingGateway.DownloadMediaAsync(audioMessage.MediaId);
+    using var memoryStream = new MemoryStream();
+    await mediaContent.CopyToAsync(memoryStream);
+    var audioBytes = memoryStream.ToArray();
+    var key = $"audio/{chat.Id}/{Guid.NewGuid()}{GetExtension(audioMessage.MimeType)}";
+    var permanentUrl = await storageGateway.UploadFileAsync(new() {
+      Key = key,
+      Content = new MemoryStream(audioBytes),
+      ContentType = audioMessage.MimeType
+    });
+    var transcript = await speechToTextGateway.TranscribeAsync(new() {
+      AudioStream = new MemoryStream(audioBytes),
+      MimeType = audioMessage.MimeType
+    });
+
+    return chat.AddUserAudioMessage(permanentUrl, audioMessage.MimeType, transcript, audioMessage.IdProvider);
+  }
+
+  private static string GetExtension(string mimeType) {
+    return mimeType switch {
+      "audio/ogg" => ".ogg",
+      "audio/mpeg" => ".mp3",
+      "audio/mp4" => ".m4a",
+      "audio/aac" => ".aac",
+      "audio/amr" => ".amr",
+      _ => ".bin"
+    };
+  }
+
   public record DbChat(
     Guid Id,
     Guid? IdUser,
@@ -227,6 +262,9 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     string? Text,
     string? ButtonReply,
     string? ButtonReplyOptions,
+    string? MediaUrl,
+    string? MimeType,
+    string? Transcript,
     string? IdProvider,
     DateTime CreatedAt,
     DateTime UpdatedAt

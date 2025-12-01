@@ -23,6 +23,8 @@ builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 builder.Services.AddSingleton<IAiChatGateway, AiChatGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
 builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
+builder.Services.AddSingleton<IStorageGateway, R2StorageGateway>();
+builder.Services.AddSingleton<ISpeechToTextGateway, GoogleSpeechToTextGateway>();
 builder.Services.AddSingleton<IMediator, Mediator>();
 builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<AuthService>();
@@ -33,6 +35,7 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig")
 builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("AuthConfig").Get<AuthConfig>()!);
+builder.Services.AddSingleton(builder.Configuration.GetSection("R2Config").Get<R2Config>()!);
 
 builder.Services.AddRateLimiter(options => {
   options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

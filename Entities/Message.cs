@@ -3,7 +3,8 @@ namespace TheChatbot.Entities;
 
 public enum MessageType {
   Text,
-  ButtonReply
+  ButtonReply,
+  Audio
 }
 
 public enum MessageUserType {
@@ -20,6 +21,9 @@ public class Message {
   public string? Text { get; set; }
   public string? ButtonReply { get; set; }
   public List<string>? ButtonReplyOptions { get; set; }
+  public string? MediaUrl { get; set; }
+  public string? MimeType { get; set; }
+  public string? Transcript { get; set; }
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
   public Message() {

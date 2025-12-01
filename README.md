@@ -188,6 +188,7 @@ make docker-down  # Stop and remove
 ### For later
 
 - [ ] Use logging services.
+- [ ] Log for unwanted phone numbers accessing the app.
 - [ ] **Optimize Sheets** improve performance by using the database as a SOT.
 - [ ] Refactor database with `IDbContextFactory<AppDbContext>`.
 - [ ] Add tests forcing refresh token.

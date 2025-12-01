@@ -4,7 +4,7 @@ using TheChatbot.Infra;
 
 namespace TheChatbot.Utils;
 
-public enum MessageTemplate { SignedIn, ThankYou }
+public enum MessageTemplate { SignedIn, ThankYou, ProcessingAudio }
 public enum MessageLocale { En, PtBr }
 
 public record MessageParams(string? LoginUrl = null);
@@ -38,6 +38,7 @@ public static class MessageLoader {
   private static string TemplateToBaseName(MessageTemplate template) => template switch {
     MessageTemplate.SignedIn => "SignedInMessage",
     MessageTemplate.ThankYou => "ThankYouMessage",
+    MessageTemplate.ProcessingAudio => "ProcessingAudioMessage",
     _ => throw new ArgumentException($"Unknown message template: {template}")
   };
 

@@ -18,7 +18,7 @@ public class MigrationServiceTest : IClassFixture<Orquestrator> {
   [Fact]
   public async Task TestMigration() {
     await orquestrator.WipeDatabase();
-    const int migrationCount = 7;
+    const int migrationCount = 8;
     var migrations = await migrationService.ListPendingMigrations();
     migrations.ShouldNotBeEmpty();
     migrations.Count.ShouldBe(migrationCount);

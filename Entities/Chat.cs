@@ -89,4 +89,18 @@ public class Chat {
     Messages.Add(message);
     return message;
   }
+
+  public Message AddUserAudioMessage(string mediaUrl, string mimeType, string? transcript, string? idProvider = null) {
+    var message = new Message {
+      IdChat = Id,
+      IdProvider = idProvider,
+      Type = MessageType.Audio,
+      UserType = MessageUserType.User,
+      MediaUrl = mediaUrl,
+      MimeType = mimeType,
+      Transcript = transcript,
+    };
+    Messages.Add(message);
+    return message;
+  }
 }

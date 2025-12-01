@@ -17,7 +17,7 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
     return Task.CompletedTask;
   }
 
-  public ReceiveMessageDTO ReceiveMessage(JsonElement messageReceived) {
+  public ReceiveMessageDTO? ReceiveMessage(JsonElement messageReceived) {
     var receiveTextMessage = new ReceiveTextMessageDTO {
       From = PhoneNumber,
       Text = messageReceived.ToString(),
@@ -33,5 +33,9 @@ public class TestWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
 
   public bool ValidateSignature(string signature, string body) {
     return true;
+  }
+
+  public Task<Stream> DownloadMediaAsync(string mediaId) {
+    return Task.FromResult<Stream>(new MemoryStream());
   }
 }
