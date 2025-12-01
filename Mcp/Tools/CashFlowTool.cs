@@ -160,4 +160,3 @@ class CashFlowTool(CashFlowService cashFlowService, IAiChatGateway aiChatGateway
     string Description
   );
 }
-

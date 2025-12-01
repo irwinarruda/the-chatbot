@@ -10,6 +10,9 @@ public class GoogleConfig {
   public string LoginUri { get; set; } = string.Empty;
   public string ServiceAccountId { get; set; } = string.Empty;
   public string ServiceAccountPrivateKey { get; set; } = string.Empty;
+  public string SpeechProjectId { get; set; } = string.Empty;
+  public string SpeechRegion { get; set; } = string.Empty;
+  public string ApplicationName { get; set; } = string.Empty;
 }
 
 public class GoogleSheetsConfig {

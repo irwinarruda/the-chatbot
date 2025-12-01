@@ -57,7 +57,7 @@ public class GoogleAuthGateway : IGoogleAuthGateway {
     var credential = GoogleCredential.FromAccessToken(userToken.AccessToken);
     var oauth2Service = new Oauth2Service(new BaseClientService.Initializer {
       HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot"
+      ApplicationName = googleConfig.ApplicationName
     });
     var userInfo = await oauth2Service.Userinfo.Get().ExecuteAsync();
     return userInfo;

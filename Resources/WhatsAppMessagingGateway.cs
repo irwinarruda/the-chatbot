@@ -34,11 +34,23 @@ public class WhatsAppMessagingGateway(WhatsAppConfig whatsAppConfig, IWhatsAppBu
   }
 
   public ReceiveMessageDTO? ReceiveMessage(JsonElement messageReceived) {
-    // whatsAppBusinessClient.VerifyCode();
     var jsonElement = messageReceived;
     if (TryDeserializeMessage<GenericMessage>(jsonElement, out var genericMessageData)) {
       var phoneNumberId = genericMessageData.Entry[0].Changes[0].Value.Metadata?.PhoneNumberId;
       if (phoneNumberId != whatsAppConfig.WhatsAppBusinessPhoneNumberId) return null;
+    }
+    if (TryDeserializeMessage<AudioMessage>(jsonElement, out var audioMessageData) && audioMessageData.Entry[0].Changes[0].Value.Messages[0].Audio != null) {
+      var message = audioMessageData.Entry[0].Changes[0].Value.Messages[0];
+      var contact = audioMessageData.Entry[0].Changes[0].Value.Contacts[0];
+      var createdAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(message.Timestamp)).UtcDateTime;
+      var receiveAudioMessage = new ReceiveAudioMessageDTO {
+        IdProvider = message.Id,
+        MediaId = message.Audio.Id,
+        MimeType = message.Audio.MimeType,
+        From = PhoneNumberUtils.AddDigitNine(contact.WaId),
+        CreatedAt = createdAt,
+      };
+      return receiveAudioMessage;
     }
     if (TryDeserializeMessage<ReplyButtonMessage>(jsonElement, out var buttonMessageData) && buttonMessageData.Entry[0].Changes[0].Value.Messages[0].Interactive != null) {
       var message = buttonMessageData.Entry[0].Changes[0].Value.Messages[0];
@@ -69,6 +81,18 @@ public class WhatsAppMessagingGateway(WhatsAppConfig whatsAppConfig, IWhatsAppBu
 
   public bool ValidateWebhook(string hubMode, string hubVerifyToken) {
     return hubMode == "subscribe" && hubVerifyToken == whatsAppConfig.WebhookVerifyToken;
+  }
+
+  public async Task<Stream> DownloadMediaAsync(string mediaId) {
+    var mediaUrlResponse = await whatsAppBusinessClient.GetMediaUrlAsync(mediaId);
+    using var httpClient = new HttpClient();
+    httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", whatsAppConfig.AccessToken);
+    var response = await httpClient.GetAsync(mediaUrlResponse.Url);
+    response.EnsureSuccessStatusCode();
+    var memoryStream = new MemoryStream();
+    await response.Content.CopyToAsync(memoryStream);
+    memoryStream.Position = 0;
+    return memoryStream;
   }
 
   public bool ValidateSignature(string signature, string body) {

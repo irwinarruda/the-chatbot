@@ -15,12 +15,15 @@ alwaysApply: true
 
 ## Code Style
 
+**Note: The following patterns are specific to this project and may differ from other projects.**
+
 - Indentation: 2 spaces
 - Line endings: LF
 - File encoding: UTF-8
 - C# braces: Same line (no new line before braces)
 - Imports: System directives first, separated groups
 - Naming: PascalCase for types/methods, camelCase for parameters/variables
+- Private properties/fields should never use underscore prefix (e.g., use `private string name` instead of `private string _name`)
 - Use dependency injection and interfaces for services
 - Handle exceptions using custom Infra.Exception class
 - Return types must be explicitly declared
@@ -28,3 +31,5 @@ alwaysApply: true
 - Follow Resource/Service/Controller architecture pattern
 - Do not add code comments to the files
 - Always use short namespace declaration instead of the full with curly braces
+- Prefer type inference: use `var` instead of explicit types (e.g., `var name = "value"` instead of `string name = "value"`)
+- Prefer target-typed `new()` expressions: use `new() {}` instead of `new ClassName() {}` when the type can be inferred

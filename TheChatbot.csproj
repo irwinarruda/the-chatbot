@@ -13,7 +13,8 @@
     <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
     <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3806" />
     <PackageReference Include="Google.Apis.Tasks.v1" Version="1.65.0.3015" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.70.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.72.0" />
+    <PackageReference Include="Google.Apis.Speech.v1" Version="1.71.0.3920" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,6 +26,7 @@
     <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="WhatsappBusiness.CloudApi" Version="1.0.72" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.307.24" />
   </ItemGroup>
 
   <ItemGroup>

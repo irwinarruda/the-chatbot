@@ -1,6 +1,5 @@
 using Google;
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 
@@ -187,13 +186,13 @@ public class GoogleCashFlowSpreadsheetGateway(GoogleConfig googleConfig, GoogleS
       credential = GoogleCredential.FromServiceAccountCredential(new ServiceAccountCredential(initializer));
       return new SheetsService(new() {
         HttpClientInitializer = credential,
-        ApplicationName = "TheChatbot",
+        ApplicationName = googleConfig.ApplicationName,
       });
     }
     credential = GoogleCredential.FromAccessToken(accessToken);
     return new SheetsService(new() {
       HttpClientInitializer = credential,
-      ApplicationName = "TheChatbot",
+      ApplicationName = googleConfig.ApplicationName,
     });
   }
 

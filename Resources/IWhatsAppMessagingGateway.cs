@@ -27,10 +27,16 @@ public class ReceiveInteractiveButtonMessageDTO : ReceiveMessageDTO {
   public required string ButtonReply { get; set; }
 }
 
+public class ReceiveAudioMessageDTO : ReceiveMessageDTO {
+  public required string MimeType { get; set; }
+  public required string MediaId { get; set; }
+}
+
 public interface IWhatsAppMessagingGateway {
   Task SendTextMessage(SendTextMessageDTO textMessage);
   Task SendInteractiveReplyButtonMessage(SendInteractiveReplyButtonMessageDTO buttonMessage);
   ReceiveMessageDTO? ReceiveMessage(JsonElement messageReceived);
+  Task<Stream> DownloadMediaAsync(string mediaId);
   bool ValidateSignature(string signature, string body);
   bool ValidateWebhook(string hubMode, string hubVerifyToken);
 }
