@@ -180,6 +180,7 @@ public class MessagingService(AppDbContext database, AuthService authService, IW
     await database.Execute($@"
       INSERT INTO messages (id, id_chat, type, user_type, text, button_reply, button_reply_options, media_url, mime_type, transcript, id_provider, created_at, updated_at)
       VALUES ({message.Id}, {message.IdChat}, {message.Type.ToString()}, {message.UserType.ToString()}, {message.Text}, {message.ButtonReply}, {buttonOptions}, {message.MediaUrl}, {message.MimeType}, {message.Transcript}, {message.IdProvider}, {message.CreatedAt}, {message.UpdatedAt})
+      ON CONFLICT (id_provider) WHERE id_provider IS NOT NULL DO NOTHING
     ");
   }
 
