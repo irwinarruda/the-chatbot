@@ -21,6 +21,7 @@ public class Message {
   public string? Text { get; set; }
   public string? ButtonReply { get; set; }
   public List<string>? ButtonReplyOptions { get; set; }
+  public string? MediaId { get; set; }
   public string? MediaUrl { get; set; }
   public string? MimeType { get; set; }
   public string? Transcript { get; set; }
@@ -29,6 +30,12 @@ public class Message {
   public Message() {
     Id = Guid.NewGuid();
     CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+  }
+
+  public void AddAudioTranscriptAndUrl(string transcript, string url) {
+    Transcript = transcript;
+    MediaUrl = url;
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 }

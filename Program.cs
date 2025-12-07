@@ -82,6 +82,10 @@ mediator.Register("DeleteUserByPhoneNumber", async (string phoneNumber) => {
   var messagingService = app.Services.GetRequiredService<MessagingService>();
   await messagingService.DeleteChat(phoneNumber);
 });
+mediator.Register("RespondToMessage", async (RespondToMessageEvent data) => {
+  var messagingService = app.Services.GetRequiredService<MessagingService>();
+  await messagingService.RespondToMessage(data.Chat, data.Message);
+});
 
 app.UseExceptionHandler(exception => exception.Run(Controller.HandleException));
 app.UseStatusCodePages(Controller.HandleInternal);
