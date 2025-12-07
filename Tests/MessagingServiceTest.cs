@@ -1,19 +1,29 @@
 using System.Text.Json;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Shouldly;
 
 using TheChatbot.Entities;
 using TheChatbot.Resources;
 using TheChatbot.Services;
+using TheChatbot.Utils;
 
 namespace Tests;
 
 public class MessagingServiceTest : IClassFixture<Orquestrator> {
   public Orquestrator orquestrator;
   public MessagingService messagingService;
-  public MessagingServiceTest(Orquestrator _orquestrator) {
+  public IMediator mediator;
+  public ServiceProvider serviceProvider;
+  public ITestOutputHelper output;
+  public int delay = 10;
+  public MessagingServiceTest(Orquestrator _orquestrator, ITestOutputHelper _output) {
     orquestrator = _orquestrator;
     messagingService = _orquestrator.messagingService;
+    mediator = _orquestrator.mediator;
+    serviceProvider = _orquestrator.serviceProvider;
+    output = _output;
   }
 
   [Fact]
@@ -25,6 +35,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     var chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldBeNull();
     await messagingService.ReceiveMessage(CreateReceiveMessage("User 1"), "sig");
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBe(user.Id);
@@ -49,6 +60,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldBeNull();
     await messagingService.ReceiveMessage(CreateReceiveMessage("First message"), "sig");
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBeNull();
@@ -63,9 +75,12 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     botMessage.Text?.ShouldContain("👋");
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
     await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"), "sig");
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     await messagingService.ReceiveMessage(CreateReceiveMessage("Second duplicate message"), "sig");
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     var idProvider = userMessage.IdProvider;
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
+    output.WriteLine(Printable.Make(chat));
     chat.ShouldNotBeNull();
     chat.IdUser.ShouldBe(user.Id);
     chat.PhoneNumber.ShouldBe(phoneNumber);
@@ -85,6 +100,8 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     await messagingService.AddAllowedNumber(phoneNumber);
     var user = await orquestrator.CreateUser(phoneNumber: phoneNumber);
     await messagingService.ReceiveMessage(CreateReceiveMessage("Message 1"), "sig");
+    await Task.Delay(100, TestContext.Current.CancellationToken);
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     var chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.Messages.Count.ShouldBe(2);
@@ -92,6 +109,7 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldBeNull();
     await messagingService.ReceiveMessage(CreateReceiveMessage("New message 2"), "sig");
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     chat = await messagingService.GetChatByPhoneNumber(user.PhoneNumber);
     chat.ShouldNotBeNull();
     chat.Messages[0].ShouldNotBeNull();
@@ -104,10 +122,12 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     await orquestrator.ClearDatabase();
     var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
     await messagingService.ReceiveMessage(CreateReceiveMessage("Message never reaches"), "sig");
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldBeNull();
     await messagingService.AddAllowedNumber(phoneNumber);
     await messagingService.ReceiveMessage(CreateReceiveMessage("Message never reaches"), "sig");
+    await Task.Delay(delay, TestContext.Current.CancellationToken);
     chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
     chat.ShouldNotBeNull();
   }

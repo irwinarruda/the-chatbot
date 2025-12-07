@@ -23,8 +23,9 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public IWhatsAppMessagingGateway whatsAppMessagingGateway;
   readonly public IGoogleAuthGateway googleAuthGateway;
   readonly public IAiChatGateway aiChatGateway;
+  readonly public IMediator mediator;
   readonly public IConfiguration configuration;
-  readonly public IServiceProvider serviceProvider;
+  readonly public ServiceProvider serviceProvider;
   readonly public EncryptionConfig encryptionConfig;
   readonly public DatabaseConfig databaseConfig;
   readonly public GoogleSheetsConfig googleSheetsConfig;
@@ -77,11 +78,15 @@ public class Orquestrator : WebApplicationFactory<Program> {
     statusService = serviceProvider.GetRequiredService<StatusService>();
     cashFlowService = serviceProvider.GetRequiredService<CashFlowService>();
     migrationService = serviceProvider.GetRequiredService<MigrationService>();
+    mediator = serviceProvider.GetRequiredService<IMediator>();
 
-    var mediator = serviceProvider.GetRequiredService<IMediator>();
     mediator.Register("DeleteUserByPhoneNumber", async (string phoneNumber) => {
       var messagingService = serviceProvider.GetRequiredService<MessagingService>();
       await messagingService.DeleteChat(phoneNumber);
+    });
+    mediator.Register("RespondToMessage", async (RespondToMessageEvent data) => {
+      var messagingService = serviceProvider.GetRequiredService<MessagingService>();
+      await messagingService.RespondToMessage(data.Chat, data.Message);
     });
   }
 
