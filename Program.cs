@@ -36,6 +36,7 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("AuthConfig").Get<AuthConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("R2Config").Get<R2Config>()!);
+builder.Services.AddSingleton(builder.Configuration.GetSection("SummarizationConfig").Get<SummarizationConfig>()!);
 
 builder.Services.AddRateLimiter(options => {
   options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

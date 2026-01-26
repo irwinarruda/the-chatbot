@@ -10,4 +10,12 @@ public class TestAiChatGateway : IAiChatGateway {
       Buttons = [],
     });
   }
+
+  public Task<string> GenerateSummary(List<AiChatMessage> messages, string? existingSummary) {
+    var summary = $"Summary of {messages.Count} messages";
+    if (!string.IsNullOrEmpty(existingSummary)) {
+      summary = $"{existingSummary} + {summary}";
+    }
+    return Task.FromResult(summary);
+  }
 }

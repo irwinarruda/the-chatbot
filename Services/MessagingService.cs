@@ -14,7 +14,7 @@ public record RespondToMessageEvent {
   public required Message Message;
 }
 
-public class MessagingService(AppDbContext database, AuthService authService, IMediator mediator, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway, IStorageGateway storageGateway, ISpeechToTextGateway speechToTextGateway) {
+public class MessagingService(AppDbContext database, AuthService authService, IMediator mediator, IWhatsAppMessagingGateway whatsAppMessagingGateway, IAiChatGateway aiChatGateway, IStorageGateway storageGateway, ISpeechToTextGateway speechToTextGateway, SummarizationConfig summarizationConfig) {
   public async Task ReceiveMessage(string rawBody, string? signature) {
     if (signature == null || !whatsAppMessagingGateway.ValidateSignature(signature, rawBody)) {
       throw new UnauthorizedException("Invalid Signature", "Please check your request signature.");
@@ -80,19 +80,23 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
       message.AddAudioTranscriptAndUrl(transcript, permanentUrl);
       await SaveMessage(message);
     }
-    chat = await GetChatByPhoneNumber(chat.PhoneNumber) ?? chat;
-    var messages = chat.Messages.Select(m => new AiChatMessage {
-      Role = m.UserType == MessageUserType.Bot ? AiChatRole.Assistant : AiChatRole.User,
-      Type = m.Type == MessageType.ButtonReply ? AiChatMessageType.Button : AiChatMessageType.Text,
-      Text = m.ButtonReply ?? m.Transcript ?? m.Text ?? string.Empty,
-      Buttons = m.ButtonReplyOptions ?? []
-    });
-    var response = await aiChatGateway.GetResponse(chat.PhoneNumber, [.. messages]);
+    var aiMessages = new List<AiChatMessage>();
+    if (!string.IsNullOrEmpty(chat.Summary)) {
+      aiMessages.Add(new AiChatMessage {
+        Role = AiChatRole.System,
+        Type = AiChatMessageType.Text,
+        Text = chat.Summary
+      });
+    }
+    aiMessages.AddRange(ParseMessagesToAi(chat.EffectiveMessages));
+    Printable.Make(aiMessages);
+    var response = await aiChatGateway.GetResponse(chat.PhoneNumber, aiMessages);
     await (response.Type switch {
       AiChatMessageType.Text => SendTextMessage(chat.PhoneNumber, response.Text, chat),
       AiChatMessageType.Button => SendButtonReplyMessage(chat.PhoneNumber, response.Text, [.. response.Buttons], chat),
       _ => Task.CompletedTask
     });
+    await TriggerSummarization(chat);
   }
 
   public async Task SendTextMessage(string phoneNumber, string text, Chat? chat = null) {
@@ -132,6 +136,17 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
     await SendTextMessage(phoneNumber, MessageLoader.GetMessage(MessageTemplate.SignedIn));
   }
 
+  private async Task TriggerSummarization(Chat chat) {
+    try {
+      if (!chat.ShouldSummarize(summarizationConfig.MessageCountThreshold)) return;
+      var messagesToSummarize = ParseMessagesToAi(chat.EffectiveMessages);
+      var lastMessageId = chat.EffectiveMessages.Last().Id;
+      var summary = await aiChatGateway.GenerateSummary(messagesToSummarize, chat.Summary);
+      await UpdateChatSummary(chat.Id, summary, lastMessageId);
+    } catch { }
+  }
+
+
   public async Task DeleteChat(string phoneNumber) {
     var chat = await GetChatByPhoneNumber(phoneNumber);
     if (chat == null) {
@@ -158,6 +173,15 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
     }
   }
 
+  private static List<AiChatMessage> ParseMessagesToAi(List<Message> messages) {
+    return [.. messages.Select(m => new AiChatMessage {
+      Role = m.UserType == MessageUserType.Bot ? AiChatRole.Assistant : AiChatRole.User,
+      Type = m.Type == MessageType.ButtonReply ? AiChatMessageType.Button : AiChatMessageType.Text,
+      Text = m.ButtonReply ?? m.Transcript ?? m.Text ?? string.Empty,
+      Buttons = m.ButtonReplyOptions ?? []
+    })];
+  }
+
   public async Task<Chat?> GetChatByPhoneNumber(string phoneNumber) {
     var dbChat = await database.Query<DbChat>($@"
       SELECT * FROM chats
@@ -176,6 +200,8 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
       IdUser = dbChat.IdUser,
       Type = Enum.Parse<ChatType>(dbChat.Type),
       PhoneNumber = dbChat.PhoneNumber,
+      Summary = dbChat.Summary,
+      SummarizedUntilId = dbChat.SummarizedUntilId,
       Messages = [..dbMessages.Select((m) => new Message {
         Id = m.Id,
         IdChat = m.IdChat,
@@ -276,17 +302,29 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
     };
   }
 
-  public record DbChat(
+  private async Task UpdateChatSummary(Guid chatId, string summary, Guid untilId) {
+    await database.Execute($@"
+      UPDATE chats SET
+        summary = {summary},
+        summarized_until_id = {untilId},
+        updated_at = {DateTime.UtcNow}
+      WHERE id = {chatId}
+    ");
+  }
+
+  private record DbChat(
     Guid Id,
     Guid? IdUser,
     string Type,
     string PhoneNumber,
+    string? Summary,
+    Guid? SummarizedUntilId,
     DateTime CreatedAt,
     DateTime UpdatedAt,
     bool IsDeleted
   );
 
-  public record DbMessage(
+  private record DbMessage(
     Guid Id,
     Guid IdChat,
     string UserType,

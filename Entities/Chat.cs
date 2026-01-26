@@ -13,15 +13,37 @@ public class Chat {
   public required string PhoneNumber { get; set; }
   public ChatType Type { get; set; }
   public List<Message> Messages { get; set; }
+  public string? Summary { get; set; }
+  public Guid? SummarizedUntilId { get; set; }
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
   public bool IsDeleted { get; set; }
+
+  public List<Message> EffectiveMessages {
+    get {
+      if (SummarizedUntilId == null) return Messages;
+      var idx = Messages.FindIndex(m => m.Id == SummarizedUntilId);
+      if (idx < 0) return Messages;
+      return Messages.Skip(idx + 1).ToList();
+    }
+  }
+
   public Chat() {
     Id = Guid.NewGuid();
     Type = ChatType.WhatsApp;
     Messages = [];
     IsDeleted = false;
     CreatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+    UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
+  }
+
+  public bool ShouldSummarize(int threshold) {
+    return EffectiveMessages.Count >= threshold;
+  }
+
+  public void SetSummary(string summary, Guid untilMessageId) {
+    Summary = summary;
+    SummarizedUntilId = untilMessageId;
     UpdatedAt = DateTime.UtcNow.TruncateToMicroseconds();
   }
 

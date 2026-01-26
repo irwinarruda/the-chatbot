@@ -132,6 +132,83 @@ public class MessagingServiceTest : IClassFixture<Orquestrator> {
     chat.ShouldNotBeNull();
   }
 
+  [Fact]
+  public async Task SummarizationShouldNotTriggerBeforeThreshold() {
+    await orquestrator.ClearDatabase();
+    var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
+    await messagingService.AddAllowedNumber(phoneNumber);
+    await orquestrator.CreateUser(phoneNumber: phoneNumber);
+    for (var i = 0; i < 9; i++) {
+      await messagingService.ReceiveMessage(CreateReceiveMessage($"Message {i}"), "sig");
+      await Task.Delay(delay, TestContext.Current.CancellationToken);
+    }
+    await Task.Delay(100, TestContext.Current.CancellationToken);
+    var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
+    chat.ShouldNotBeNull();
+    chat.Messages.Count.ShouldBe(18);
+    chat.Summary.ShouldBeNull();
+    chat.SummarizedUntilId.ShouldBeNull();
+    chat.EffectiveMessages.Count.ShouldBe(18);
+  }
+
+  [Fact]
+  public async Task SummarizationTriggeredAfterThreshold() {
+    await orquestrator.ClearDatabase();
+    var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
+    await messagingService.AddAllowedNumber(phoneNumber);
+    await orquestrator.CreateUser(phoneNumber: phoneNumber);
+    for (var i = 0; i < 10; i++) {
+      await messagingService.ReceiveMessage(CreateReceiveMessage($"Message {i}"), "sig");
+      await Task.Delay(delay, TestContext.Current.CancellationToken);
+    }
+    await Task.Delay(100, TestContext.Current.CancellationToken);
+    var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
+    chat.ShouldNotBeNull();
+    chat.Messages.Count.ShouldBe(20);
+    chat.Summary.ShouldNotBeNull();
+    chat.Summary.ShouldContain("Summary of 20 messages");
+    chat.SummarizedUntilId.ShouldNotBeNull();
+    chat.EffectiveMessages.Count.ShouldBe(0);
+  }
+
+  [Fact]
+  public async Task SummarizationIncrementedOnNextThreshold() {
+    await orquestrator.ClearDatabase();
+    var phoneNumber = TestWhatsAppMessagingGateway.PhoneNumber;
+    await messagingService.AddAllowedNumber(phoneNumber);
+    await orquestrator.CreateUser(phoneNumber: phoneNumber);
+    for (var i = 0; i < 10; i++) {
+      await messagingService.ReceiveMessage(CreateReceiveMessage($"Message {i}"), "sig");
+      await Task.Delay(delay, TestContext.Current.CancellationToken);
+    }
+    await Task.Delay(100, TestContext.Current.CancellationToken);
+    var chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
+    chat.ShouldNotBeNull();
+    var firstSummary = chat.Summary;
+    firstSummary.ShouldNotBeNull();
+    for (var i = 10; i < 20; i++) {
+      await messagingService.ReceiveMessage(CreateReceiveMessage($"Message {i}"), "sig");
+      await Task.Delay(delay, TestContext.Current.CancellationToken);
+    }
+    await Task.Delay(100, TestContext.Current.CancellationToken);
+    chat = await messagingService.GetChatByPhoneNumber(phoneNumber);
+    chat.ShouldNotBeNull();
+    chat.Messages.Count.ShouldBe(40);
+    chat.Summary.ShouldNotBeNull();
+    chat.Summary.ShouldContain(firstSummary);
+    chat.Summary.ShouldContain("Summary of 20 messages + Summary of 20 messages");
+  }
+
+  [Fact]
+  public void ChatEffectiveMessagesReturnsAllWhenSummarizedIdNotFound() {
+    var chat = new Chat { PhoneNumber = TestWhatsAppMessagingGateway.PhoneNumber };
+    chat.AddUserTextMessage("Hello");
+    chat.AddBotTextMessage("Hi there");
+    chat.SetSummary("Some summary", Guid.NewGuid());
+    chat.EffectiveMessages.Count.ShouldBe(2);
+  }
+
+
   public static string CreateReceiveMessage(string message) {
     return JsonSerializer.Serialize(message);
   }
