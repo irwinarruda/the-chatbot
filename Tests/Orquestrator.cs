@@ -30,7 +30,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public DatabaseConfig databaseConfig;
   readonly public GoogleSheetsConfig googleSheetsConfig;
   readonly public GoogleConfig googleConfig;
-  readonly public OpenAIConfig openAIConfig;
+  readonly public AiConfig aiConfig;
   readonly public AuthConfig authConfig;
   readonly public SummarizationConfig summarizationConfig;
 
@@ -40,7 +40,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     googleSheetsConfig = configuration.GetSection("GoogleSheetsConfig").Get<GoogleSheetsConfig>()!;
     googleConfig = configuration.GetSection("GoogleConfig").Get<GoogleConfig>()!;
     encryptionConfig = configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!;
-    openAIConfig = configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
+    aiConfig = configuration.GetSection("AiConfig").Get<AiConfig>()!;
     authConfig = configuration.GetSection("AuthConfig").Get<AuthConfig>()!;
     summarizationConfig = configuration.GetSection("SummarizationConfig").Get<SummarizationConfig>()!;
     var services = new ServiceCollection();
@@ -48,7 +48,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     services.AddSingleton(googleSheetsConfig);
     services.AddSingleton(googleConfig);
     services.AddSingleton(encryptionConfig);
-    services.AddSingleton(openAIConfig);
+    services.AddSingleton(aiConfig);
     services.AddSingleton(authConfig);
     services.AddSingleton(summarizationConfig);
 

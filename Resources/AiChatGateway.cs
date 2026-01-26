@@ -58,7 +58,7 @@ public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiCha
       };
       return new ChatMessage(ConvertAiChatRole(m.Role), m.Text);
     });
-    var response = await chatClient!.GetResponseAsync([GetSystemPrompt(phoneNumber), .. chatMessages], new() { Tools = [.. tools] });
+    var response = await chatClient.GetResponseAsync([GetSystemPrompt(phoneNumber), .. chatMessages], new() { Tools = [.. tools] });
     var raw = response.Text?.Trim() ?? string.Empty;
     var llmResponse = new AiChatResponse {
       Type = AiChatMessageType.Text,
@@ -93,7 +93,7 @@ public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiCha
   public async Task<string> GenerateSummary(List<AiChatMessage> messages, string? existingSummary) {
     var systemPrompt = PromptLoader.GetSummarization(PromptLocale.PtBr, existingSummary);
     var chatMessages = messages.Select(m => new ChatMessage(ConvertAiChatRole(m.Role), m.Text));
-    var response = await chatClient!.GetResponseAsync([new ChatMessage(ChatRole.System, systemPrompt), .. chatMessages]);
+    var response = await chatClient.GetResponseAsync([new ChatMessage(ChatRole.System, systemPrompt), .. chatMessages]);
     return response.Text?.Trim() ?? string.Empty;
   }
 }
