@@ -26,4 +26,5 @@ public class AiChatMessage {
 
 public interface IAiChatGateway {
   public Task<AiChatResponse> GetResponse(string phoneNumber, List<AiChatMessage> messages, bool allowMcp = true);
+  public Task<string> GenerateSummary(List<AiChatMessage> messages, string? existingSummary);
 }

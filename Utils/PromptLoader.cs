@@ -53,4 +53,13 @@ public static class PromptLoader {
     var fileBase = "TransactionClassification" + LocaleToFileSuffix(locale);
     return ReadFile(fileBase);
   }
+
+  public static string GetSummarization(PromptLocale locale, string? existingSummary) {
+    var fileBase = "Summarization" + LocaleToFileSuffix(locale);
+    var text = ReadFile(fileBase);
+    var dict = new Dictionary<string, string> {
+      ["ExistingSummary"] = existingSummary ?? ""
+    };
+    return ApplyTemplate(text, dict);
+  }
 }
