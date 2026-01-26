@@ -64,10 +64,12 @@ builder.Services.AddWhatsAppBusinessCloudApiService(new() {
   WhatsAppBusinessPhoneNumberId = whatsAppConfig.WhatsAppBusinessPhoneNumberId,
   AccessToken = whatsAppConfig.AccessToken
 });
-var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
-builder.Services.AddSingleton(openAIConfig);
+var aiConfig = builder.Configuration.GetSection("AiConfig").Get<AiConfig>()!;
+builder.Services.AddSingleton(aiConfig);
 builder.Services.AddChatClient(_ => {
-  var chatClient = new OpenAI.Chat.ChatClient(openAIConfig.Model, openAIConfig.ApiKey).AsIChatClient();
+  var chatClient = aiConfig.Provider == "anthropic"
+    ? new Anthropic.AnthropicClient() { ApiKey = aiConfig.ApiKey }.AsIChatClient(aiConfig.Model)
+    : new OpenAI.Chat.ChatClient(aiConfig.Model, aiConfig.ApiKey).AsIChatClient();
   var builder = new ChatClientBuilder(chatClient).UseFunctionInvocation();
   return builder.Build();
 });

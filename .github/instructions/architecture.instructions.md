@@ -239,7 +239,7 @@ public class Message {
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
   public Message(string transcript) {
-    if (!transcript) throw new ValidationException(
+    if (transcript == null) throw new ValidationException(
       "Transcript cannot be empty",
       "Please provide a valid transcript"
     );

@@ -22,9 +22,10 @@ public class Chat {
   public List<Message> EffectiveMessages {
     get {
       if (SummarizedUntilId == null) return Messages;
+      if (SummarizedUntilId != null && string.IsNullOrEmpty(Summary)) return Messages;
       var idx = Messages.FindIndex(m => m.Id == SummarizedUntilId);
       if (idx < 0) return Messages;
-      return Messages.Skip(idx + 1).ToList();
+      return [.. Messages.Skip(idx + 1)];
     }
   }
 
@@ -38,6 +39,7 @@ public class Chat {
   }
 
   public bool ShouldSummarize(int threshold) {
+    if (SummarizedUntilId != null && string.IsNullOrEmpty(Summary)) return true;
     return EffectiveMessages.Count >= threshold;
   }
 

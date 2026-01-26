@@ -5,7 +5,7 @@ using TheChatbot.Infra;
 
 namespace TheChatbot.Services;
 
-public class StatusService(AppDbContext database, DatabaseConfig databaseConfig, OpenAIConfig config) {
+public class StatusService(AppDbContext database, DatabaseConfig databaseConfig, AiConfig config) {
   private record OpenConnectionsQueryResult(int Count);
   public async Task<Status> GetStatus() {
     var version = await database.Query<string>($"SHOW server_version").ToListAsync();

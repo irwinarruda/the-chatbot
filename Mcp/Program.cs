@@ -23,9 +23,11 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("GoogleSheetsConf
 builder.Services.AddSingleton(builder.Configuration.GetSection("DatabaseConfig").Get<DatabaseConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("EncryptionConfig").Get<EncryptionConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<McpConfig>()!);
-var openAIConfig = builder.Configuration.GetSection("OpenAIConfig").Get<OpenAIConfig>()!;
+var aiConfig = builder.Configuration.GetSection("AiConfig").Get<AiConfig>()!;
 builder.Services.AddChatClient(_ => {
-  var chatClient = new OpenAI.Chat.ChatClient(openAIConfig.Model, openAIConfig.ApiKey).AsIChatClient();
+  var chatClient = aiConfig.Provider == "anthropic"
+    ? new Anthropic.AnthropicClient() { ApiKey = aiConfig.ApiKey }.AsIChatClient(aiConfig.Model)
+    : new OpenAI.Chat.ChatClient(aiConfig.Model, aiConfig.ApiKey).AsIChatClient();
   var builder = new ChatClientBuilder(chatClient).UseFunctionInvocation();
   return builder.Build();
 });

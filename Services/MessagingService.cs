@@ -89,7 +89,6 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
       });
     }
     aiMessages.AddRange(ParseMessagesToAi(chat.EffectiveMessages));
-    Printable.Make(aiMessages);
     var response = await aiChatGateway.GetResponse(chat.PhoneNumber, aiMessages);
     await (response.Type switch {
       AiChatMessageType.Text => SendTextMessage(chat.PhoneNumber, response.Text, chat),
@@ -142,7 +141,8 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
       var messagesToSummarize = ParseMessagesToAi(chat.EffectiveMessages);
       var lastMessageId = chat.EffectiveMessages.Last().Id;
       var summary = await aiChatGateway.GenerateSummary(messagesToSummarize, chat.Summary);
-      await UpdateChatSummary(chat.Id, summary, lastMessageId);
+      chat.SetSummary(summary, lastMessageId);
+      await SaveChat(chat);
     } catch { }
   }
 
@@ -268,6 +268,8 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
         type = {chat.Type.ToString()},
         phone_number = {chat.PhoneNumber},
         updated_at = {chat.UpdatedAt},
+        summary = {chat.Summary},
+        summarized_until_id = {chat.SummarizedUntilId},
         is_deleted = {chat.IsDeleted}
       WHERE id = {chat.Id}
     ");
@@ -300,16 +302,6 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
       "audio/amr" => ".amr",
       _ => ".bin"
     };
-  }
-
-  private async Task UpdateChatSummary(Guid chatId, string summary, Guid untilId) {
-    await database.Execute($@"
-      UPDATE chats SET
-        summary = {summary},
-        summarized_until_id = {untilId},
-        updated_at = {DateTime.UtcNow}
-      WHERE id = {chatId}
-    ");
   }
 
   private record DbChat(
