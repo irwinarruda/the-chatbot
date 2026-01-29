@@ -19,7 +19,8 @@ public class AiChatGateway(McpConfig mcpConfig, IChatClient chatClient) : IAiCha
     var options = new StdioClientTransportOptions {
       Name = "TheChatbot",
       Command = "dotnet",
-      EnvironmentVariables = new Dictionary<string, string?> { [Env.Key] = Env.Value }
+      EnvironmentVariables = new Dictionary<string, string?> { [Env.Key] = Env.Value },
+      StandardErrorLines = (line) => Console.Error.WriteLine($"[MCP stderr] {line}")
     };
     if (mcpConfig.UseDll) {
       options.Arguments = [mcpConfig.Path];
