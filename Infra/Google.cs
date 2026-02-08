@@ -12,6 +12,10 @@ public class GoogleConfig {
   public string ServiceAccountPrivateKey { get; set; } = string.Empty;
   public string SpeechProjectId { get; set; } = string.Empty;
   public string SpeechRegion { get; set; } = string.Empty;
+  public string SpeechEndpoint { get; set; } = string.Empty;
+  public string SpeechRecognizerId { get; set; } = string.Empty;
+  public string SpeechModel { get; set; } = string.Empty;
+  public List<string> SpeechLanguageCodes { get; set; } = [];
   public string ApplicationName { get; set; } = string.Empty;
 }
 

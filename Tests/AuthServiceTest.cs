@@ -2,11 +2,11 @@ using System.Web;
 
 using Google.Apis.Oauth2.v2;
 using Google.Apis.Sheets.v4;
-using Google.Apis.Tasks.v1;
 
 using Shouldly;
 
 using TheChatbot.Entities;
+using TheChatbot.Resources;
 using TheChatbot.Services;
 
 namespace Tests;
@@ -30,7 +30,7 @@ public class AuthServiceTest : IClassFixture<Orquestrator> {
     var scope = queryParams.Get("scope");
     scope.ShouldNotBeNull();
     scope.ShouldContain(SheetsService.Scope.Spreadsheets);
-    scope.ShouldContain(TasksService.Scope.Tasks);
+    scope.ShouldContain(GoogleAuthScopes.Tasks);
     scope.ShouldContain(Oauth2Service.Scope.UserinfoEmail);
     scope.ShouldContain(Oauth2Service.Scope.UserinfoProfile);
     scope.ShouldContain(Oauth2Service.Scope.Openid);

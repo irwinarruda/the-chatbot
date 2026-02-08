@@ -1,65 +1,53 @@
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Speech.v1;
-using Google.Apis.Speech.v1.Data;
+using Google.Cloud.Speech.V2;
+using Google.Protobuf;
 
 using TheChatbot.Infra;
 
 namespace TheChatbot.Resources;
 
 public class GoogleSpeechToTextGateway : ISpeechToTextGateway {
-  private readonly SpeechService speechService;
+  private readonly SpeechClient speechClient;
+  private readonly GoogleConfig googleConfig;
 
   public GoogleSpeechToTextGateway(GoogleConfig googleConfig) {
+    this.googleConfig = googleConfig;
     var initializer = new ServiceAccountCredential.Initializer(googleConfig.ServiceAccountId) {
-      Scopes = [SpeechService.Scope.CloudPlatform]
+      Scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     }.FromPrivateKey(googleConfig.ServiceAccountPrivateKey);
-    var credential = new ServiceAccountCredential(initializer);
-    speechService = new SpeechService(new() {
-      HttpClientInitializer = credential,
-      ApplicationName = googleConfig.ApplicationName
-    });
+    var credential = GoogleCredential.FromServiceAccountCredential(new ServiceAccountCredential(initializer));
+    speechClient = new SpeechClientBuilder {
+      Credential = credential,
+      Endpoint = googleConfig.SpeechEndpoint,
+    }.Build();
   }
 
   public async Task<string> TranscribeAsync(TranscribeAudioDTO audio) {
     using var memoryStream = new MemoryStream();
     await audio.AudioStream.CopyToAsync(memoryStream);
     var audioBytes = memoryStream.ToArray();
-
-    var encoding = GetEncoding(audio.MimeType);
-    var request = new RecognizeRequest {
-      Audio = new() {
-        Content = Convert.ToBase64String(audioBytes)
-      },
-      Config = new() {
-        Encoding = encoding,
-        SampleRateHertz = 16000,
-        LanguageCode = "pt-BR",
-        Model = "latest_long",
-        AlternativeLanguageCodes = ["en-US"],
-        EnableAutomaticPunctuation = true
-      }
-    };
-
-    var response = await speechService.Speech.Recognize(request).ExecuteAsync();
-    if (response.Results == null) {
+    if (audioBytes.Length == 0) {
       return string.Empty;
     }
-    var transcript = string.Join(" ", response.Results
-      .Where(r => r.Alternatives != null)
-      .SelectMany(r => r.Alternatives!)
-      .Select(a => a.Transcript));
-
-    return transcript;
-  }
-
-  private static string GetEncoding(string mimeType) {
-    return mimeType.ToLowerInvariant() switch {
-      "audio/ogg" or "audio/ogg; codecs=opus" => "OGG_OPUS",
-      "audio/flac" => "FLAC",
-      "audio/wav" or "audio/wave" => "LINEAR16",
-      "audio/mp3" or "audio/mpeg" => "MP3",
-      "audio/webm" or "audio/webm; codecs=opus" => "WEBM_OPUS",
-      _ => "ENCODING_UNSPECIFIED"
+    if (audioBytes.Length > 9_500_000) {
+      throw new ValidationException("Audio too large for synchronous recognition", "Use a shorter audio file and try again");
+    }
+    var recognizer = $"projects/{googleConfig.SpeechProjectId}/locations/{googleConfig.SpeechRegion}/recognizers/{googleConfig.SpeechRecognizerId}";
+    var request = new RecognizeRequest {
+      Recognizer = recognizer,
+      Config = new RecognitionConfig {
+        AutoDecodingConfig = new AutoDetectDecodingConfig(),
+        Model = googleConfig.SpeechModel,
+        LanguageCodes = { googleConfig.SpeechLanguageCodes },
+        Features = new() { EnableAutomaticPunctuation = true },
+      },
+      Content = ByteString.CopyFrom(audioBytes),
     };
+    var response = await speechClient.RecognizeAsync(request);
+    var transcript = string.Join(" ", response.Results
+      .SelectMany((r) => r.Alternatives)
+      .Select((a) => a.Transcript)
+      .Where((t) => !string.IsNullOrWhiteSpace(t)));
+    return transcript;
   }
 }

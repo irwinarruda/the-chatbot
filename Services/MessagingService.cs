@@ -56,7 +56,10 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
     _ = mediator.Send("RespondToMessage", new RespondToMessageEvent {
       Chat = chat,
       Message = message,
-    });
+    }).ContinueWith((task) => {
+      // Temporary until I have a logging system in place
+      Console.Error.WriteLine(task.Exception?.ToString());
+    }, TaskContinuationOptions.OnlyOnFaulted);
   }
 
   public async Task RespondToMessage(Chat chat, Message message) {

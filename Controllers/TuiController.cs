@@ -13,6 +13,12 @@ public class TuiSendMessageRequest {
   public required string PhoneNumber { get; set; }
 }
 
+public class TuiSendAudioRequest {
+  public required string FilePath { get; set; }
+  public required string PhoneNumber { get; set; }
+  public string? MimeType { get; set; }
+}
+
 [ApiController]
 [Route("/api/v1/[controller]")]
 public class TuiController(MessagingService messagingService, IWhatsAppMessagingGateway whatsAppGateway) : ControllerBase {
@@ -29,6 +35,35 @@ public class TuiController(MessagingService messagingService, IWhatsAppMessaging
     };
     await messagingService.ListenToMessage(dto);
     return Ok(new { status = "ok" });
+  }
+
+  [HttpPost("audio")]
+  public async Task<ActionResult> SendAudioMessage([FromBody] TuiSendAudioRequest request) {
+    if (whatsAppGateway is not TuiWhatsAppMessagingGateway tuiGateway) {
+      return BadRequest(new { error = "Not in Tui mode" });
+    }
+    var filePath = NormalizeFilePath(request.FilePath);
+    if (!Path.IsPathRooted(filePath)) {
+      return BadRequest(new { error = "File path must be absolute (or start with ~/)" });
+    }
+    if (!System.IO.File.Exists(filePath)) {
+      return BadRequest(new { error = "Audio file not found" });
+    }
+    var mimeType = request.MimeType ?? GetMimeType(filePath);
+    if (!mimeType.StartsWith("audio/")) {
+      return BadRequest(new { error = "MimeType must be an audio type" });
+    }
+    await using var stream = System.IO.File.OpenRead(filePath);
+    var mediaId = await tuiGateway.SaveMediaAsync(stream);
+    var dto = new ReceiveAudioMessageDTO {
+      From = request.PhoneNumber,
+      MimeType = mimeType,
+      MediaId = mediaId,
+      IdProvider = Guid.NewGuid().ToString(),
+      CreatedAt = DateTime.UtcNow.TruncateToMicroseconds()
+    };
+    await messagingService.ListenToMessage(dto);
+    return Ok(new { status = "ok", media_id = mediaId });
   }
 
   [HttpGet("messages/stream")]
@@ -51,4 +86,32 @@ public class TuiController(MessagingService messagingService, IWhatsAppMessaging
       }
     } catch (OperationCanceledException) { }
   }
+
+  private static string GetMimeType(string filePath) {
+    var extension = Path.GetExtension(filePath).ToLowerInvariant();
+    return extension switch {
+      ".ogg" => "audio/ogg",
+      ".flac" => "audio/flac",
+      ".wav" => "audio/wav",
+      ".mp3" => "audio/mpeg",
+      ".m4a" => "audio/mp4",
+      ".aac" => "audio/aac",
+      ".amr" => "audio/amr",
+      ".webm" => "audio/webm",
+      _ => "application/octet-stream"
+    };
+  }
+
+  private static string NormalizeFilePath(string filePath) {
+    var trimmedPath = filePath.Trim();
+    if (trimmedPath == "~") {
+      return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+    }
+    if (trimmedPath.StartsWith("~/")) {
+      var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+      return Path.Combine(home, trimmedPath[2..]);
+    }
+    return trimmedPath;
+  }
 }
+

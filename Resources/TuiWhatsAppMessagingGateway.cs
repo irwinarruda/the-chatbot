@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Threading.Channels;
 
+using TheChatbot.Infra;
+
 namespace TheChatbot.Resources;
 
 public class TuiOutgoingMessage {
@@ -12,6 +14,7 @@ public class TuiOutgoingMessage {
 
 public class TuiWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
   private readonly Channel<TuiOutgoingMessage> channel = Channel.CreateUnbounded<TuiOutgoingMessage>();
+  private readonly Dictionary<string, byte[]> mediaById = [];
 
   public async Task SendTextMessage(SendTextMessageDTO textMessage) {
     await channel.Writer.WriteAsync(new TuiOutgoingMessage {
@@ -46,7 +49,18 @@ public class TuiWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
     return true;
   }
 
+  public async Task<string> SaveMediaAsync(Stream mediaStream) {
+    var mediaId = Guid.NewGuid().ToString();
+    using var memoryStream = new MemoryStream();
+    await mediaStream.CopyToAsync(memoryStream);
+    mediaById[mediaId] = memoryStream.ToArray();
+    return mediaId;
+  }
+
   public Task<Stream> DownloadMediaAsync(string mediaId) {
-    return Task.FromResult<Stream>(new MemoryStream());
+    if (!mediaById.TryGetValue(mediaId, out var mediaBytes)) {
+      throw new NotFoundException("Audio file was not found in the TUI media store");
+    }
+    return Task.FromResult<Stream>(new MemoryStream(mediaBytes));
   }
 }

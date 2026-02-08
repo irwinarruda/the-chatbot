@@ -27,7 +27,6 @@ builder.Services.AddControllers(options => {
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 builder.Services.AddSingleton<IAiChatGateway, AiChatGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
-Console.WriteLine($"Environment: {Env.Value}");
 if (Env.Value == "Tui") {
   builder.Services.AddSingleton<IWhatsAppMessagingGateway, TuiWhatsAppMessagingGateway>();
 } else {
@@ -104,7 +103,9 @@ mediator.Register("RespondToMessage", async (RespondToMessageEvent data) => {
 
 app.UseExceptionHandler(exception => exception.Run(Controller.HandleException));
 app.UseStatusCodePages(Controller.HandleInternal);
-app.UseHttpsRedirection();
+if (Env.Value != "Tui") {
+  app.UseHttpsRedirection();
+}
 app.UseRateLimiter();
 
 app.UseAuthorization();

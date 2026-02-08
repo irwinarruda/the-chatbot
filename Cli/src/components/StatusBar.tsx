@@ -4,10 +4,14 @@ export function StatusBar({
   phoneNumber,
   connected,
   connecting,
+  focusedInput,
+  audioStatus,
 }: {
   phoneNumber: string
   connected: boolean
   connecting: boolean
+  focusedInput: "text" | "audio"
+  audioStatus: string
 }) {
   let statusIcon: string
   let statusText: string
@@ -41,7 +45,9 @@ export function StatusBar({
       <text fg={statusColor}>
         {statusIcon} {statusText}
       </text>
-      <text fg={theme.neutral[700]}>Ctrl+C exit</text>
+      <text fg={theme.neutral[700]}>
+        {focusedInput === "text" ? "Input: text" : "Input: audio"} | {audioStatus || "Tab switch"} | Ctrl+C exit
+      </text>
     </box>
   )
 }

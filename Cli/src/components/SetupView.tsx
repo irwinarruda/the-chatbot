@@ -1,24 +1,28 @@
-import { useState, useCallback } from "react"
-import { useKeyboard } from "@opentui/react"
-import { theme } from "../theme.ts"
-import type { SetupConfig } from "../types.ts"
+import { useState, useCallback } from "react";
+import { useKeyboard } from "@opentui/react";
+import { theme } from "../theme.ts";
+import type { SetupConfig } from "../types.ts";
 
-export function SetupView({ onConnect }: { onConnect: (cfg: SetupConfig) => void }) {
-  const [phone, setPhone] = useState("")
-  const [url, setUrl] = useState("http://localhost:8080")
-  const [focused, setFocused] = useState<"phone" | "url">("phone")
+export function SetupView({
+  onConnect,
+}: {
+  onConnect: (cfg: SetupConfig) => void;
+}) {
+  const [phone, setPhone] = useState("");
+  const [url, setUrl] = useState("http://localhost:8080");
+  const [focused, setFocused] = useState<"phone" | "url">("phone");
 
   const handleSubmit = useCallback(() => {
     if (phone) {
-      onConnect({ phoneNumber: phone, baseUrl: url })
+      onConnect({ phoneNumber: phone, baseUrl: url });
     }
-  }, [phone, url, onConnect])
+  }, [phone, url, onConnect]);
 
   useKeyboard((key) => {
     if (key.name === "tab") {
-      setFocused((f) => (f === "phone" ? "url" : "phone"))
+      setFocused((f) => (f === "phone" ? "url" : "phone"));
     }
-  })
+  });
 
   return (
     <box
@@ -44,11 +48,15 @@ export function SetupView({ onConnect }: { onConnect: (cfg: SetupConfig) => void
         <box height={1} />
 
         <box flexDirection="row" gap={1}>
-          <text fg={theme.neutral[400]} width={10}>Phone</text>
+          <text fg={theme.neutral[400]} width={10}>
+            Phone
+          </text>
           <box
             border
             borderStyle="single"
-            borderColor={focused === "phone" ? theme.green[600] : theme.neutral[700]}
+            borderColor={
+              focused === "phone" ? theme.green[600] : theme.neutral[700]
+            }
             width={36}
             height={3}
           >
@@ -66,11 +74,15 @@ export function SetupView({ onConnect }: { onConnect: (cfg: SetupConfig) => void
         </box>
 
         <box flexDirection="row" gap={1}>
-          <text fg={theme.neutral[400]} width={10}>URL</text>
+          <text fg={theme.neutral[400]} width={10}>
+            URL
+          </text>
           <box
             border
             borderStyle="single"
-            borderColor={focused === "url" ? theme.green[600] : theme.neutral[700]}
+            borderColor={
+              focused === "url" ? theme.green[600] : theme.neutral[700]
+            }
             width={36}
             height={3}
           >
@@ -91,10 +103,10 @@ export function SetupView({ onConnect }: { onConnect: (cfg: SetupConfig) => void
 
         <box alignItems="center">
           <text fg={theme.neutral[600]}>
-            Tab to switch fields  |  Enter to connect
+            Tab to switch fields | Enter to connect
           </text>
         </box>
       </box>
     </box>
-  )
+  );
 }

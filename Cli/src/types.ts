@@ -10,6 +10,12 @@ export interface SendMessageRequest {
   phone_number: string
 }
 
+export interface SendAudioRequest {
+  phone_number: string
+  file_path: string
+  mime_type?: string
+}
+
 export interface TuiOutgoingMessage {
   Type: "text" | "button"
   Text: string
