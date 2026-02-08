@@ -2,6 +2,9 @@ env-local = ASPNETCORE_ENVIRONMENT=Local
 env-dev = ASPNETCORE_ENVIRONMENT=Development
 env-prev = ASPNETCORE_ENVIRONMENT=Preview
 env-prod = ASPNETCORE_ENVIRONMENT=Production
+env-tui = ASPNETCORE_ENVIRONMENT=Tui
+env ?=
+env-var = $(if $(env),ASPNETCORE_ENVIRONMENT=$(env) ,)
 
 install-tools:
 	dotnet tool install -g dotnet-ef --version 9.0.8
@@ -18,12 +21,16 @@ build:
 	dotnet restore .
 	dotnet publish TheChatbot.csproj -c Release -o out
 	dotnet publish Mcp/Mcp.csproj -c Release -o Mcp/out
+run:
+	$(env-var)dotnet watch
 run-ngrok:
 	ngrok http --url=parrot-fun-nicely.ngrok-free.app --region us 8080
 run-local: services-ready
 	concurrently -n dotnet,ngrok -c red,blue -k "$(env-local) dotnet watch" "make run-ngrok"
 run-prod:
 	$(env-prod) dotnet TheChatbot.dll
+tui:
+	cd Cli && bun run dev
 services-up:
 	docker network create chatbot-network || true
 	docker compose -f Infra/compose.yaml up -d
@@ -39,8 +46,6 @@ name ?=
 migrations-create:
 	@[ -n "$(name)" ] || (echo "Usage: make migrations-create name=<Name>" && exit 1)
 	dotnet ef migrations add $(name) --output-dir Infra/Migrations
-env ?=
-env-var = $(if $(env),ASPNETCORE_ENVIRONMENT=$(env) ,)
 migrations-up:
 	$(env-var)dotnet ef database update
 migrations-down:

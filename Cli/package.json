@@ -1,0 +1,21 @@
+{
+  "name": "TheChatbotCli",
+  "module": "src/index.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.tsx"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.77",
+    "@opentui/react": "^0.1.77",
+    "react": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19.2.13"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

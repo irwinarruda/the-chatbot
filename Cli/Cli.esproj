@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.1-preview">
+  <PropertyGroup>
+    <StartupCommand>bun run dev</StartupCommand>
+    <BuildCommand>bun install</BuildCommand>
+    <ShouldRunBuildScript>false</ShouldRunBuildScript>
+  </PropertyGroup>
+</Project>

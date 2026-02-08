@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**\*</DefaultItemExcludes>
     <DefaultItemExcludes>$(DefaultItemExcludes);Mcp\**\*</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Cli\**\*</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +36,8 @@
     <None Remove="Tests\**\*" />
     <Compile Remove="Mcp\**\*.cs" />
     <None Remove="Mcp\**\*" />
+    <Compile Remove="Cli\**\*.cs" />
+    <None Remove="Cli\**\*" />
   </ItemGroup>
 
   <ItemGroup>

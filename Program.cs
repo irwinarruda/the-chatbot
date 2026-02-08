@@ -1,10 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
-using Microsoft.Extensions.AI;
-
 using System.Threading.RateLimiting;
 
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.Extensions.AI;
+
+using TheChatbot.Controllers;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 using TheChatbot.Services;
@@ -14,7 +15,11 @@ using WhatsappBusiness.CloudApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers().AddJsonOptions(options => {
+builder.Services.AddControllers(options => {
+  if (Env.Value != "Tui") {
+    options.Conventions.Add(new RemoveControllerConvention(typeof(TuiController)));
+  }
+}).AddJsonOptions(options => {
   options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
   options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.SnakeCaseLower;
   options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
@@ -22,7 +27,12 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 builder.Services.AddSingleton<IAiChatGateway, AiChatGateway>();
 builder.Services.AddSingleton<IGoogleAuthGateway, GoogleAuthGateway>();
-builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
+Console.WriteLine($"Environment: {Env.Value}");
+if (Env.Value == "Tui") {
+  builder.Services.AddSingleton<IWhatsAppMessagingGateway, TuiWhatsAppMessagingGateway>();
+} else {
+  builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
+}
 builder.Services.AddSingleton<IStorageGateway, R2StorageGateway>();
 builder.Services.AddSingleton<ISpeechToTextGateway, GoogleSpeechToTextGateway>();
 builder.Services.AddSingleton<IMediator, Mediator>();
@@ -55,15 +65,17 @@ builder.Services.AddRateLimiter(options => {
 
 var whatsAppConfig = builder.Configuration.GetSection("WhatsAppConfig").Get<WhatsAppConfig>()!;
 builder.Services.AddSingleton(whatsAppConfig);
-builder.Services.AddWhatsAppBusinessCloudApiService(new() {
-  AppName = whatsAppConfig.AppName,
-  Version = whatsAppConfig.Version,
-  WebhookVerifyToken = whatsAppConfig.WebhookVerifyToken,
-  WhatsAppBusinessAccountId = whatsAppConfig.WhatsAppBusinessAccountId,
-  WhatsAppBusinessId = whatsAppConfig.WhatsAppBusinessId,
-  WhatsAppBusinessPhoneNumberId = whatsAppConfig.WhatsAppBusinessPhoneNumberId,
-  AccessToken = whatsAppConfig.AccessToken
-});
+if (Env.Value != "Tui") {
+  builder.Services.AddWhatsAppBusinessCloudApiService(new() {
+    AppName = whatsAppConfig.AppName,
+    Version = whatsAppConfig.Version,
+    WebhookVerifyToken = whatsAppConfig.WebhookVerifyToken,
+    WhatsAppBusinessAccountId = whatsAppConfig.WhatsAppBusinessAccountId,
+    WhatsAppBusinessId = whatsAppConfig.WhatsAppBusinessId,
+    WhatsAppBusinessPhoneNumberId = whatsAppConfig.WhatsAppBusinessPhoneNumberId,
+    AccessToken = whatsAppConfig.AccessToken
+  });
+}
 var aiConfig = builder.Configuration.GetSection("AiConfig").Get<AiConfig>()!;
 builder.Services.AddSingleton(aiConfig);
 builder.Services.AddChatClient(_ => {
@@ -100,3 +112,17 @@ app.MapControllers();
 app.Run();
 
 public partial class Program { }
+
+public class RemoveControllerConvention : IApplicationModelConvention {
+  private readonly Type controllerType;
+
+  public RemoveControllerConvention(Type controllerType) {
+    this.controllerType = controllerType;
+  }
+
+  public void Apply(ApplicationModel application) {
+    var controller = application.Controllers.FirstOrDefault((c) => c.ControllerType == controllerType);
+    if (controller == null) return;
+    application.Controllers.Remove(controller);
+  }
+}
