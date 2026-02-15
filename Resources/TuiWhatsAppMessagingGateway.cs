@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 using TheChatbot.Infra;
+using TheChatbot.Utils;
 
 namespace TheChatbot.Resources;
 
@@ -17,11 +18,14 @@ public class TuiWhatsAppMessagingGateway : IWhatsAppMessagingGateway {
   private readonly Dictionary<string, byte[]> mediaById = [];
 
   public async Task SendTextMessage(SendTextMessageDTO textMessage) {
-    await channel.Writer.WriteAsync(new TuiOutgoingMessage {
-      Type = "text",
-      Text = textMessage.Text,
-      To = textMessage.To,
-    });
+    var chunks = WhatsAppTextChunker.Chunk(textMessage.Text);
+    foreach (var chunk in chunks) {
+      await channel.Writer.WriteAsync(new TuiOutgoingMessage {
+        Type = "text",
+        Text = chunk,
+        To = textMessage.To,
+      });
+    }
   }
 
   public async Task SendInteractiveReplyButtonMessage(SendInteractiveReplyButtonMessageDTO buttonMessage) {

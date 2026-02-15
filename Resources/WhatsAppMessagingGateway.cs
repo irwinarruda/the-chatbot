@@ -8,17 +8,21 @@ using WhatsappBusiness.CloudApi.Interfaces;
 using WhatsappBusiness.CloudApi.Messages.Requests;
 using WhatsappBusiness.CloudApi.Webhook;
 using TheChatbot.Infra;
+using TheChatbot.Utils;
 
 namespace TheChatbot.Resources;
 
 public class WhatsAppMessagingGateway(WhatsAppConfig whatsAppConfig, IWhatsAppBusinessClient whatsAppBusinessClient) : IWhatsAppMessagingGateway {
   public async Task SendTextMessage(SendTextMessageDTO textMessage) {
-    await whatsAppBusinessClient.SendTextMessageAsync(new TextMessageRequest {
-      To = textMessage.To,
-      Text = new() {
-        Body = textMessage.Text
-      }
-    });
+    var chunks = WhatsAppTextChunker.Chunk(textMessage.Text);
+    foreach (var chunk in chunks) {
+      await whatsAppBusinessClient.SendTextMessageAsync(new TextMessageRequest {
+        To = textMessage.To,
+        Text = new() {
+          Body = chunk
+        }
+      });
+    }
   }
 
   public async Task SendInteractiveReplyButtonMessage(SendInteractiveReplyButtonMessageDTO buttonMessage) {

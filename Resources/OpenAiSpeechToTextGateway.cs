@@ -1,5 +1,3 @@
-using System.ClientModel;
-
 using OpenAI.Audio;
 
 using TheChatbot.Infra;
@@ -29,7 +27,7 @@ public class OpenAiSpeechToTextGateway : ISpeechToTextGateway {
     var options = new AudioTranscriptionOptions {
       ResponseFormat = AudioTranscriptionFormat.Text,
     };
-    ClientResult<AudioTranscription> result = await audioClient.TranscribeAudioAsync(stream, filename, options);
+    var result = await audioClient.TranscribeAudioAsync(stream, filename, options);
     return result.Value.Text?.Trim() ?? string.Empty;
   }
 
