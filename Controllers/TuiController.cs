@@ -66,6 +66,15 @@ public class TuiController(MessagingService messagingService, IWhatsAppMessaging
     return Ok(new { status = "ok", media_id = mediaId });
   }
 
+  [HttpGet("transcripts")]
+  public async Task<ActionResult> GetTranscripts([FromQuery] string phoneNumber) {
+    if (whatsAppGateway is not TuiWhatsAppMessagingGateway) {
+      return BadRequest(new { error = "Not in Tui mode" });
+    }
+    var transcripts = await messagingService.GetTranscripts(phoneNumber);
+    return Ok(transcripts);
+  }
+
   [HttpGet("messages/stream")]
   public async Task GetMessageStream(CancellationToken cancellationToken) {
     if (whatsAppGateway is not TuiWhatsAppMessagingGateway tuiGateway) {

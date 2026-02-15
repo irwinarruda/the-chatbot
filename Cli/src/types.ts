@@ -27,3 +27,11 @@ export interface SetupConfig {
   phoneNumber: string
   baseUrl: string
 }
+
+export interface Transcript {
+  id: string
+  transcript: string
+  media_url?: string
+  mime_type?: string
+  created_at: string
+}

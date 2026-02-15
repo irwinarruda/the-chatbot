@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 using TheChatbot.Entities;
+using TheChatbot.Entities.DTOs;
 using TheChatbot.Infra;
 using TheChatbot.Resources;
 using TheChatbot.Utils;
@@ -183,6 +184,25 @@ public class MessagingService(AppDbContext database, AuthService authService, IM
       Text = m.ButtonReply ?? m.Transcript ?? m.Text ?? string.Empty,
       Buttons = m.ButtonReplyOptions ?? []
     })];
+  }
+
+  public async Task<List<TranscriptDTO>> GetTranscripts(string phoneNumber) {
+    var dbMessages = await database.Query<DbMessage>($@"
+      SELECT m.* FROM messages m
+      INNER JOIN chats c ON c.id = m.id_chat
+      WHERE c.phone_number = {phoneNumber}
+      AND c.is_deleted = false
+      AND m.type = 'Audio'
+      AND m.transcript IS NOT NULL
+      ORDER BY m.created_at DESC
+    ").ToListAsync();
+    return dbMessages.Select(m => new TranscriptDTO {
+      Id = m.Id,
+      Transcript = m.Transcript!,
+      MediaUrl = m.MediaUrl,
+      MimeType = m.MimeType,
+      CreatedAt = m.CreatedAt,
+    }).ToList();
   }
 
   public async Task<Chat?> GetChatByPhoneNumber(string phoneNumber) {

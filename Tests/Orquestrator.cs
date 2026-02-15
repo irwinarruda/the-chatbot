@@ -33,6 +33,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
   readonly public AiConfig aiConfig;
   readonly public AuthConfig authConfig;
   readonly public SummarizationConfig summarizationConfig;
+  readonly public OpenAiConfig openAiConfig;
 
   public Orquestrator() {
     configuration = Configurable.Make();
@@ -43,6 +44,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     aiConfig = configuration.GetSection("AiConfig").Get<AiConfig>()!;
     authConfig = configuration.GetSection("AuthConfig").Get<AuthConfig>()!;
     summarizationConfig = configuration.GetSection("SummarizationConfig").Get<SummarizationConfig>()!;
+    openAiConfig = configuration.GetSection("OpenAiConfig").Get<OpenAiConfig>()!;
     var services = new ServiceCollection();
     services.AddSingleton(databaseConfig);
     services.AddSingleton(googleSheetsConfig);
@@ -51,6 +53,7 @@ public class Orquestrator : WebApplicationFactory<Program> {
     services.AddSingleton(aiConfig);
     services.AddSingleton(authConfig);
     services.AddSingleton(summarizationConfig);
+    services.AddSingleton(openAiConfig);
 
     if (googleSheetsConfig.TestSheetId != "TestSheetId") {
       services.AddSingleton<ICashFlowSpreadsheetGateway, GoogleCashFlowSpreadsheetGateway>();

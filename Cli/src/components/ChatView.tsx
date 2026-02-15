@@ -10,7 +10,7 @@ import { StatusBar } from "./StatusBar.tsx"
 import { theme } from "../theme.ts"
 import type { Message } from "../types.ts"
 
-export function ChatView({ phoneNumber, baseUrl }: { phoneNumber: string; baseUrl: string }) {
+export function ChatView({ phoneNumber, baseUrl, onViewTranscripts }: { phoneNumber: string; baseUrl: string; onViewTranscripts: () => void }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [audioStatus, setAudioStatus] = useState("")
   const [focusedInput, setFocusedInput] = useState<"text" | "audio">("text")
@@ -34,6 +34,9 @@ export function ChatView({ phoneNumber, baseUrl }: { phoneNumber: string; baseUr
   useKeyboard((key) => {
     if (key.name === "tab") {
       setFocusedInput((focused) => focused === "text" ? "audio" : "text")
+    }
+    if (key.ctrl && key.name === "t") {
+      onViewTranscripts()
     }
   })
 

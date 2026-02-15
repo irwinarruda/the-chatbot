@@ -33,7 +33,7 @@ if (Env.Value == "Tui") {
   builder.Services.AddSingleton<IWhatsAppMessagingGateway, WhatsAppMessagingGateway>();
 }
 builder.Services.AddSingleton<IStorageGateway, R2StorageGateway>();
-builder.Services.AddSingleton<ISpeechToTextGateway, GoogleSpeechToTextGateway>();
+builder.Services.AddSingleton<ISpeechToTextGateway, OpenAiSpeechToTextGateway>();
 builder.Services.AddSingleton<IMediator, Mediator>();
 builder.Services.AddSingleton<StatusService>();
 builder.Services.AddSingleton<AuthService>();
@@ -46,6 +46,7 @@ builder.Services.AddSingleton(builder.Configuration.GetSection("McpConfig").Get<
 builder.Services.AddSingleton(builder.Configuration.GetSection("AuthConfig").Get<AuthConfig>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("R2Config").Get<R2Config>()!);
 builder.Services.AddSingleton(builder.Configuration.GetSection("SummarizationConfig").Get<SummarizationConfig>()!);
+builder.Services.AddSingleton(builder.Configuration.GetSection("OpenAiConfig").Get<OpenAiConfig>()!);
 
 builder.Services.AddRateLimiter(options => {
   options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

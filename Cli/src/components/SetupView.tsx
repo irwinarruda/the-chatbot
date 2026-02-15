@@ -1,16 +1,25 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
 import { theme } from "../theme.ts";
 import type { SetupConfig } from "../types.ts";
+
+const defaultPhone = process.env.TUI_PHONE_NUMBER ?? ""
+const defaultUrl = process.env.TUI_BASE_URL ?? "http://localhost:8080"
 
 export function SetupView({
   onConnect,
 }: {
   onConnect: (cfg: SetupConfig) => void;
 }) {
-  const [phone, setPhone] = useState("");
-  const [url, setUrl] = useState("http://localhost:8080");
+  const [phone, setPhone] = useState(defaultPhone);
+  const [url, setUrl] = useState(defaultUrl);
   const [focused, setFocused] = useState<"phone" | "url">("phone");
+
+  useEffect(() => {
+    if (defaultPhone && defaultUrl) {
+      onConnect({ phoneNumber: defaultPhone, baseUrl: defaultUrl })
+    }
+  }, [])
 
   const handleSubmit = useCallback(() => {
     if (phone) {

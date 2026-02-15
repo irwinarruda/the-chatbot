@@ -1,5 +1,5 @@
 import { useCallback } from "react"
-import type { SendAudioRequest, SendMessageRequest } from "../types.ts"
+import type { SendAudioRequest, SendMessageRequest, Transcript } from "../types.ts"
 
 export function useApi(baseUrl: string) {
   const send = useCallback(
@@ -51,7 +51,19 @@ export function useApi(baseUrl: string) {
     [baseUrl],
   )
 
-  return { send, sendAudio }
+  const getTranscripts = useCallback(
+    async (phoneNumber: string): Promise<Transcript[]> => {
+      const url = `${baseUrl}/api/v1/tui/transcripts?phoneNumber=${encodeURIComponent(phoneNumber)}`
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+      }
+      return await response.json() as Transcript[]
+    },
+    [baseUrl],
+  )
+
+  return { send, sendAudio, getTranscripts }
 }
 
 function getMimeType(filePath: string): string | undefined {

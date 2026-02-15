@@ -46,7 +46,7 @@ export function StatusBar({
         {statusIcon} {statusText}
       </text>
       <text fg={theme.neutral[700]}>
-        {focusedInput === "text" ? "Input: text" : "Input: audio"} | {audioStatus || "Tab switch"} | Ctrl+C exit
+        {focusedInput === "text" ? "Input: text" : "Input: audio"} | {audioStatus || "Tab switch"} | Ctrl+T transcripts | Ctrl+C exit
       </text>
     </box>
   )
